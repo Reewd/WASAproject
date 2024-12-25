@@ -1,3 +1,50 @@
+openapi: 3.0.3
+info:
+  title: Simplified login API specification
+  description: |-
+    This OpenAPI document describes the simplified login API.
+  version: "1"
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Maria
+                  pattern: 'ˆ.*?$'
+                  minLength: 3
+                  maxLength: 16
+              required:
+                - name
+      responses:
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    minimum: 0
+                    maximum: 9223372036854775807
+                    example: 1
+                  identifier:
+                    type: string
+                    example: "abcdef012345"
 components:
   schemas:
     User:
@@ -26,7 +73,6 @@ components:
             $ref: "#/components/schemas/Conversation"
           description: "The conversations the user is participating in"
           example: []
-
     Message:
       type: object
       description: "A message"
@@ -76,7 +122,6 @@ components:
           example: []
         conversation:
           $ref: "#/components/schemas/Conversation"
-
     Conversation:
       type: object
       description: "A conversation object"
@@ -108,7 +153,6 @@ components:
           description: "The title of the conversation"
           pattern: "^[a-zA-Z0-9-😀-🙏]+$"
           example: "Conversation 1"
-
     Reaction:
       type: object
       description: "A reaction to a message"
@@ -122,7 +166,6 @@ components:
           minLength: 1
         sentBy:
           $ref: "#/components/schemas/User"
-
     Image:
       type: object
       properties:
@@ -143,3 +186,7 @@ components:
           type: integer
           description: "The size of the image in bytes"
           example: 102400
+        uuid:
+          type: string
+          description: "The UUID of the image"
+          example: "550e8400-e29b-41d4-a716-446655440000"
