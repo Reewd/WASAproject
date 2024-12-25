@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: Simplified login API specification
+  title: WASAText API
   description: |-
-    This OpenAPI document describes the simplified login API.
-  version: "1"
+    This OpenAPI document describes the WASAText API.
+  version: "1.0.0"
 paths:
   /session:
     post:
@@ -61,18 +61,19 @@ components:
         username:
           type: string
           description: "The user name"
-          example: "user1"
-          maxLength: 64
-          minLength: 1
+          example: "Maria"
+          maxLength: 16
+          minLength: 3
         photo:
           $ref: "#/components/schemas/Image"
-          description: "The user's photo"
+          description: "The user photo"
         conversations:
           type: array
           items:
             $ref: "#/components/schemas/Conversation"
           description: "The conversations the user is participating in"
           example: []
+
     Message:
       type: object
       description: "A message"
