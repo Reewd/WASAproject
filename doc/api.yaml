@@ -12,7 +12,6 @@ servers:
     description: Local development server
 security:
   - bearerAuth: []
-
 tags:
   - name: login
     description: User login and session management
@@ -26,7 +25,6 @@ tags:
     description: Managing reactions to messages
   - name: group
     description: Group conversation management (metadata, participants)
-
 components:
   securitySchemes:
     bearerAuth:
@@ -61,7 +59,7 @@ components:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           description: The unique identifier for the user
           example: 1
         username:
@@ -73,7 +71,6 @@ components:
           example: Maria
         photo:
           $ref: '#/components/schemas/Image'
-          description: The user's photo
     Image:
       type: object
       description: Binary image
@@ -96,12 +93,13 @@ components:
       required:
         - id
         - participants
+        - isGroup
       properties:
         id:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           description: The unique identifier for the conversation
           example: 1
         participants:
@@ -114,6 +112,8 @@ components:
           items:
             $ref: '#/components/schemas/Message'
           description: Messages exchanged in the conversation
+          minItems: 0
+          maxItems: 1844674407370955161
         title:
           type: string
           minLength: 1
@@ -123,6 +123,10 @@ components:
         photo:
           $ref: '#/components/schemas/Image'
           description: Optional display photo for the conversation
+        isGroup:
+          type: boolean
+          description: Indicates if the conversation is a group chat
+          example: true
     Message:
       type: object
       description: A message within a conversation
@@ -136,7 +140,7 @@ components:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           description: Unique identifier for the message
           example: 1
         text:
@@ -153,9 +157,6 @@ components:
           format: date-time
           description: ISO8601 timestamp of when the message was sent
           example: "2025-05-03T12:34:56Z"
-        sentBy:
-          $ref: '#/components/schemas/User'
-          description: User who sent the message
         receivedBy:
           type: array
           items:
@@ -171,11 +172,13 @@ components:
           items:
             $ref: '#/components/schemas/Reaction'
           description: Reactions applied to the message
+          minItems: 0
+          maxItems: 1000
         conversationId:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           description: Identifier of the conversation this message belongs to
           example: 1
     Reaction:
@@ -195,6 +198,35 @@ components:
         sentBy:
           $ref: '#/components/schemas/User'
           description: The user who sent the reaction
+    forwardMessageRequest:
+      type: object
+      description: Represents a request to forward a message from one conversation to another
+      required:
+        - fromConversationId
+        - messageId
+        - toConversationId
+      properties:
+        fromConversationId:
+          type: integer
+          format: int64
+          example: 1
+          description: The ID of the conversation from which the message should be forwarded
+          minimum: 0
+          maximum: 18446744073709551615
+        messageId:
+          type: integer
+          format: int64
+          example: 1
+          description: The ID of the message that should be forwarded
+          minimum: 0
+          maximum: 18446744073709551615
+        toConversationId:
+          type: integer
+          format: int64
+          example: 1
+          description: The ID of the conversation to which the message should be forwarded
+          minimum: 0
+          maximum: 18446744073709551615
 paths:
   /session:
     post:
@@ -216,29 +248,14 @@ paths:
                   type: string
                   example: Maria
                   description: User's chosen display name
+                  pattern: "^.*?$"
                   minLength: 3
                   maxLength: 16
               required:
                 - name
       responses:
-        '200':
-          description: User already exists, login successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    minimum: 1
-                    example: 1
-                    description: Identifier of existing user
-                  identifier:
-                    type: string
-                    example: "abcdef012345"
-                    description: Session token for the user
         '201':
-          description: New user created and logged in
+          description: User log-in action successful
           content:
             application/json:
               schema:
@@ -246,18 +263,17 @@ paths:
                 properties:
                   id:
                     type: integer
+                    format: int64
                     minimum: 1
-                    example: 2
-                    description: Identifier of newly created user
-                  identifier:
-                    type: string
-                    example: "012345abcdef"
-                    description: Session token for the user
+                    maximum: 18446744073709551615
+                    description: The unique identifier for the user
+                    example: 1
   /me/username:
     put:
       tags:
         - user
       summary: Sets the user name
+      description: Sets the user name
       operationId: setMyUserName
       requestBody:
         required: true
@@ -305,7 +321,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /me/photo:
     put:
       tags:
@@ -343,7 +358,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /conversations:
     get:
       tags:
@@ -377,7 +391,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /conversations/{conversationId}:
     parameters:
       - name: conversationId
@@ -387,7 +400,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
     get:
       tags:
@@ -431,7 +444,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /conversations/{conversationId}/messages:
     parameters:
       - name: conversationId
@@ -441,7 +453,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
     post:
       tags:
@@ -499,7 +511,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /conversations/{conversationId}/messages/{messageId}/reactions:
     parameters:
       - name: conversationId
@@ -509,7 +520,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
       - name: messageId
         in: path
@@ -518,12 +529,13 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
-    post:
+    put:
       tags:
         - reaction
-      summary: Adds a reaction to a message
+      summary: Adds or updates a reaction to a message
+      description: Adds a reaction if none exists from the user, or updates the existing one.
       operationId: commentMessage
       requestBody:
         required: true
@@ -532,8 +544,8 @@ paths:
             schema:
               $ref: '#/components/schemas/Reaction'
       responses:
-        '200':
-          description: Reaction added successfully
+        '201':
+          description: Reaction added or updated successfully
           content:
             application/json:
               schema:
@@ -606,7 +618,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /conversations/{conversationId}/messages/{messageId}:
     parameters:
       - name: conversationId
@@ -616,7 +627,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
       - name: messageId
         in: path
@@ -625,7 +636,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
     delete:
       tags:
@@ -659,8 +670,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  /groups/{conversationId}/name:
+  /conversations/{conversationId}/name:
     parameters:
       - name: conversationId
         in: path
@@ -669,7 +679,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
     put:
       tags:
@@ -711,7 +721,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden – not group admin
+          description: Forbidden – conversation is not a group
           content:
             application/json:
               schema:
@@ -728,8 +738,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  /groups/{conversationId}/photo:
+  /conversations/{conversationId}/photo:
     parameters:
       - name: conversationId
         in: path
@@ -738,7 +747,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
     put:
       tags:
@@ -771,7 +780,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden – not group admin
+          description: Forbidden – conversation is not a group
           content:
             application/json:
               schema:
@@ -788,8 +797,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
-  /groups/{conversationId}/participants:
+  /conversations/{conversationId}/participants:
     parameters:
       - name: conversationId
         in: path
@@ -798,7 +806,7 @@ paths:
           type: integer
           format: int64
           minimum: 1
-          maximum: 9223372036854775807
+          maximum: 18446744073709551615
           example: 1
     put:
       tags:
@@ -835,7 +843,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Forbidden – not group admin
+          description: Forbidden – conversation is not a group or user(s) already in the group
           content:
             application/json:
               schema:
@@ -880,6 +888,74 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: Group not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /conversations/{conversationId}/messages/{messageId}/forward:
+    parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 18446744073709551615
+          example: 1
+      - name: messageId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 18446744073709551615
+          example: 1
+    post:
+      tags:
+        - message
+      summary: Forwards a message to another conversation
+      operationId: forwardMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/forwardMessageRequest'
+      responses:
+        '200':
+          description: Message forwarded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          description: Bad Request – invalid forward request or message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized – authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden – not allowed to forward this message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Conversation, message, or user not found
           content:
             application/json:
               schema:
