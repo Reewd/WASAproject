@@ -73,20 +73,23 @@ components:
           $ref: '#/components/schemas/Image'
     Image:
       type: object
-      description: Binary image
       required:
-        - data
         - uuid
+        - url
+        - mimeType
       properties:
-        data:
-          type: string
-          format: byte
-          description: Base64-encoded image data
         uuid:
           type: string
           format: uuid
-          description: UUID for image
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          example: 123e4567-e89b-12d3-a456-426614174000
+        url:
+          type: string
+          format: uri
+          description: Public or presigned URL for the image
+          example: http://example.com/image.png
+        mimeType:
+          type: string
+          example: image/png
     Conversation:
       type: object
       description: A conversation or group chat entity
@@ -474,10 +477,8 @@ paths:
                   minLength: 1
                   maxLength: 65536
                 media:
-                  type: string
-                  format: uri
-                  example: http://example.com/media.jpg
-                  description: Optional media URL
+                  $ref: '#/components/schemas/Image'
+                  description: Optional image to attach to the message
               required:
                 - text
       responses:
