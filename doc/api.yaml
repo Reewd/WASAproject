@@ -72,24 +72,12 @@ components:
         photo:
           $ref: '#/components/schemas/Image'
     Image:
-      type: object
-      required:
-        - uuid
-        - url
-        - mimeType
-      properties:
-        uuid:
-          type: string
-          format: uuid
-          example: 123e4567-e89b-12d3-a456-426614174000
-        url:
-          type: string
-          format: uri
-          description: Public or presigned URL for the image
-          example: http://example.com/image.png
-        mimeType:
-          type: string
-          example: image/png
+      type: integer
+      format: uint64
+      example: 1
+      description: The reference to the image file.
+      minimum: 0
+      maximum: 18446744073709551615
     Conversation:
       type: object
       description: A conversation or group chat entity
@@ -271,6 +259,37 @@ paths:
                     maximum: 18446744073709551615
                     description: The unique identifier for the user
                     example: 1
+  /upload:
+    post:
+      tags:
+        - login
+      summary: Uploads an image
+      description: Uploads an image and returns its reference.
+      operationId: uploadImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file to upload
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '400':
+          description: Bad Request – invalid image data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /me/username:
     put:
       tags:
