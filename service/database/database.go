@@ -37,10 +37,14 @@ import (
 	"os"
 )
 
+type UserDatabase interface {
+	Login(string) (int64, error)
+}
+
 // AppDatabase is the interface through which all DB operations are performed.
 type AppDatabase interface {
+	UserDatabase
 	Ping() error
-	New()
 }
 
 type appdbimpl struct {

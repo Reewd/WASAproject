@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS "users" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     photoId TEXT,
-    FOREIGN KEY (photoId) REFERENCES images(uuid)
+    FOREIGN KEY (photoId) REFERENCES images(id)
 );
 
 CREATE TABLE IF NOT EXISTS "conversations" (
@@ -13,11 +13,13 @@ CREATE TABLE IF NOT EXISTS "conversations" (
 );
 
 CREATE TABLE IF NOT EXISTS "messages" (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     senderId INTEGER NOT NULL,
     conversationId INTEGER NOT NULL,
     content TEXT NOT NULL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    participants INTEGER NOT NULL,
+    seenCount INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (senderId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id)
 );
@@ -40,6 +42,6 @@ CREATE TABLE IF NOT EXISTS "participants" (
 
 CREATE TABLE IF NOT EXISTS "images" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT NOT NULL,   
-)
+    path TEXT NOT NULL
+);
 
