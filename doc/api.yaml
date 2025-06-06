@@ -30,7 +30,10 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      description: |
+        Use the user ID as the bearer token.
+        Example: `Authorization: 12345`
+      bearerFormat: userId
   schemas:
     Error:
       type: object
@@ -71,13 +74,14 @@ components:
           example: Maria
         photo:
           $ref: '#/components/schemas/Image'
-    Image:
-      type: integer
-      format: uint64
-      example: 1
-      description: The reference to the image file.
-      minimum: 0
-      maximum: 18446744073709551615
+        Image:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          description: The UUID reference to the image file.
+          maxLength: 36
+          minLength: 36
+          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
     Conversation:
       type: object
       description: A conversation or group chat entity

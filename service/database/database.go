@@ -37,15 +37,22 @@ import (
 	"os"
 )
 
+// All user related operations on the DB are handled by this interface.
 type UserDatabase interface {
 	Login(string) (int64, error)
 	UserIDExists(int64) (bool, error)
 	SetMyUsername(string, int64) error
 }
 
+// All image related operations on the DB are handled by this interface.
+type ImageDatabase interface {
+	InsertImage(uuid string, path string) error
+}
+
 // AppDatabase is the interface through which all DB operations are performed.
 type AppDatabase interface {
 	UserDatabase
+	ImageDatabase
 	Ping() error
 }
 
