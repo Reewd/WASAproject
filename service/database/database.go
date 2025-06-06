@@ -39,6 +39,8 @@ import (
 
 type UserDatabase interface {
 	Login(string) (int64, error)
+	UserIDExists(int64) (bool, error)
+	SetMyUsername(string, int64) error
 }
 
 // AppDatabase is the interface through which all DB operations are performed.
