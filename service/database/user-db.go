@@ -41,3 +41,12 @@ func (db *appdbimpl) SetMyUsername(username string, id int64) error {
 	}
 	return nil
 }
+
+func (db *appdbimpl) SetMyPhoto(photoId string, id int64) error {
+	stmt := `UPDATE users SET photoId = ? WHERE id = ?`
+	_, err := db.c.Exec(stmt, photoId, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

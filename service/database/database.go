@@ -42,6 +42,7 @@ type UserDatabase interface {
 	Login(string) (int64, error)
 	UserIDExists(int64) (bool, error)
 	SetMyUsername(string, int64) error
+	SetMyPhoto(string, int64) error
 }
 
 // All image related operations on the DB are handled by this interface.

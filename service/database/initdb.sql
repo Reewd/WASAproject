@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS "users" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     photoId TEXT,
-    FOREIGN KEY (photoId) REFERENCES images(id)
+    FOREIGN KEY (photoId) REFERENCES images(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS "conversations" (
