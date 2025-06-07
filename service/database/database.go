@@ -37,6 +37,10 @@ import (
 	"os"
 )
 
+type ConversationDatabase interface {
+	
+}
+
 // All user related operations on the DB are handled by this interface.
 type UserDatabase interface {
 	Login(string) (int64, error)

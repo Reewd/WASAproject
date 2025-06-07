@@ -8,7 +8,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://127.0.1:8080/api
+  - url: http://127.0.1:8080/api/v1
     description: Local development server
 security:
   - bearerAuth: []
@@ -34,8 +34,71 @@ components:
         Use the user ID as the bearer token.
         Example: `Authorization: 12345`
       bearerFormat: userId
+
+  responses:
+    BadRequest:
+      description: Bad Request - The request was invalid or malformed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidData:
+              value:
+                code: 400
+                message: "Invalid request data"
+    
+    Unauthorized:
+      description: Unauthorized - Authentication is required or has failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauthorized:
+              value:
+                code: 401
+                message: "Authentication required"
+    
+    Forbidden:
+      description: Forbidden - The request is understood but access is denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            forbidden:
+              value:
+                code: 403
+                message: "Access denied"
+    
+    NotFound:
+      description: Not Found - The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notFound:
+              value:
+                code: 404
+                message: "Resource not found"
+    
+    InternalServerError:
+      description: Internal Server Error - An unexpected error occurred
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            serverError:
+              value:
+                code: 500
+                message: "Internal server error"
+
   schemas:
-    Error:
+
+    ErrorResponse:
       type: object
       description: Error response
       required:
@@ -51,6 +114,22 @@ components:
           type: string
           description: Error message
           example: "User not found"
+
+    ImageReference:
+      type: object
+      description: Reference to an image file
+      required:
+      - uuid
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: The UUID reference to the image file
+          example: "550e8400-e29b-41d4-a716-446655440000"
+          minLength: 36
+          maxLength: 36
+          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+
     User:
       type: object
       description: A user object representing an application user
@@ -61,27 +140,18 @@ components:
         id:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
           description: The unique identifier for the user
           example: 1
         username:
           type: string
+          description: The user’s display name
+          example: Maria
           minLength: 3
           maxLength: 16
           pattern: '^[a-zA-Z0-9_]+$'
-          description: The user’s display name
-          example: Maria
         photo:
-          $ref: '#/components/schemas/Image'
-        Image:
-          type: string
-          format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
-          description: The UUID reference to the image file.
-          maxLength: 36
-          minLength: 36
-          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+          $ref: '#/components/schemas/ImageReference'
+
     Conversation:
       type: object
       description: A conversation or group chat entity
@@ -93,35 +163,35 @@ components:
         id:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
           description: The unique identifier for the conversation
           example: 1
         participants:
           type: array
+          description: Users participating in the conversation
           items:
             $ref: '#/components/schemas/User'
-          description: Users participating in the conversation
+          minItems: 1
+          maxItems: 1000
         messages:
           type: array
+          description: Messages exchanged in the conversation
           items:
             $ref: '#/components/schemas/Message'
-          description: Messages exchanged in the conversation
           minItems: 0
-          maxItems: 1844674407370955161
+          maxItems: 1000000
         title:
           type: string
-          minLength: 1
-          maxLength: 16
           description: The conversation’s title or group name
           example: "Conversation 1"
+          minLength: 1
+          maxLength: 16
         photo:
-          $ref: '#/components/schemas/Image'
-          description: Optional display photo for the conversation
+          $ref: '#/components/schemas/ImageReference'
         isGroup:
           type: boolean
           description: Indicates if the conversation is a group chat
           example: true
+
     Message:
       type: object
       description: A message within a conversation
@@ -134,19 +204,16 @@ components:
         id:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
           description: Unique identifier for the message
           example: 1
         text:
           type: string
-          minLength: 0
-          maxLength: 65536
           description: Text content of the message
           example: "Hello, world!"
+          minLength: 0
+          maxLength: 65536
         media:
-          $ref: '#/components/schemas/Image'
-          description: Optional image attached to the message
+            $ref: '#/components/schemas/ImageReference'
         timestamp:
           type: string
           format: date-time
@@ -154,28 +221,33 @@ components:
           example: "2025-05-03T12:34:56Z"
         receivedBy:
           type: array
-          items:
-            $ref: '#/components/schemas/User'
           description: Users who have received the message
+          items: 
+            $ref: '#/components/schemas/User'
+          minItems: 0
+          maxItems: 1000
         seenBy:
           type: array
+          description: Users who have viewed the message
           items:
             $ref: '#/components/schemas/User'
-          description: Users who have viewed the message
+          minItems: 0
+          maxItems: 1000
         reactions:
           type: array
+          description: Reactions applied to the message
           items:
             $ref: '#/components/schemas/Reaction'
-          description: Reactions applied to the message
           minItems: 0
           maxItems: 1000
         conversationId:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
           description: Identifier of the conversation this message belongs to
           example: 1
+        sentBy:
+          $ref: '#/components/schemas/User'
+
     Reaction:
       type: object
       description: A reaction (emoji) to a message
@@ -186,209 +258,183 @@ components:
         content:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 3790
           description: The emoji code for the reaction
           example: 1
         sentBy:
           $ref: '#/components/schemas/User'
-          description: The user who sent the reaction
-    forwardMessageRequest:
+
+    ForwardMessageRequest:
       type: object
-      description: Represents a request to forward a message from one conversation to another
+      description: Represents a request to forward a message
       required:
-        - fromConversationId
-        - messageId
         - toConversationId
       properties:
-        fromConversationId:
-          type: integer
-          format: int64
-          example: 1
-          description: The ID of the conversation from which the message should be forwarded
-          minimum: 0
-          maximum: 18446744073709551615
-        messageId:
-          type: integer
-          format: int64
-          example: 1
-          description: The ID of the message that should be forwarded
-          minimum: 0
-          maximum: 18446744073709551615
         toConversationId:
           type: integer
           format: int64
-          example: 1
-          description: The ID of the conversation to which the message should be forwarded
-          minimum: 0
-          maximum: 18446744073709551615
+          description: Target conversation ID to forward the message to
+          example: 2
+
 paths:
   /session:
     post:
       tags:
         - login
-      summary: Logs in the user
-      description: |
-        If the user does not exist, it will be created, and an identifier is returned.
-        If the user exists, the user identifier is returned.
+      summary: Log in or create a user
+      description: If the user does not exist, it will be created.
       operationId: doLogin
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Maria
-                  description: User's chosen display name
-                  pattern: "^.*?$"
-                  minLength: 3
-                  maxLength: 16
-              required:
-                - name
+              $ref: '#/components/schemas/User'
       responses:
         '201':
           description: User log-in action successful
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    format: int64
-                    minimum: 1
-                    maximum: 18446744073709551615
-                    description: The unique identifier for the user
-                    example: 1
+                $ref: '#/components/schemas/User'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    username: "Maria"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /upload:
     post:
       tags:
         - login
-      summary: Uploads an image
-      description: Uploads an image and returns its reference.
+      summary: Upload an image
+      description: Uploads an image and returns its UUID reference.
       operationId: uploadImage
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
+              description: Request body containing the image file
               type: object
               properties:
-                image:
+                imageFile:
                   type: string
                   format: binary
                   description: The image file to upload
+                  minLength: 1
+                  maxLength: 104857600 # 100 MB max size 
+              required:
+                - imageFile
       responses:
         '201':
           description: Image uploaded successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Image'
+                $ref: '#/components/schemas/ImageReference'
+              examples:
+                success:
+                  value:
+                    uuid: "550e8400-e29b-41d4-a716-446655440000"
         '400':
-          description: Bad Request – invalid image data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /me/username:
     put:
       tags:
         - user
-      summary: Sets the user name
-      description: Sets the user name
-      operationId: setMyUserName
+      summary: Change your username
+      description: Sets the user’s display name.
+      operationId: setMyUsername
       requestBody:
         required: true
         content:
           application/json:
             schema:
+              description: Request body containing the new username
               type: object
               properties:
                 name:
                   type: string
+                  description: New display name
                   example: Maria
-                  description: New display name for the user
                   minLength: 3
                   maxLength: 16
+                  pattern: '^[a-zA-Z0-9_]+$'
               required:
                 - name
       responses:
         '200':
-          description: User name set successfully
+          description: Username updated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    username: "Maria"
         '400':
-          description: Invalid user name (violates length or format)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Forbidden – cannot change another user's name
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /me/photo:
     put:
       tags:
         - user
-      summary: Sets the user photo
+      summary: Change your photo
+      description: Sets the user’s profile photo.
       operationId: setMyPhoto
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Image'
+              type: object
+              description: Request body containing the image UUID reference
+              properties:
+                image:
+                  $ref: '#/components/schemas/ImageReference'
+              required:
+                - image
       responses:
         '200':
-          description: User photo set successfully
+          description: Photo updated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    username: "Maria"
+                    photo:
+                      uuid: "550e8400-e29b-41d4-a716-446655440000"
         '400':
-          description: Bad Request – malformed image data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations:
     get:
       tags:
         - conversation
-      summary: Retrieves all conversations for the user
+      summary: List all conversations
+      description: Retrieves all conversations for the authenticated user.
       operationId: getMyConversations
       responses:
         '200':
@@ -396,170 +442,152 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Conversation'
-        '404':
-          description: No conversations found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                description: Response containing a list of conversations
+                type: object
+                properties:
+                  conversations:
+                    description: List of conversations
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conversation'
+                    minItems: 0
+                    maxItems: 100000
+              examples:
+                success:
+                  value:
+                    conversations: []
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations/{conversationId}:
     parameters:
       - name: conversationId
         in: path
         required: true
+        description: Conversation identifier
         schema:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
           example: 1
     get:
       tags:
         - conversation
-      summary: Retrieves a specific conversation
+      summary: Get a conversation
+      description: Retrieves a specific conversation by ID.
       operationId: getConversation
       responses:
         '200':
-          description: Conversation retrieved successfully
+          description: Conversation retrieved
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Conversation'
-        '400':
-          description: Bad Request – invalid conversationId
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    title: "Conversation 1"
+                    participants:
+                      - id: 1
+                        username: "Maria"
+                    messages: []
+                    isGroup: false
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – not a participant in this conversation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Conversation not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations/{conversationId}/messages:
     parameters:
       - name: conversationId
         in: path
         required: true
+        description: Conversation identifier
         schema:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
           example: 1
     post:
       tags:
         - message
-      summary: Sends a message to a conversation
+      summary: Send a message
+      description: Sends a new message to a conversation.
       operationId: sendMessage
       requestBody:
         required: true
         content:
           application/json:
             schema:
+              description: Request body containing the message text and optional media
               type: object
               properties:
                 text:
                   type: string
+                  description: Message text
                   example: Hello, world!
-                  description: The message text
                   minLength: 1
                   maxLength: 65536
+                  pattern: '^[\s\S]*$' # Allows any character including whitespace
                 media:
-                  $ref: '#/components/schemas/Image'
-                  description: Optional image to attach to the message
+                  $ref: '#/components/schemas/ImageReference'
               required:
                 - text
       responses:
         '201':
-          description: Message sent successfully
+          description: Message sent
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    text: "Hello, world!"
+                    timestamp: "2025-05-03T12:34:56Z"
+                    sentBy:
+                      id: 1
+                      username: "Maria"
         '400':
-          description: Bad Request – missing or empty "text" field
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – not a participant in this conversation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /conversations/{conversationId}/messages/{messageId}/reactions:
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages/{message_id}/reactions:
     parameters:
       - name: conversationId
         in: path
         required: true
+        description: Conversation identifier
         schema:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
-      - name: messageId
+      - name: message_id
         in: path
         required: true
+        description: Message identifier
         schema:
           type: integer
           format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
-    put:
+    post:
       tags:
         - reaction
-      summary: Adds or updates a reaction to a message
-      description: Adds a reaction if none exists from the user, or updates the existing one.
+      summary: Add or update reaction
+      description: Sets or updates the user’s reaction on a message.
       operationId: commentMessage
       requestBody:
         required: true
@@ -568,147 +596,103 @@ paths:
             schema:
               $ref: '#/components/schemas/Reaction'
       responses:
-        '201':
-          description: Reaction added or updated successfully
+        '200':
+          description: Reaction added/updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
+                description: Response containing the updated reactions list
+                type: object
+                properties:
+                  reactions:
+                    description: List of reactions to the message
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reaction'
+                    minItems: 0
+                    maxItems: 1000
+              examples:
+                success:
+                  value:
+                    reactions:
+                      - content: 1
+                        sentBy:
+                          id: 1
+                          username: "Maria"                  
+                      
         '400':
-          description: Bad Request – invalid reaction payload
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – not allowed to react in this conversation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Message not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
         - reaction
-      summary: Removes a reaction from a message
+      summary: Remove reaction
+      description: Deletes the user’s reaction from a message.
       operationId: uncommentMessage
       responses:
         '204':
-          description: Reaction removed successfully
-        '400':
-          description: Bad Request – nothing to remove or malformed request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Reaction removed
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – not allowed to remove this reaction
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Reaction or message not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /conversations/{conversationId}/messages/{messageId}:
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages/{message_id}:
     parameters:
       - name: conversationId
+        description: Conversation identifier to delete the message from
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
-      - name: messageId
+      - name: message_id
+        description: Message identifier to delete
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
     delete:
       tags:
         - message
-      summary: Deletes a message
+      summary: Delete a message
+      description: Deletes a specific message.
       operationId: deleteMessage
       responses:
         '204':
-          description: Message deleted successfully
+          description: Message deleted
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – not allowed to delete this message
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Message not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations/{conversationId}/name:
     parameters:
       - name: conversationId
+        description: Conversation identifier to rename the group
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
     put:
       tags:
         - group
-      summary: Sets the group name
+      summary: Rename a group
+      description: Sets the group conversation’s name.
       operationId: setGroupName
       requestBody:
         required: true
@@ -716,277 +700,198 @@ paths:
           application/json:
             schema:
               type: object
+              description: Request body containing the new group name
               properties:
                 name:
                   type: string
+                  description: New group name
                   example: Group 1
-                  description: New name for the group
                   minLength: 1
                   maxLength: 16
+                  pattern: '^[a-zA-Z0-9_ ]+$'
               required:
                 - name
       responses:
         '200':
-          description: Group name set successfully
+          description: Group renamed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
+                type: string
+                description: The new name of the group
+              examples:
+                success:
+                  value: "Group 1"
         '400':
-          description: Bad Request – invalid "name" (too long/short)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – conversation is not a group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations/{conversationId}/photo:
     parameters:
       - name: conversationId
+        description: Conversation identifier to change the photo
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
     put:
       tags:
         - group
-      summary: Sets the group photo
+      summary: Change group photo
+      description: Sets the group conversation’s display photo.
       operationId: setGroupPhoto
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Image'
+              type: object
+              description: Request body containing the image UUID reference
+              properties:
+                image:
+                  $ref: '#/components/schemas/ImageReference'
+              required:
+                - image
       responses:
         '200':
-          description: Group photo set successfully
+          description: Group photo updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
+                $ref: '#/components/schemas/ImageReference'
+              examples:
+                success:
+                  value:
+                    uuid: "550e8400-e29b-41d4-a716-446655440000"
         '400':
-          description: Bad Request – malformed image data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – conversation is not a group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations/{conversationId}/participants:
     parameters:
       - name: conversationId
+        description: Conversation identifier to manage participants
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
-    put:
+    post:
       tags:
         - group
-      summary: Adds participants to a group
+      summary: Add participants
+      description: Adds users to a group conversation.
       operationId: addToGroup
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
+              description: Request body containing the list of users to add
+              type: object
+              properties:
+                participants:
+                  type: array
+                  description: Users to add
+                  items:
+                    $ref: '#/components/schemas/User'
+                  minItems: 1
+                  maxItems: 1000
+              required:
+                - participants
       responses:
-        '201':
+        '204':
           description: Participants added successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
         '400':
-          description: Bad Request – invalid user list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – conversation is not a group or user(s) already in the group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Some user(s) not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
         - group
-      summary: Leaves a group
+      summary: Leave group
+      description: Current user leaves the group conversation.
       operationId: leaveGroup
       responses:
         '204':
-          description: User left the group successfully
-        '400':
-          description: Bad Request – you're not in this group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: Left group successfully
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – cannot remove yourself in this manner
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Group not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /conversations/{conversationId}/messages/{messageId}/forward:
+          $ref: '#/components/responses/InternalServerError'
+
+  /conversations/{conversationId}/messages/{message_id}/forward:
     parameters:
       - name: conversationId
+        description: Conversation identifier to forward the message from
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
-      - name: messageId
+      - name: message_id
+        description: Message identifier to forward
         in: path
         required: true
         schema:
           type: integer
-          format: int64
-          minimum: 1
-          maximum: 18446744073709551615
-          example: 1
     post:
       tags:
         - message
-      summary: Forwards a message to another conversation
+      summary: Forward a message
+      description: Forwards a message to another conversation.
       operationId: forwardMessage
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/forwardMessageRequest'
+              $ref: '#/components/schemas/ForwardMessageRequest'
       responses:
         '200':
-          description: Message forwarded successfully
+          description: Message forwarded
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
+              examples:
+                success:
+                  value:
+                    id: 1
+                    text: "Hello, world!"
+                    timestamp: "2025-05-03T12:34:56Z"
+                    sentBy:
+                      id: 1
+                      username: "Maria"
         '400':
-          description: Bad Request – invalid forward request or message not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthorized – authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Forbidden – not allowed to forward this message
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Conversation, message, or user not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/InternalServerError'
