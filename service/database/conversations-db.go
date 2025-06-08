@@ -48,5 +48,3 @@ func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, partic
 	}
 	return nil
 }
-
-x
