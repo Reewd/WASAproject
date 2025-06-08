@@ -38,15 +38,17 @@ import (
 )
 
 type ConversationDatabase interface {
-	
+	InsertConversation(title string, participants []string, isGroup bool, photo *string) (int64, error)
 }
 
 // All user related operations on the DB are handled by this interface.
 type UserDatabase interface {
-	Login(string) (int64, error)
-	UserIDExists(int64) (bool, error)
-	SetMyUsername(string, int64) error
-	SetMyPhoto(string, int64) error
+	GetUser(string) (int64, error)
+	GetUsername(int64) (string, error)
+	InsertUser(string) (int64, error)
+	UserIdExists(int64) (bool, error)
+	UpdateUsername(string, int64) error
+	UpdateUserPhoto(string, int64) error
 }
 
 // All image related operations on the DB are handled by this interface.
@@ -58,6 +60,7 @@ type ImageDatabase interface {
 type AppDatabase interface {
 	UserDatabase
 	ImageDatabase
+	ConversationDatabase
 	Ping() error
 }
 

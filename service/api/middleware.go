@@ -24,7 +24,7 @@ func (rt *_router) idVerifierMiddleware(next httpRouterHandler) httpRouterHandle
 		}
 
 		// Check if the user ID exists in the database
-		exists, err := rt.db.UserIDExists(id)
+		exists, err := rt.db.UserIdExists(id)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("Failed to check user ID existence")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -37,6 +37,12 @@ func (rt *_router) idVerifierMiddleware(next httpRouterHandler) httpRouterHandle
 		}
 
 		ctx.UserID = id
+		ctx.Username, err = rt.db.GetUsername(id)
+		if err != nil {
+			ctx.Logger.WithError(err).Error("Failed to get username")
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		// Here you would typically validate the token and extract user information
 		// For simplicity, we assume the token is valid and proceed

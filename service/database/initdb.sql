@@ -9,7 +9,10 @@ CREATE TABLE IF NOT EXISTS "users" (
 
 CREATE TABLE IF NOT EXISTS "conversations" (
     id INTEGER PRIMARY KEY,
-    isGroup BOOLEAN NOT NULL
+    title TEXT NOT NULL,
+    isGroup BOOLEAN NOT NULL,
+    photoId TEXT,
+    FOREIGN KEY (photoId) REFERENCES images(uuid)
 );
 
 CREATE TABLE IF NOT EXISTS "messages" (

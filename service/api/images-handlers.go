@@ -13,7 +13,7 @@ import (
 )
 
 // TODO: MIME type validation for uploaded images
-func (rt *_router) UploadImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Handle image upload logic here
 	// This is a placeholder function; actual implementation will depend on how images are uploaded
 

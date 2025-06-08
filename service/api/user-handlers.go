@@ -23,7 +23,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	// Get or create user ID
-	id, err := rt.db.Login(req.Username)
+	id, err := rt.db.GetUser(req.Username)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Login failed")
 		http.Error(w, "Login failed", http.StatusInternalServerError)
@@ -37,7 +37,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	})
 }
 
-func (rt *_router) SetMyUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Parse the request body to get the new username
 	var req UsernameRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -52,7 +52,7 @@ func (rt *_router) SetMyUsername(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Update the username in the database
-	if err := rt.db.SetMyUsername(req.Username, ctx.UserID); err != nil {
+	if err := rt.db.UpdateUsername(req.Username, ctx.UserID); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to set username")
 		http.Error(w, "Failed to set username", http.StatusInternalServerError)
 		return
@@ -61,7 +61,7 @@ func (rt *_router) SetMyUsername(w http.ResponseWriter, r *http.Request, ps http
 	w.WriteHeader(http.StatusNoContent) // No content response for successful update
 }
 
-func (rt *_router) SetMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Parse the request body to get the new photo ID
 
 	var req PhotoRequest
@@ -71,13 +71,13 @@ func (rt *_router) SetMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Validate photo ID
-	if req.PhotoID == "" {
+	if req.PhotoId == "" {
 		http.Error(w, "Photo ID cannot be empty", http.StatusBadRequest)
 		return
 	}
 
 	// Update the photo ID in the database
-	if err := rt.db.SetMyPhoto(req.PhotoID, ctx.UserID); err != nil {
+	if err := rt.db.UpdateUserPhoto(req.PhotoId, ctx.UserID); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to set photo")
 		http.Error(w, "Failed to set photo", http.StatusInternalServerError)
 		return
