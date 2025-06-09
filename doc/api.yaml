@@ -387,7 +387,7 @@ paths:
         - user
       summary: Change your username
       description: Sets the user’s display name.
-      operationId: setMyUsername
+      operationId: setMyUserName
       requestBody:
         required: true
         content:
