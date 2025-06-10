@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Reewd/WASAproject/service/api/constraints"
 	"github.com/Reewd/WASAproject/service/api/dto"
@@ -84,6 +85,23 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	var req dto.SetGroupNameRequest
+
+	conversationIdPath := ps.ByName("conversationId")
+	if conversationIdPath == "" {
+		ctx.Logger.Error("Debug: conversationIdPath is empty")
+		http.Error(w, "Conversation ID is required", http.StatusBadRequest)
+		return
+	}
+
+	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64) // Ensure conversationId is a valid integer
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Debug: Failed to parse conversationIdPath")
+		http.Error(w, "The ID should be an integer", http.StatusBadRequest)
+		return
+	}
+
+	req.ConversationId = conversationId
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -118,7 +136,25 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 }
 
 func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+
 	var req dto.SetGroupPhotoRequest
+
+	conversationIdPath := ps.ByName("conversationId")
+	if conversationIdPath == "" {
+		ctx.Logger.Error("Debug: conversationIdPath is empty")
+		http.Error(w, "Conversation ID is required", http.StatusBadRequest)
+		return
+	}
+
+	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64) // Ensure conversationId is a valid integer
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Debug: Failed to parse conversationIdPath")
+		http.Error(w, "The ID should be an integer", http.StatusBadRequest)
+		return
+	}
+
+	req.ConversationId = conversationId
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

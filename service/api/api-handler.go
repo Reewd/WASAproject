@@ -17,6 +17,11 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/conversations", rt.wrap(rt.idVerifierMiddleware(rt.getMyConversations)))
 	rt.router.GET("/conversations/:conversationId", rt.wrap(rt.idVerifierMiddleware(rt.getConversation)))
 
+	rt.router.PUT("/conversations/:conversationId/name", rt.wrap(rt.idVerifierMiddleware(rt.setGroupName)))
+	rt.router.PUT("/conversations/:conversationId/photo", rt.wrap(rt.idVerifierMiddleware(rt.setGroupPhoto)))
+	rt.router.POST("/conversations/:conversationId/participants", rt.wrap(rt.idVerifierMiddleware(rt.addToGroup)))
+	rt.router.DELETE("/conversations/:conversationId/participants", rt.wrap(rt.idVerifierMiddleware(rt.leaveGroup)))
+
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 
