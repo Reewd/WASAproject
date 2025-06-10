@@ -15,4 +15,5 @@ docker-compose.log
 
 .vscode/*
 !.vscode/extensions.json
-spectral.js
+.spectral.js
+.golangci.yml

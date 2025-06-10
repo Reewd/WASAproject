@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Reewd/WASAproject/service/api/dto"
+
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
 )
 
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Parse the request body to get the username
-	var req UsernameRequest
+	var req dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -23,7 +25,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	// Get or create user ID
-	id, err := rt.db.GetUser(req.Username)
+	id, err := rt.db.Login(req.Username)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Login failed")
 		http.Error(w, "Login failed", http.StatusInternalServerError)
@@ -39,7 +41,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Parse the request body to get the new username
-	var req UsernameRequest
+	var req dto.SetUsernameRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -64,7 +66,7 @@ func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps http
 func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Parse the request body to get the new photo ID
 
-	var req PhotoRequest
+	var req dto.PhotoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

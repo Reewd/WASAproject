@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-
+	"github.com/Reewd/WASAproject/service/api/dto"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -67,8 +67,8 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "success",
-		"path":   filePath,
+	json.NewEncoder(w).Encode(dto.Photo{
+		PhotoId: uuid,
+		Path:    filePath,
 	})
 }

@@ -2,7 +2,7 @@ package database
 
 import "database/sql"
 
-func (db *appdbimpl) GetUser(username string) (int64, error) {
+func (db *appdbimpl) Login(username string) (int64, error) {
 	var id int64
 	stmt := `SELECT id FROM users WHERE username = ?`
 	err := db.c.QueryRow(stmt, username).Scan(&id)
@@ -41,6 +41,30 @@ func (db *appdbimpl) GetUsername(id int64) (string, error) {
 		return "", err
 	}
 	return username, nil
+}
+
+func (db *appdbimpl) GetUserId(username string) (int64, error) {
+	var id int64
+	stmt := `SELECT id FROM users WHERE username = ?`
+	err := db.c.QueryRow(stmt, username).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func (db *appdbimpl) GetUsersIds(usernames []string) ([]int64, error) {
+	ids := make([]int64, 0, len(usernames))
+	stmt := `SELECT id FROM users WHERE username = ?`
+	for _, username := range usernames {
+		var id int64
+		err := db.c.QueryRow(stmt, username).Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
 
 func (db *appdbimpl) UpdateUsername(username string, id int64) error {

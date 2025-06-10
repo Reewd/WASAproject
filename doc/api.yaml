@@ -167,7 +167,7 @@ components:
       description: A conversation object representing a chat or group conversation
       required:
         - id
-        - title
+        - name
         - participants
         - isGroup
         - messages
@@ -178,9 +178,9 @@ components:
           description: Database-generated ID
           example: 1
           readOnly: true             # ← only here
-        title:
+        name:
           type: string
-          description: The conversation’s title or group name
+          description: The conversation’s name or group name
           example: "Conversation 1"
           pattern: '^[a-zA-Z0-9_ ]+$'
           minLength: 1
@@ -212,8 +212,8 @@ components:
       allOf:
         - type: object
           properties:
-            title:
-              $ref: '#/components/schemas/Conversation/properties/title'
+            name:
+              $ref: '#/components/schemas/Conversation/properties/name'
             participants:
               $ref: '#/components/schemas/Conversation/properties/participants'
             isGroup:
@@ -243,7 +243,7 @@ components:
           description: Text content of the message
           example: "Hello, world!"
           pattern: '^[\s\S]*$' # Allows any character including whitespace
-          minLength: 0
+          minLength: 1
           maxLength: 65536
         media:
             $ref: '#/components/schemas/ImageReference'
@@ -512,7 +512,7 @@ paths:
             examples:
               success:
                 value:
-                  title: "Conversation 1"
+                  name: "Conversation 1"
                   participants:
                     - id: 1
                       username: "Maria"
@@ -528,7 +528,7 @@ paths:
                 success:
                   value:
                     id: 1
-                    title: "Conversation 1"
+                    name: "Conversation 1"
                     participants:
                       - id: 1
                         username: "Maria"
@@ -570,7 +570,7 @@ paths:
                 success:
                   value:
                     id: 1
-                    title: "Conversation 1"
+                    name: "Conversation 1"
                     participants:
                       - id: 1
                         username: "Maria"

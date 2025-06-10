@@ -37,37 +37,6 @@ import (
 	"os"
 )
 
-type ConversationDatabase interface {
-	InsertConversation(title string, participants []string, isGroup bool, photo *string) (int64, error)
-}
-
-// All user related operations on the DB are handled by this interface.
-type UserDatabase interface {
-	GetUser(string) (int64, error)
-	GetUsername(int64) (string, error)
-	InsertUser(string) (int64, error)
-	UserIdExists(int64) (bool, error)
-	UpdateUsername(string, int64) error
-	UpdateUserPhoto(string, int64) error
-}
-
-// All image related operations on the DB are handled by this interface.
-type ImageDatabase interface {
-	InsertImage(uuid string, path string) error
-}
-
-// AppDatabase is the interface through which all DB operations are performed.
-type AppDatabase interface {
-	UserDatabase
-	ImageDatabase
-	ConversationDatabase
-	Ping() error
-}
-
-type appdbimpl struct {
-	c *sql.DB
-}
-
 // NewAppDatabase reads initdb.sql, applies schema, and returns an AppDatabase.
 func New(db *sql.DB) (AppDatabase, error) {
 	if db == nil {

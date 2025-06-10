@@ -14,6 +14,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/me/photo", rt.wrap(rt.idVerifierMiddleware(rt.setMyPhoto)))
 
 	rt.router.POST("/conversations", rt.wrap(rt.idVerifierMiddleware(rt.createConversation)))
+	rt.router.GET("/conversations", rt.wrap(rt.idVerifierMiddleware(rt.getMyConversations)))
+	rt.router.GET("/conversations/:conversationId", rt.wrap(rt.idVerifierMiddleware(rt.getConversation)))
 
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
