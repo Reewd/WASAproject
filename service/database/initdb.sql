@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (senderId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
-    FOREIGN KEY (mediaId) REFERENCES images(uuid)
+    FOREIGN KEY (photoId) REFERENCES images(uuid),
     FOREIGN KEY (replyTo) REFERENCES messages(id) ON DELETE CASCADE
 );
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS "message_status" (
     FOREIGN KEY (messageId) REFERENCES messages(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
     FOREIGN KEY (recipientId) REFERENCES users(id)
-)
+);
 
 CREATE TABLE IF NOT EXISTS "reactions" (
     id INTEGER PRIMARY KEY,
