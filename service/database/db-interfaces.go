@@ -2,6 +2,18 @@ package database
 
 import "database/sql"
 
+type MessageDatabase interface {
+	InsertMessage(conversationId int64, userId int64, content string, photoId string) error
+	InsertReply(conversationId int64, userId int64, content string, photoId string, replyTo int64) error
+	RemoveMessage(messageId int64) error
+	GetMessages(conversationId int64) ([]MessageView, error)
+}
+
+type ReactionDatabase interface {
+	InsertReaction(messageId int64, userId int64, reaction string) error
+	RemoveReaction(messageId int64, userId int64) error
+}
+
 type ParticipantDatabase interface {
 	InsertParticipants(conversationId int64, userId []int64) error
 	RemoveParticipant(conversationId int64, userId int64) error

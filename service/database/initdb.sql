@@ -20,18 +20,33 @@ CREATE TABLE IF NOT EXISTS "messages" (
     senderId INTEGER NOT NULL,
     conversationId INTEGER NOT NULL,
     content TEXT NOT NULL,
+    photoId TEXT,
+    replyTo INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    participants INTEGER NOT NULL,
-    seenCount INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (senderId) REFERENCES users(id),
-    FOREIGN KEY (conversationId) REFERENCES conversations(id)
+    FOREIGN KEY (conversationId) REFERENCES conversations(id),
+    FOREIGN KEY (mediaId) REFERENCES images(uuid)
+    FOREIGN KEY (replyTo) REFERENCES messages(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS "message_status" (
+    messageId INTEGER NOT NULL,
+    conversationId INTEGER NOT NULL,
+    recipientId INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('sent', 'delivered', 'read')),
+    deliveredAt DATETIME,
+    readAt DATETIME,
+    FOREIGN KEY (messageId) REFERENCES messages(id),
+    FOREIGN KEY (conversationId) REFERENCES conversations(id),
+    FOREIGN KEY (recipientId) REFERENCES users(id)
+)
 
 CREATE TABLE IF NOT EXISTS "reactions" (
     id INTEGER PRIMARY KEY,
     messageId INTEGER NOT NULL,
     senderId INTEGER NOT NULL,
     content TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (messageId) REFERENCES messages(id),
     FOREIGN KEY (senderId) REFERENCES users(id)
 );
@@ -39,6 +54,7 @@ CREATE TABLE IF NOT EXISTS "reactions" (
 CREATE TABLE IF NOT EXISTS "participants" (
     userId INTEGER NOT NULL,
     conversationId INTEGER NOT NULL,
+    firstMessageId INTEGER,
     FOREIGN KEY (userId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id) ON DELETE CASCADE
 );
