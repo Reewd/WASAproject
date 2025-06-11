@@ -47,12 +47,17 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(dto.Conversation{
+	err = json.NewEncoder(w).Encode(dto.Conversation{
 		ConversationId: conversationId,
 		Name:           req.Name,
 		Participants:   req.Participants,
 		IsGroup:        req.IsGroup,
 		PhotoId:        req.PhotoId})
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqcontext.RequestContext, req dto.CreateConversationRequest) {
@@ -70,13 +75,18 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(dto.Conversation{
+	err = json.NewEncoder(w).Encode(dto.Conversation{
 		ConversationId: conversationId,
 		Name:           req.Name,
 		Participants:   req.Participants,
 		IsGroup:        req.IsGroup,
 		PhotoId:        req.PhotoId,
 	})
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -88,7 +98,8 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	var conversations []dto.Conversation
+	// Pre-allocate conversations slice
+	var conversations = make([]dto.Conversation, 0, len(database_conversations))
 	for _, dbConv := range database_conversations {
 		conversation := dto.Conversation{
 			ConversationId: dbConv.ConversationId,
@@ -101,7 +112,12 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(conversations)
+	err = json.NewEncoder(w).Encode(conversations)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
 
 }
 
@@ -157,5 +173,10 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(conversation)
+	err = json.NewEncoder(w).Encode(conversation)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
 }

@@ -69,6 +69,11 @@ func (db *appdbimpl) GetParticipants(conversationId int64) ([]string, error) {
 		participants = append(participants, username)
 	}
 
+	// Check rows.Err after iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return participants, nil
 }
 
@@ -94,6 +99,11 @@ func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, err
 			return nil, err
 		}
 		conversations = append(conversations, conv)
+	}
+
+	// Check rows.Err after iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return conversations, nil

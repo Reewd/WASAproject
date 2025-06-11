@@ -34,9 +34,14 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	// Return the user ID to be used as bearer token
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	// Add error handling for JSON encoding
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"id": id,
-	})
+	}); err != nil {
+		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {

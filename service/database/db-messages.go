@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// Replace repeated string with a constant
+const statusRead = "read"
+
 func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content string, photoId string) error {
 	stmt := `INSERT INTO messages (conversationId, userId, content, photoId) VALUES (?, ?, ?, ?)`
 	_, err := db.c.Exec(stmt, conversationId, userId, content, photoId)
@@ -180,10 +183,10 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 
 		allRead, allDelivered := true, true
 		for _, s := range statuses {
-			if s != "read" {
+			if s != statusRead {
 				allRead = false
 			}
-			if s != "delivered" && s != "read" {
+			if s != "delivered" && s != statusRead {
 				allDelivered = false
 			}
 			if !allRead && !allDelivered {
@@ -193,7 +196,7 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 
 		switch {
 		case allRead:
-			m.Status = "read"
+			m.Status = statusRead
 		case allDelivered:
 			m.Status = "delivered"
 		default:
@@ -202,7 +205,8 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 	}
 
 	// Convert map→slice, then sort by timestamp
-	var out []MessageView
+	// Pre-allocate the out slice
+	var out = make([]MessageView, 0, len(msgMap))
 	for _, m := range msgMap {
 		out = append(out, *m)
 	}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
 	"github.com/Reewd/WASAproject/service/api/dto"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/google/uuid"
@@ -67,8 +68,12 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(dto.Photo{
+	if err := json.NewEncoder(w).Encode(dto.Photo{
 		PhotoId: uuid,
 		Path:    filePath,
-	})
+	}); err != nil {
+		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
+		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		return
+	}
 }
