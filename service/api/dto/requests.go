@@ -48,3 +48,7 @@ type ForwardMessageRequest struct {
 	ForwardToConversationId int64 `json:"forwardTo"`
 	MessageId               int64 `json:"messageId"`
 }
+
+type ReactionRequest struct {
+	Content string `json:"content"`
+}

@@ -149,3 +149,66 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	//TODO: Return the forwarded message
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	var req dto.ReactionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	messageId, err := strconv.ParseInt(ps.ByName("messageId"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid message ID", http.StatusBadRequest)
+		return
+	}
+	conversationId, err := strconv.ParseInt(ps.ByName("conversationId"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
+		return
+	}
+	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
+	if err != nil {
+		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "You are not a participant in this conversation", http.StatusForbidden)
+		return
+	}
+	//TODO: Validate req.Content, e.g., check length or allowed characters
+	err = rt.db.InsertReaction(messageId, ctx.UserID, req.Content)
+	if err != nil {
+		http.Error(w, "Failed to comment on message", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	messageId, err := strconv.ParseInt(ps.ByName("messageId"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid message ID", http.StatusBadRequest)
+		return
+	}
+	conversationId, err := strconv.ParseInt(ps.ByName("conversationId"), 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
+		return
+	}
+	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
+	if err != nil {
+		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "You are not a participant in this conversation", http.StatusForbidden)
+		return
+	}
+
+	err = rt.db.RemoveReaction(messageId, ctx.UserID)
+	if err != nil {
+		http.Error(w, "Failed to remove comment from message", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
