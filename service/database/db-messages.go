@@ -5,25 +5,23 @@ import (
 	"fmt"
 )
 
-// Replace repeated string with a constant
-const statusRead = "read"
-
-func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content string, photoId string) error {
-	stmt := `INSERT INTO messages (conversationId, userId, content, photoId) VALUES (?, ?, ?, ?)`
-	_, err := db.c.Exec(stmt, conversationId, userId, content, photoId)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *appdbimpl) InsertReply(conversationId int64, userId int64, content string, photoId string, replyTo int64) error {
+func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content string, photoId *string, replyTo *int64) error {
 	stmt := `INSERT into messages (conversationId, userId, content, photoId, replyTo) VALUES (?, ?, ?, ?, ?)`
 	_, err := db.c.Exec(stmt, conversationId, userId, content, photoId, replyTo)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (db *appdbimpl) GetSenderId(messageId int64) (int64, error) {
+	stmt := `SELECT senderId FROM messages WHERE id = ?`
+	var senderId int64
+	err := db.c.QueryRow(stmt, messageId).Scan(&senderId)
+	if err != nil {
+		return 0, err
+	}
+	return senderId, nil
 }
 
 func (db *appdbimpl) RemoveMessage(messageId int64) error {
@@ -183,10 +181,10 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 
 		allRead, allDelivered := true, true
 		for _, s := range statuses {
-			if s != statusRead {
+			if s != "read" {
 				allRead = false
 			}
-			if s != "delivered" && s != statusRead {
+			if s != "delivered" && s != "read" {
 				allDelivered = false
 			}
 			if !allRead && !allDelivered {
@@ -196,7 +194,7 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 
 		switch {
 		case allRead:
-			m.Status = statusRead
+			m.Status = "read"
 		case allDelivered:
 			m.Status = "delivered"
 		default:
@@ -205,8 +203,7 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 	}
 
 	// Convert map→slice, then sort by timestamp
-	// Pre-allocate the out slice
-	var out = make([]MessageView, 0, len(msgMap))
+	var out []MessageView
 	for _, m := range msgMap {
 		out = append(out, *m)
 	}
@@ -229,4 +226,14 @@ func (db *appdbimpl) ForwardMessage(messageId int64, conversationId int64, forwa
 		return err
 	}
 	return nil
+}
+
+func (db *appdbimpl) GetConversationIdFromMessageId(messageId int64) (int64, error) {
+	stmt := `SELECT conversationId FROM messages WHERE id = ?`
+	var conversationId int64
+	err := db.c.QueryRow(stmt, messageId).Scan(&conversationId)
+	if err != nil {
+		return 0, fmt.Errorf("getting conversation ID from message ID: %w", err)
+	}
+	return conversationId, nil
 }

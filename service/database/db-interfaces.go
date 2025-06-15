@@ -3,10 +3,12 @@ package database
 import "database/sql"
 
 type MessageDatabase interface {
-	InsertMessage(conversationId int64, userId int64, content string, photoId string) error
-	InsertReply(conversationId int64, userId int64, content string, photoId string, replyTo int64) error
+	InsertMessage(conversationId int64, userId int64, content string, photoId *string, replyTo *int64) error
 	RemoveMessage(messageId int64) error
-	GetMessages(conversationId int64) ([]MessageView, error)
+	GetSenderId(messageId int64) (int64, error)
+	GetMessageViews(conversationID int64) ([]MessageView, error)
+	GetConversationIdFromMessageId(messageId int64) (int64, error)
+	ForwardMessage(messageId int64, conversationId int64, forwarderId int64) error
 }
 
 type ReactionDatabase interface {
@@ -56,6 +58,8 @@ type AppDatabase interface {
 	ConversationDatabase
 	ParticipantDatabase
 	GroupDatabase
+	MessageDatabase
+	ReactionDatabase
 	Ping() error
 }
 

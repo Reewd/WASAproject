@@ -37,3 +37,14 @@ type SetGroupPhotoRequest struct {
 	ConversationId int64  `json:"conversationId"`
 	PhotoId        string `json:"photoId"`
 }
+
+type SendMessageRequest struct {
+	ReplyToMessageId *int64  `json:"replyTo"`
+	Content          string  `json:"content"`
+	PhotoId          *string `json:"photoId,omitempty"`
+}
+
+type ForwardMessageRequest struct {
+	ForwardToConversationId int64 `json:"forwardTo"`
+	MessageId               int64 `json:"messageId"`
+}

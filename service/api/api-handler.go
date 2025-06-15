@@ -22,6 +22,10 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/conversations/:conversationId/participants", rt.wrap(rt.idVerifierMiddleware(rt.addToGroup)))
 	rt.router.DELETE("/conversations/:conversationId/participants", rt.wrap(rt.idVerifierMiddleware(rt.leaveGroup)))
 
+	rt.router.POST("/conversations/:conversationId/messages", rt.wrap(rt.idVerifierMiddleware(rt.sendMessage)))
+	rt.router.DELETE("/conversations/:conversationId/messages/:messageId", rt.wrap(rt.idVerifierMiddleware(rt.deleteMessage)))
+	rt.router.POST("/conversations/:conversationId/forwardedMessages", rt.wrap(rt.idVerifierMiddleware(rt.forwardMessage)))
+
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 

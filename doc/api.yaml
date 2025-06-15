@@ -309,6 +309,11 @@ components:
           format: int64
           description: Target conversation ID to forward the message to
           example: 2
+        messageId:
+          type: integer
+          format: int64
+          description: ID of the message to forward
+          example: 1
 
 paths:
   /session:
@@ -923,16 +928,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /conversations/{conversationId}/messages/{message_id}/forward:
+  /conversations/{conversationId}/forwardedMessages:
     parameters:
       - name: conversationId
-        description: Conversation identifier to forward the message from
-        in: path
-        required: true
-        schema:
-          type: integer
-      - name: message_id
-        description: Message identifier to forward
+        description: The destination conversation identifier to forward the message to
         in: path
         required: true
         schema:
