@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/Reewd/WASAproject/service/api/constraints"
 	"github.com/Reewd/WASAproject/service/api/dto"
 	"github.com/Reewd/WASAproject/service/api/helpers"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
@@ -14,7 +15,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// TODO: MIME type validation for uploaded images
 func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Handle image upload logic here
 	// This is a placeholder function; actual implementation will depend on how images are uploaded
@@ -32,6 +32,29 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	defer file.Close()
+
+	// Validate MIME type
+	buffer := make([]byte, 512)
+	if _, err := file.Read(buffer); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to read file for MIME type validation")
+		return
+	}
+	file.Seek(0, 0) // Reset file pointer after reading
+
+	mimeType := http.DetectContentType(buffer)
+	isValidMimeType := false
+	for _, allowed := range constraints.AllowedMimeTypes {
+		if mimeType == allowed {
+			isValidMimeType = true
+			break
+		}
+	}
+
+	if !isValidMimeType {
+		ctx.Logger.Error("Invalid MIME type: " + mimeType)
+		http.Error(w, "Invalid file type.", http.StatusBadRequest)
+		return
+	}
 
 	uploadDir := "./uploads"
 	err = os.MkdirAll(uploadDir, 0755)
