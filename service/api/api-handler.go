@@ -24,7 +24,7 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.POST("/conversations/:conversationId/messages", rt.wrap(rt.idVerifierMiddleware(rt.sendMessage)))
 	rt.router.DELETE("/conversations/:conversationId/messages/:messageId", rt.wrap(rt.idVerifierMiddleware(rt.deleteMessage)))
-	rt.router.POST("/conversations/:conversationId/forwardedMessages", rt.wrap(rt.idVerifierMiddleware(rt.forwardMessage)))
+	rt.router.POST("/conversations/:conversationId/forwarded_messages", rt.wrap(rt.idVerifierMiddleware(rt.forwardMessage)))
 
 	rt.router.POST("/conversations/:conversationId/messages/:messagedId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.commentMessage)))
 	rt.router.GET("/conversations/:conversationId/messages/:messageId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.uncommentMessage)))

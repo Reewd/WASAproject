@@ -928,7 +928,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /conversations/{conversationId}/forwardedMessages:
+  /conversations/{conversationId}/forwarded_messages:
     parameters:
       - name: conversationId
         description: The destination conversation identifier to forward the message to
