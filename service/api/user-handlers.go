@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Reewd/WASAproject/service/api/dto"
+	"github.com/Reewd/WASAproject/service/api/helpers"
 
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
@@ -27,8 +28,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	// Get or create user ID
 	id, err := rt.db.Login(req.Username)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Login failed")
-		http.Error(w, "Login failed", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Login failed")
 		return
 	}
 
@@ -38,8 +38,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"id": id,
 	}); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
 }
@@ -60,8 +59,7 @@ func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps http
 
 	// Update the username in the database
 	if err := rt.db.UpdateUsername(req.Username, ctx.UserID); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to set username")
-		http.Error(w, "Failed to set username", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to set username")
 		return
 	}
 
@@ -85,8 +83,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 	// Update the photo ID in the database
 	if err := rt.db.UpdateUserPhoto(req.PhotoId, ctx.UserID); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to set photo")
-		http.Error(w, "Failed to set photo", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to set photo")
 		return
 	}
 

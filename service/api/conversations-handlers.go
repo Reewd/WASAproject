@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Reewd/WASAproject/service/api/dto"
+	"github.com/Reewd/WASAproject/service/api/helpers"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
 )
@@ -41,8 +42,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 
 	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, req.PhotoId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to create conversation")
-		http.Error(w, "Failed to create conversation", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 		return
 	}
 
@@ -54,8 +54,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 		IsGroup:        req.IsGroup,
 		PhotoId:        req.PhotoId})
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
 }
@@ -69,8 +68,7 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 	}
 
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to create conversation")
-		http.Error(w, "Failed to create conversation", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 		return
 	}
 
@@ -83,8 +81,7 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		PhotoId:        req.PhotoId,
 	})
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
 }
@@ -93,8 +90,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 	// Retrieve the user's conversations from the database
 	database_conversations, err := rt.db.GetConversationsByUserId(ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to retrieve conversations")
-		http.Error(w, "Failed to retrieve conversations", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversations")
 		return
 	}
 
@@ -114,8 +110,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(conversations)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
 
@@ -131,16 +126,14 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64) // Ensure conversationId is a valid integer
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Debug: Failed to parse conversationIdPath")
-		http.Error(w, "The ID should be an integer", http.StatusBadRequest)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to parse conversationIdPath")
 		return
 	}
 
 	// Retrieve the conversation from the database
 	database_conversation, err := rt.db.GetConversationById(conversationId)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to retrieve conversation")
-		http.Error(w, "Failed to retrieve conversation", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversation")
 		return
 	}
 
@@ -175,8 +168,7 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(conversation)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Reewd/WASAproject/service/api/constraints"
 	"github.com/Reewd/WASAproject/service/api/dto"
+	"github.com/Reewd/WASAproject/service/api/helpers"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,8 +22,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to check participant existence")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 
@@ -38,15 +38,13 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	participantsIds, err := rt.db.GetUsersIds(req.Participants)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to get user IDs")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to get user IDs")
 		return
 	}
 
 	err = rt.db.InsertParticipants(req.ConversationId, participantsIds)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to add participants to group")
-		http.Error(w, "Failed to add participants", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to add participants to group")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent) // No content response for successful addition
@@ -61,8 +59,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to check participant existence")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 
@@ -73,8 +70,7 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	err = rt.db.RemoveParticipant(req.ConversationId, ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to leave group")
-		http.Error(w, "Failed to leave group", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to leave group")
 		return
 	}
 
@@ -107,8 +103,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 
 	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to check participant existence")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 
@@ -124,8 +119,7 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 
 	err = rt.db.UpdateGroupName(req.ConversationId, req.Name)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to update group name")
-		http.Error(w, "Failed to update group name", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to update group name")
 		return
 	}
 
@@ -159,8 +153,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to check participant existence")
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 	if !exists {
@@ -174,8 +167,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	err = rt.db.UpdateGroupPhoto(req.ConversationId, req.PhotoId)
 
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to update group photo")
-		http.Error(w, "Failed to update group photo", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to update group photo")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent) // No content response for successful update

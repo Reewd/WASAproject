@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/Reewd/WASAproject/service/api/dto"
+	"github.com/Reewd/WASAproject/service/api/helpers"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
@@ -20,8 +21,7 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	err := r.ParseMultipartForm(1024)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to parse multipart form")
-		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to parse multipart form")
 		return
 	}
 
@@ -36,8 +36,7 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 	uploadDir := "./uploads"
 	err = os.MkdirAll(uploadDir, 0755)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to create upload directory")
-		http.Error(w, "Failed to create upload directory", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to create upload directory")
 		return
 	}
 
@@ -47,23 +46,19 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 	filePath := filepath.Join(uploadDir, newFilename)
 	dst, err := os.Create(filePath)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to create destination file")
-		http.Error(w, "Failed to save image", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to create destination file")
 		return
 	}
 	defer dst.Close()
 
 	if _, err = io.Copy(dst, file); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to save uploaded file")
-		http.Error(w, "Failed to save image", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to save uploaded file")
 		return
 	}
 
 	if err := rt.db.InsertImage(uuid, filePath); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to store image path in database")
-		// Try to clean up the file if database insertion fails
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to store image path in database")
 		os.Remove(filePath)
-		http.Error(w, "Failed to process image", http.StatusInternalServerError)
 		return
 	}
 
@@ -72,8 +67,7 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		PhotoId: uuid,
 		Path:    filePath,
 	}); err != nil {
-		ctx.Logger.WithError(err).Error("Failed to encode JSON response")
-		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
 }

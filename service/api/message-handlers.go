@@ -8,6 +8,7 @@ import (
 
 	"github.com/Reewd/WASAproject/service/api/constraints"
 	"github.com/Reewd/WASAproject/service/api/dto"
+	"github.com/Reewd/WASAproject/service/api/helpers"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
 )
@@ -32,7 +33,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 	if !exists {
@@ -41,10 +42,10 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	if err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Content, req.PhotoId, req.ReplyToMessageId); err != nil {
-		http.Error(w, "Failed to send message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert message")
 		return
 	}
-	//TODO: Return the message
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -63,7 +64,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	dbConversationId, err := rt.db.GetConversationIdFromMessageId(messageId)
 	if err != nil {
-		http.Error(w, "Failed to retrieve conversation ID from message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversation ID from message")
 		return
 	}
 
@@ -74,7 +75,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 
@@ -85,7 +86,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	senderId, err := rt.db.GetSenderId(messageId)
 	if err != nil {
-		http.Error(w, "Failed to retrieve message sender", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve sender ID from message")
 		return
 	}
 
@@ -95,7 +96,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	if err := rt.db.RemoveMessage(messageId); err != nil {
-		http.Error(w, "Failed to delete message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to delete message")
 		return
 	}
 
@@ -117,7 +118,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 	if !exists {
@@ -127,13 +128,13 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 
 	fromConversationId, err := rt.db.GetConversationIdFromMessageId(req.MessageId)
 	if err != nil {
-		http.Error(w, "Failed to retrieve conversation ID from message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversation ID from message")
 		return
 	}
 
 	exists, err = rt.db.ParticipantExists(fromConversationId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to check participant existence in source conversation", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence in source conversation")
 		return
 	}
 	if !exists {
@@ -142,7 +143,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	if err := rt.db.ForwardMessage(req.MessageId, conversationId, ctx.UserID); err != nil {
-		http.Error(w, "Failed to forward message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to forward message")
 		return
 	}
 
@@ -156,31 +157,35 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	messageId, err := strconv.ParseInt(ps.ByName("messageId"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid message ID", http.StatusBadRequest)
 		return
 	}
+
 	conversationId, err := strconv.ParseInt(ps.ByName("conversationId"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
 		return
 	}
+
 	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 	if !exists {
 		http.Error(w, "You are not a participant in this conversation", http.StatusForbidden)
 		return
 	}
-	//TODO: Validate req.Content, e.g., check length or allowed characters
+
 	err = rt.db.InsertReaction(messageId, ctx.UserID, req.Content)
 	if err != nil {
-		http.Error(w, "Failed to comment on message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to comment on message")
 		return
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -190,14 +195,16 @@ func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, "Invalid message ID", http.StatusBadRequest)
 		return
 	}
+
 	conversationId, err := strconv.ParseInt(ps.ByName("conversationId"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
 		return
 	}
+
 	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to check participant existence", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
 	}
 	if !exists {
@@ -207,8 +214,9 @@ func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 
 	err = rt.db.RemoveReaction(messageId, ctx.UserID)
 	if err != nil {
-		http.Error(w, "Failed to remove comment from message", http.StatusInternalServerError)
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to remove comment from message")
 		return
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
