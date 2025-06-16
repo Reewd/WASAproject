@@ -5,13 +5,17 @@ import (
 	"fmt"
 )
 
-func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content string, photoId *string, replyTo *int64) error {
-	stmt := `INSERT into messages (conversationId, userId, content, photoId, replyTo) VALUES (?, ?, ?, ?, ?)`
-	_, err := db.c.Exec(stmt, conversationId, userId, content, photoId, replyTo)
+func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64) (int64, string, error) {
+	stmt := `INSERT into messages (conversationId, userId, content, photoId, replyTo) VALUES (?, ?, ?, ?, ?) RETURNING id, timestamp`
+	var timestamp string
+	var messageId int64
+
+	err := db.c.QueryRow(stmt, conversationId, userId, content, photoId, replyTo).Scan(&timestamp, &messageId)
 	if err != nil {
-		return err
+		return 0, "", err
 	}
-	return nil
+
+	return messageId, timestamp, nil
 }
 
 func (db *appdbimpl) GetSenderId(messageId int64) (int64, error) {
@@ -75,15 +79,15 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 	for rows.Next() {
 		var (
 			messageID                int64
-			messageContent           string
+			nsMessageContent         sql.NullString
 			convID                   int64
 			nsMessagePhotoID         sql.NullString
 			nrReplyTo                sql.NullInt64
-			messageTimestamp         int64
+			messageTimestamp         string
 			senderUsername           string
 			nsSenderPhotoID          sql.NullString
 			nsReactionContent        sql.NullString
-			nrReactionTimestamp      sql.NullInt64
+			nrReactionTimestamp      sql.NullString
 			nsReactionSenderUsername sql.NullString
 			nsReactionSenderPhotoID  sql.NullString
 			MessageStatus            string
@@ -91,7 +95,7 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 
 		if err := rows.Scan(
 			&messageID,
-			&messageContent,
+			&nsMessageContent,
 			&convID,
 			&nsMessagePhotoID,
 			&nrReplyTo,
@@ -115,6 +119,11 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 		var replyTo *int64
 		if nrReplyTo.Valid {
 			replyTo = &nrReplyTo.Int64
+		}
+
+		var messageContent *string
+		if nsMessageContent.Valid {
+			messageContent = &nsMessageContent.String
 		}
 
 		statusMap[messageID] = append(statusMap[messageID], MessageStatus)
@@ -152,9 +161,9 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 				rSenderPhoto = &nsReactionSenderPhotoID.String
 			}
 			// build reaction timestamp pointer
-			var rTs *int64
+			var rTs *string
 			if nrReactionTimestamp.Valid {
-				rTs = &nrReactionTimestamp.Int64
+				rTs = &nrReactionTimestamp.String
 			}
 			// build reaction-sender username
 			senderName := nsReactionSenderUsername.String
@@ -211,21 +220,29 @@ func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error
 	return out, nil
 }
 
-func (db *appdbimpl) ForwardMessage(messageId int64, conversationId int64, forwarderId int64) error {
+func (db *appdbimpl) ForwardMessage(messageIdToForward int64, conversationId int64, forwarderId int64) (messageId int64, timestamp string, content *string, photoId *string, err error) {
 	stmt := `SELECT content, photoId FROM messages WHERE id = ?`
-	var content string
-	var photoId sql.NullString
-	err := db.c.QueryRow(stmt, messageId).Scan(&content, &photoId)
+	var nsContent sql.NullString
+	var nsPhotoId sql.NullString
+	err = db.c.QueryRow(stmt, messageIdToForward).Scan(&content, &nsPhotoId)
 	if err != nil {
-		return err
+		return 0, "", nil, nil, err
 	}
 
-	stmt = `INSERT INTO messages (conversationId, senderId, content, photoId) VALUES (?, ?, ?, ?)`
-	_, err = db.c.Exec(stmt, conversationId, forwarderId, content, photoId)
-	if err != nil {
-		return err
+	if nsPhotoId.Valid {
+		photoId = &nsPhotoId.String
 	}
-	return nil
+
+	if nsContent.Valid {
+		content = &nsContent.String
+	}
+
+	forwardedMessageId, timestamp, err := db.InsertMessage(conversationId, forwarderId, content, photoId, nil)
+	if err != nil {
+		return 0, "", nil, nil, err
+	}
+
+	return forwardedMessageId, timestamp, content, photoId, nil
 }
 
 func (db *appdbimpl) GetConversationIdFromMessageId(messageId int64) (int64, error) {

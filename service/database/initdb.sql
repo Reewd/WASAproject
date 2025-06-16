@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     senderId INTEGER NOT NULL,
     conversationId INTEGER NOT NULL,
-    content TEXT NOT NULL,
+    content TEXT,
     photoId TEXT,
     replyTo INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
     FOREIGN KEY (photoId) REFERENCES images(uuid),
     FOREIGN KEY (replyTo) REFERENCES messages(id) ON DELETE CASCADE
+    CHECK (content IS NOT NULL OR photoId IS NOT NULL)
 );
 
 CREATE TABLE IF NOT EXISTS "message_status" (
@@ -39,10 +40,11 @@ CREATE TABLE IF NOT EXISTS "message_status" (
     FOREIGN KEY (messageId) REFERENCES messages(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
     FOREIGN KEY (recipientId) REFERENCES users(id)
+    
 );
 
 CREATE TABLE IF NOT EXISTS "reactions" (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     messageId INTEGER NOT NULL,
     senderId INTEGER NOT NULL,
     content TEXT NOT NULL,

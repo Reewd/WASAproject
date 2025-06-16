@@ -70,6 +70,16 @@ func (db *appdbimpl) GetUsersIds(usernames []string) ([]int64, error) {
 	return ids, nil
 }
 
+func (db *appdbimpl) GetUserPhoto(id int64) (string, error) {
+	var photoId string
+	stmt := `SELECT photoId FROM users WHERE id = ?`
+	err := db.c.QueryRow(stmt, id).Scan(&photoId)
+	if err != nil {
+		return "", err
+	}
+	return photoId, nil
+}
+
 func (db *appdbimpl) UpdateUsername(username string, id int64) error {
 	stmt := `UPDATE users SET username = ? WHERE id = ?`
 	_, err := db.c.Exec(stmt, username, id)

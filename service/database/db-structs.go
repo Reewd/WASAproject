@@ -16,15 +16,15 @@ type Conversation struct {
 type ReactionView struct {
 	SentBy    *PublicUser
 	Content   *string
-	Timestamp *int64
+	Timestamp *string
 }
 
 type MessageView struct {
 	MessageId      int64
 	SentBy         PublicUser
 	ConversationId int64
-	Content        string
-	Timestamp      int64
+	Content        *string
+	Timestamp      string
 	PhotoId        *string
 	Reactions      []ReactionView // aggregated reactions from rows sharing the same messageId
 	ReplyTo        *int64

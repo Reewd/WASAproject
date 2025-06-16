@@ -20,9 +20,15 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	if len(req.Content) == 0 || len(req.Content) > constraints.MaxMessageLength {
-		http.Error(w, fmt.Sprintf("Message content is required and must not exceed %d characters", constraints.MaxMessageLength), http.StatusBadRequest)
-		return
+	if req.Content != nil && req.PhotoId != nil {
+		http.Error(w, "You must send either a message or a photo, or both", http.StatusBadRequest)
+	}
+
+	if req.Content != nil {
+		if len(*req.Content) == 0 || len(*req.Content) > constraints.MaxMessageLength {
+			http.Error(w, fmt.Sprintf("Message content cannot be empty and must not exceed %d characters", constraints.MaxMessageLength), http.StatusBadRequest)
+			return
+		}
 	}
 
 	conversationId, err := strconv.ParseInt(ps.ByName("conversationId"), 10, 64)
@@ -41,12 +47,27 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	if err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Content, req.PhotoId, req.ReplyToMessageId); err != nil {
+	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Content, req.PhotoId, req.ReplyToMessageId)
+	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert message")
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	var resp dto.SentMessage
+	resp.MessageId = messageId
+	resp.Timestamp = timestamp
+	resp.PhotoId = req.PhotoId
+	resp.SentBy = dto.PublicUser{
+		Username: ctx.Username,
+		PhotoId:  nil,
+	}
+	resp.Content = req.Content
+	resp.ReplyToMessageId = req.ReplyToMessageId
+	resp.Status = "sent" // Initial status is "sent"
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -142,13 +163,27 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	if err := rt.db.ForwardMessage(req.MessageId, conversationId, ctx.UserID); err != nil {
+	messageId, timestamp, content, photoId, err := rt.db.ForwardMessage(req.MessageId, conversationId, ctx.UserID)
+	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to forward message")
 		return
 	}
 
-	//TODO: Return the forwarded message
-	w.WriteHeader(http.StatusNoContent)
+	var resp dto.ForwardedMessage
+	resp.MessageId = messageId
+	resp.Timestamp = timestamp
+	resp.PhotoId = photoId
+	resp.SentBy = dto.PublicUser{
+		Username: ctx.Username,
+		PhotoId:  nil,
+	}
+	resp.Content = content
+	resp.ReplyToMessageId = nil
+	resp.Status = "sent" // Initial status is "sent"
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
