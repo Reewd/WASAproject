@@ -46,13 +46,22 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 		return
 	}
 
+	database_participants, err := rt.db.GetParticipants(conversationId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participants")
+		return
+	}
+
+	participants := helpers.ConvertPublicUsers(database_participants)
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(dto.Conversation{
+	err = json.NewEncoder(w).Encode(dto.Chat{
 		ConversationId: conversationId,
 		Name:           req.Name,
-		Participants:   req.Participants,
+		Participants:   participants,
 		IsGroup:        req.IsGroup,
 		PhotoId:        req.PhotoId})
+
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
@@ -72,14 +81,22 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		return
 	}
 
+	database_participants, err := rt.db.GetParticipants(conversationId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participants")
+		return
+	}
+
+	participants := helpers.ConvertPublicUsers(database_participants)
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(dto.Conversation{
+	err = json.NewEncoder(w).Encode(dto.Chat{
 		ConversationId: conversationId,
 		Name:           req.Name,
-		Participants:   req.Participants,
+		Participants:   participants,
 		IsGroup:        req.IsGroup,
-		PhotoId:        req.PhotoId,
-	})
+		PhotoId:        req.PhotoId})
+
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
@@ -95,14 +112,15 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 	}
 
 	// Pre-allocate conversations slice
-	var conversations = make([]dto.Conversation, 0, len(database_conversations))
+	var conversations = make([]dto.ConversationPreview, 0, len(database_conversations))
 	for _, dbConv := range database_conversations {
-		conversation := dto.Conversation{
+		conversation := dto.ConversationPreview{
 			ConversationId: dbConv.ConversationId,
 			Name:           dbConv.Name,
-			Participants:   dbConv.Participants,
+			Participants:   helpers.ConvertPublicUsers(dbConv.Participants),
 			IsGroup:        dbConv.IsGroup,
 			PhotoId:        dbConv.PhotoId,
+			LastMessage:    nil, // Initialize LastMessage as nil
 		}
 		conversations = append(conversations, conversation)
 	}
@@ -139,7 +157,7 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 
 	isIn := false
 	for _, participant := range database_conversation.Participants {
-		if participant == ctx.Username {
+		if participant.Username == ctx.Username {
 			isIn = true
 			break
 		}
@@ -157,12 +175,25 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	conversation := dto.Conversation{
-		ConversationId: database_conversation.ConversationId,
-		Name:           database_conversation.Name,
-		Participants:   database_conversation.Participants,
-		IsGroup:        database_conversation.IsGroup,
-		PhotoId:        database_conversation.PhotoId,
+	database_chat, err := rt.db.GetChat(conversationId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve chat messages")
+		return
+	}
+
+	messages := helpers.ConvertToSentMessages(database_chat)
+	participants := helpers.ConvertPublicUsers(database_conversation.Participants)
+	name := database_conversation.Name
+	isGroup := database_conversation.IsGroup
+	photoId := database_conversation.PhotoId
+
+	conversation := dto.Chat{
+		ConversationId: conversationId,
+		Name:           name,
+		Participants:   participants,
+		IsGroup:        isGroup,
+		PhotoId:        photoId,
+		Messages:       messages,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

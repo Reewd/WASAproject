@@ -24,7 +24,7 @@ func (rt *_router) idVerifierMiddleware(next httpRouterHandler) httpRouterHandle
 		}
 
 		// Check if the user ID exists in the database
-		exists, err := rt.db.UserIdExists(id)
+		exists, err := rt.db.UserExistsById(id)
 		if err != nil {
 			ctx.Logger.WithError(err).Error("Failed to check user ID existence")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

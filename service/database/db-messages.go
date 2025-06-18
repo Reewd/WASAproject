@@ -40,7 +40,7 @@ func (db *appdbimpl) RemoveMessage(messageId int64) error {
 // GetMessageViews fetches all messages (with their reactions and status) for a given conversation.
 //
 //	TODO: Split this into smaller functions
-func (db *appdbimpl) GetMessageViews(conversationID int64) ([]MessageView, error) {
+func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	const stmt = `
     SELECT 
         m.id                  AS messageId,

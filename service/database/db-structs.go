@@ -8,7 +8,7 @@ type PublicUser struct {
 type Conversation struct {
 	ConversationId int64
 	Name           string
-	Participants   []string
+	Participants   []PublicUser
 	IsGroup        bool
 	PhotoId        *string
 }

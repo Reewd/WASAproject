@@ -6,7 +6,7 @@ type MessageDatabase interface {
 	InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64) (int64, string, error)
 	RemoveMessage(messageId int64) error
 	GetSenderId(messageId int64) (int64, error)
-	GetMessageViews(conversationID int64) ([]MessageView, error)
+	GetChat(conversationID int64) ([]MessageView, error)
 	GetConversationIdFromMessageId(messageId int64) (int64, error)
 	ForwardMessage(messageIdToForward int64, conversationId int64, forwarderId int64) (messageId int64, timestamp string, content *string, photoId *string, err error)
 }
@@ -28,7 +28,7 @@ type GroupDatabase interface {
 
 type ConversationDatabase interface {
 	InsertConversation(name string, participants []string, isGroup bool, photo *string) (int64, error)
-	GetParticipants(conversationId int64) ([]string, error)
+	GetParticipants(conversationId int64) ([]PublicUser, error)
 	GetConversationsByUserId(userId int64) ([]Conversation, error)
 	GetConversationById(conversationId int64) (*Conversation, error)
 	ParticipantExists(conversationId int64, userId int64) (bool, error)
@@ -42,14 +42,16 @@ type UserDatabase interface {
 	GetUserPhoto(int64) (string, error)
 	GetUsername(int64) (string, error)
 	InsertUser(string) (int64, error)
-	UserIdExists(int64) (bool, error)
+	UserExistsById(int64) (bool, error)
 	UpdateUsername(string, int64) error
 	UpdateUserPhoto(string, int64) error
+	GetPublicUsersByName([]string) ([]PublicUser, error)
 }
 
 // All image related operations on the DB are handled by this interface.
 type ImageDatabase interface {
 	InsertImage(uuid string, path string) error
+	// GetImagePath(uuid string) (string, error)
 }
 
 // AppDatabase is the interface through which all DB operations are performed.

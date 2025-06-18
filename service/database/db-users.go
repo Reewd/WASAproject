@@ -26,7 +26,7 @@ func (db *appdbimpl) InsertUser(username string) (int64, error) {
 	return result.LastInsertId()
 }
 
-func (db *appdbimpl) UserIdExists(id int64) (bool, error) {
+func (db *appdbimpl) UserExistsById(id int64) (bool, error) {
 	var exists bool
 	stmt := `SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)`
 	err := db.c.QueryRow(stmt, id).Scan(&exists)
@@ -96,4 +96,20 @@ func (db *appdbimpl) UpdateUserPhoto(photoId string, id int64) error {
 		return err
 	}
 	return nil
+}
+
+func (db *appdbimpl) GetPublicUsersByName(usernames []string) ([]PublicUser, error) {
+	var publicUsers []PublicUser
+	stmt := `SELECT username, photoId FROM users WHERE username = ?`
+	for _, username := range usernames {
+		var user PublicUser
+		var nsPhotoId sql.NullString
+		err := db.c.QueryRow(stmt, username).Scan(&user.Username, &nsPhotoId)
+		if err != nil {
+			return nil, err
+		}
+		
+		publicUsers = append(publicUsers, user)
+	}
+	return publicUsers, nil
 }

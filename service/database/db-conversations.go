@@ -1,5 +1,9 @@
 package database
 
+import (
+	"database/sql"
+)
+
 func (db *appdbimpl) InsertConversation(name string, participants []string, isGroup bool, photo *string) (int64, error) {
 	var conversationId int64
 	if photo != nil {
@@ -49,8 +53,8 @@ func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, partic
 	return nil
 }
 
-func (db *appdbimpl) GetParticipants(conversationId int64) ([]string, error) {
-	stmt := `SELECT u.username FROM participants p
+func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
+	stmt := `SELECT u.username u.photoId FROM participants p
 			 JOIN users u ON p.userId = u.id
 			 WHERE p.conversationId = ?`
 	rows, err := db.c.Query(stmt, conversationId)
@@ -59,21 +63,24 @@ func (db *appdbimpl) GetParticipants(conversationId int64) ([]string, error) {
 	}
 	defer rows.Close()
 
-	var participants []string
+	var participants []PublicUser
 	for rows.Next() {
-		var username string
-		err := rows.Scan(&username)
+		var participant PublicUser
+		var nsPhotoId sql.NullString
+		err := rows.Scan(&participant.Username, &nsPhotoId)
 		if err != nil {
 			return nil, err
 		}
-		participants = append(participants, username)
-	}
+		if nsPhotoId.Valid {
+			participant.PhotoId = &nsPhotoId.String
+			participants = append(participants, participant)
+		}
 
-	// Check rows.Err after iteration
-	if err := rows.Err(); err != nil {
-		return nil, err
+		// Check rows.Err after iteration
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
 	}
-
 	return participants, nil
 }
 

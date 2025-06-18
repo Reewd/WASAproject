@@ -169,7 +169,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	var resp dto.ForwardedMessage
+	var resp dto.SentMessage
 	resp.MessageId = messageId
 	resp.Timestamp = timestamp
 	resp.PhotoId = photoId
