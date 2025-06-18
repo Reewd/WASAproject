@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -105,24 +106,35 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Retrieve the user's conversations from the database
-	database_conversations, err := rt.db.GetConversationsByUserId(ctx.UserID)
+	databaseConversations, err := rt.db.GetConversationsByUserId(ctx.UserID)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversations")
 		return
 	}
 
 	// Pre-allocate conversations slice
-	var conversations = make([]dto.ConversationPreview, 0, len(database_conversations))
-	for _, dbConv := range database_conversations {
-		conversation := dto.ConversationPreview{
+	var conversations = make([]dto.ConversationPreview, 0, len(databaseConversations))
+	for _, dbConv := range databaseConversations {
+		databaseLastMessage, err := rt.db.GetLastMessage(dbConv.ConversationId)
+		if err != nil {
+			helpers.HandleInternalServerError(ctx, w, err, fmt.Sprintf("Failed to retrieve last message for conversation %d", dbConv.ConversationId))
+			return
+		}
+
+		var lastMessage *dto.SentMessage
+		if databaseLastMessage != nil {
+			msg := helpers.ConvertToSentMessage(*databaseLastMessage)
+			lastMessage = &msg
+		}
+
+		conversations = append(conversations, dto.ConversationPreview{
 			ConversationId: dbConv.ConversationId,
 			Name:           dbConv.Name,
 			Participants:   helpers.ConvertPublicUsers(dbConv.Participants),
 			IsGroup:        dbConv.IsGroup,
 			PhotoId:        dbConv.PhotoId,
-			LastMessage:    nil, // Initialize LastMessage as nil
-		}
-		conversations = append(conversations, conversation)
+			LastMessage:    lastMessage,
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")

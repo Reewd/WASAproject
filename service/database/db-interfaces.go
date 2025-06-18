@@ -9,6 +9,8 @@ type MessageDatabase interface {
 	GetChat(conversationID int64) ([]MessageView, error)
 	GetConversationIdFromMessageId(messageId int64) (int64, error)
 	ForwardMessage(messageIdToForward int64, conversationId int64, forwarderId int64) (messageId int64, timestamp string, content *string, photoId *string, err error)
+	GetLastMessage(conversationId int64) (*MessageView, error)
+	IsConversationEmpty(conversationId int64) (bool, error)
 }
 
 type ReactionDatabase interface {

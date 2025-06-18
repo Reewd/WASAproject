@@ -22,7 +22,7 @@ type ConversationPreview struct {
 	Participants   []PublicUser `json:"participants"`
 	IsGroup        bool         `json:"isGroup"`
 	PhotoId        *string      `json:"photoId,omitempty"`
-	LastMessage    *string      `json:"lastMessage,omitempty"` // optional, can be nil if no messages exist
+	LastMessage    *SentMessage `json:"lastMessage,omitempty"` // optional, can be nil if no messages exist
 }
 
 type Chat struct {

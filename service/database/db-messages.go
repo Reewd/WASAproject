@@ -254,3 +254,64 @@ func (db *appdbimpl) GetConversationIdFromMessageId(messageId int64) (int64, err
 	}
 	return conversationId, nil
 }
+
+func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) {
+
+	empty, err := db.IsConversationEmpty(conversationId)
+	if err != nil {
+		return nil, err
+	}
+	if empty {
+		return nil, nil
+	}
+
+	stmt := `SELECT m.id, m.content, m.photoId, m.replyTo, m.timestamp, u.username, u.photoId, ms.status
+			FROM messages m
+			JOIN users u ON m.userId = u.id
+			JOIN message_status ms ON m.id = ms.messageId
+			WHERE m.conversationId = ?
+			ORDER BY m.timestamp DESC
+			LIMIT 1`
+
+	var msg MessageView
+	var nsContent sql.NullString
+	var nsPhotoId sql.NullString
+	var nsReplyTo sql.NullInt64
+	var nsSenderPhotoId sql.NullString
+
+	err = db.c.QueryRow(stmt, conversationId).Scan(
+		&msg.MessageId,
+		&nsContent,
+		&nsPhotoId,
+		&nsReplyTo,
+		&msg.Timestamp,
+		&msg.SentBy.Username,
+		&nsSenderPhotoId,
+		&msg.Status,
+	)
+
+	if nsContent.Valid {
+		msg.Content = &nsContent.String
+	}
+	if nsPhotoId.Valid {
+		msg.PhotoId = &nsPhotoId.String
+	}
+	if nsReplyTo.Valid {
+		msg.ReplyTo = &nsReplyTo.Int64
+	}
+	if nsSenderPhotoId.Valid {
+		msg.SentBy.PhotoId = &nsSenderPhotoId.String
+	}
+
+	return &msg, nil
+}
+
+func (db *appdbimpl) IsConversationEmpty(conversationId int64) (bool, error) {
+	stmt := `SELECT EXISTS(SELECT 1 FROM messages WHERE conversationId = ?)`
+	var count int
+	err := db.c.QueryRow(stmt, conversationId).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("checking if conversation is empty: %w", err)
+	}
+	return count == 0, nil
+}
