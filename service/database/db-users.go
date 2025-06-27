@@ -5,15 +5,25 @@ import "database/sql"
 // Define a constant for the repeated query string
 const querySelectUserId = `SELECT id FROM users WHERE username = ?`
 
-func (db *appdbimpl) Login(username string) (int64, error) {
+func (db *appdbimpl) Login(username string) (int64, *string, error) {
 	var id int64
+	var nsPhotoId sql.NullString
+	var photoId *string
 	stmt := querySelectUserId
-	err := db.c.QueryRow(stmt, username).Scan(&id)
+	err := db.c.QueryRow(stmt, username).Scan(&id, &nsPhotoId)
 	if err == sql.ErrNoRows {
-		return db.InsertUser(username)
+		id, err := db.InsertUser(username)
+		if err != nil {
+			return 0, nil, err
+		}
+		return id, nil, err
 	}
 
-	return id, err
+	if nsPhotoId.Valid {
+		photoId = &nsPhotoId.String
+	}
+
+	return id, photoId, err
 
 }
 
@@ -108,7 +118,7 @@ func (db *appdbimpl) GetPublicUsersByName(usernames []string) ([]PublicUser, err
 		if err != nil {
 			return nil, err
 		}
-		
+
 		publicUsers = append(publicUsers, user)
 	}
 	return publicUsers, nil

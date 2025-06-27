@@ -10,7 +10,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.POST("/session", rt.wrap(rt.doLogin))
 	rt.router.POST("/upload", rt.wrap(rt.uploadImage))
 
-	rt.router.POST("/me/username", rt.wrap(rt.idVerifierMiddleware(rt.setMyUsername)))
+	rt.router.PUT("/me/username", rt.wrap(rt.idVerifierMiddleware(rt.setMyUsername)))
 	rt.router.PUT("/me/photo", rt.wrap(rt.idVerifierMiddleware(rt.setMyPhoto)))
 
 	rt.router.POST("/conversations", rt.wrap(rt.idVerifierMiddleware(rt.createConversation)))
@@ -26,8 +26,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/conversations/:conversationId/messages/:messageId", rt.wrap(rt.idVerifierMiddleware(rt.deleteMessage)))
 	rt.router.POST("/conversations/:conversationId/forwarded_messages", rt.wrap(rt.idVerifierMiddleware(rt.forwardMessage)))
 
-	rt.router.POST("/conversations/:conversationId/messages/:messagedId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.commentMessage)))
-	rt.router.GET("/conversations/:conversationId/messages/:messageId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.uncommentMessage)))
+	rt.router.POST("/conversations/:conversationId/messages/:messageId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.commentMessage)))
+	rt.router.DELETE("/conversations/:conversationId/messages/:messageId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.uncommentMessage)))
 
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)

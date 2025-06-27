@@ -55,6 +55,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	var resp dto.SentMessage
 	resp.MessageId = messageId
+	resp.ConversationId = conversationId
 	resp.Timestamp = timestamp
 	resp.PhotoId = req.PhotoId
 	resp.SentBy = dto.PublicUser{
@@ -66,8 +67,11 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	resp.Status = "sent" // Initial status is "sent"
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }
 
 func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -182,8 +186,11 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	resp.Status = "sent" // Initial status is "sent"
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }
 
 func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -221,7 +228,20 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	reactions, err := rt.db.GetReactions(messageId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve reactions for message")
+		return
+	}
+
+	resp := helpers.ConvertReactions(reactions)
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }
 
 func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -253,5 +273,18 @@ func (rt *_router) uncommentMessage(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	reactions, err := rt.db.GetReactions(messageId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve reactions for message")
+		return
+	}
+
+	resp := helpers.ConvertReactions(reactions)
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }

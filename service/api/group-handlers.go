@@ -47,7 +47,20 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to add participants to group")
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // No content response for successful addition
+
+	participants, err := rt.db.GetParticipants(req.ConversationId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participants")
+		return
+	}
+
+	resp := helpers.ConvertPublicUsers(participants)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }
 
 func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {

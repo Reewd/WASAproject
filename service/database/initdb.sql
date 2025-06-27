@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS "reactions" (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (messageId) REFERENCES messages(id),
     FOREIGN KEY (senderId) REFERENCES users(id)
+    UNIQUE(messageId, senderId)
 );
 
 CREATE TABLE IF NOT EXISTS "participants" (

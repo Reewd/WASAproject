@@ -1,9 +1,9 @@
 package dto
 
 type User struct {
-	Username string `json:"name,omitempty"`
-	UserId   int64  `json:"userId,omitempty"`
-	PhotoId  string `json:"photoId,omitempty"`
+	Username string  `json:"name,omitempty"`
+	UserId   int64   `json:"userId,omitempty"`
+	PhotoId  *string `json:"photoId,omitempty"`
 }
 
 type PublicUser struct {
@@ -43,6 +43,7 @@ type Reaction struct {
 type SentMessage struct {
 	MessageId        int64      `json:"messageId"`
 	Content          *string    `json:"content"`
+	ConversationId   int64      `json:"conversationId"` // ID of the conversation this message belongs to
 	SentBy           PublicUser `json:"sentBy"`
 	Timestamp        string     `json:"timestamp"`
 	PhotoId          *string    `json:"photoId,omitempty"`

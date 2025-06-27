@@ -26,18 +26,21 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	// Get or create user ID
-	id, err := rt.db.Login(req.Username)
+	id, photoId, err := rt.db.Login(req.Username)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Login failed")
 		return
 	}
 
+	var resp dto.User
+	resp.Username = req.Username
+	resp.UserId = id
+	resp.PhotoId = photoId
+
 	// Return the user ID to be used as bearer token
 	w.Header().Set("Content-Type", "application/json")
 	// Add error handling for JSON encoding
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"id": id,
-	}); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
@@ -87,5 +90,18 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent) // No content response for successful update
+	path, err := rt.db.GetImagePath(req.PhotoId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve image path")
+		return
+	}
+
+	var resp dto.Photo
+	resp.PhotoId = req.PhotoId
+	resp.Path = path
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }

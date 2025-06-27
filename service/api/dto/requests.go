@@ -9,7 +9,7 @@ type SetUsernameRequest struct {
 }
 
 type PhotoRequest struct {
-	PhotoId string `json:"photoid"`
+	PhotoId string `json:"photoId"`
 }
 
 type CreateConversationRequest struct {

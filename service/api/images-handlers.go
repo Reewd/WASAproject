@@ -85,12 +85,15 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	var resp dto.Photo
+	resp.PhotoId = uuid
+	resp.Path = filePath
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(dto.Photo{
-		PhotoId: uuid,
-		Path:    filePath,
-	}); err != nil {
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 }

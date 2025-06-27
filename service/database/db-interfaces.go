@@ -16,6 +16,7 @@ type MessageDatabase interface {
 type ReactionDatabase interface {
 	InsertReaction(messageId int64, userId int64, reaction string) error
 	RemoveReaction(messageId int64, userId int64) error
+	GetReactions(messageId int64) ([]ReactionView, error)
 }
 
 type ParticipantDatabase interface {
@@ -38,7 +39,7 @@ type ConversationDatabase interface {
 
 // All user related operations on the DB are handled by this interface.
 type UserDatabase interface {
-	Login(string) (int64, error)
+	Login(string) (int64, *string, error)
 	GetUserId(string) (int64, error)
 	GetUsersIds([]string) ([]int64, error)
 	GetUserPhoto(int64) (string, error)
@@ -53,7 +54,7 @@ type UserDatabase interface {
 // All image related operations on the DB are handled by this interface.
 type ImageDatabase interface {
 	InsertImage(uuid string, path string) error
-	// GetImagePath(uuid string) (string, error)
+	GetImagePath(uuid string) (string, error)
 }
 
 // AppDatabase is the interface through which all DB operations are performed.

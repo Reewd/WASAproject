@@ -130,6 +130,31 @@ components:
           maxLength: 36
           pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
 
+    Image:
+      type: object
+      description: An image file with metadata
+      required:
+        - uuid
+        - path
+      properties:
+        uuid:
+          $ref: '#/components/schemas/ImageReference/properties/uuid'
+        path:
+          type: string
+          description: The file path where the image is stored
+          example: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
+          minLength: 1
+          maxLength: 255
+          pattern: '^[\w\-\/\.]+$' # Allows alphanumeric, hyphens, slashes, and dots
+
+    Username:
+      type: string
+      description: The user’s display name
+      example: Maria
+      minLength: 3
+      maxLength: 16
+      pattern: '^[a-zA-Z0-9_]+$'
+
     PublicUser:
       type: object
       description: A user object representing a public user profile
@@ -137,12 +162,7 @@ components:
         - username
       properties:
         username:
-          type: string
-          description: The user’s display name
-          example: Maria
-          minLength: 3
-          maxLength: 16
-          pattern: '^[a-zA-Z0-9_]+$'
+          $ref: '#/components/schemas/Username'
         photo:
           $ref: '#/components/schemas/ImageReference'
     
@@ -203,49 +223,80 @@ components:
             $ref: '#/components/schemas/Message'
           minItems: 0
           maxItems: 1000000
-        photo:
+        photoId:
           $ref: '#/components/schemas/ImageReference'
     
     ConversationPrototype:
       type: object
       description: A prototype for creating a new conversation
-      allOf:
-        - type: object
-          properties:
-            name:
-              $ref: '#/components/schemas/Conversation/properties/name'
-            participants:
-              $ref: '#/components/schemas/Conversation/properties/participants'
-            isGroup:
-              $ref: '#/components/schemas/Conversation/properties/isGroup'
-            photo:
-              $ref: '#/components/schemas/Conversation/properties/photo'
-          required:
-            - participants
-            - isGroup
-            
+      required:
+        - participants
+        - isGroup
+      properties:
+        name:
+          $ref: '#/components/schemas/Conversation/properties/name'
+        participants:
+          type: array
+          description: List of usernames participating in the conversation
+          items:
+            $ref: '#/components/schemas/Username'
+          minItems: 1
+          maxItems: 1000
+        isGroup:
+          $ref: '#/components/schemas/Conversation/properties/isGroup'
+        photoId:
+          $ref: '#/components/schemas/Conversation/properties/photoId'
+    
+    ConversationPreview:
+      type: object
+      description: A preview of a conversation
+      required:
+        - conversationId
+        - name
+        - participants
+        - isGroup
+      properties:
+        conversationId:
+          $ref: '#/components/schemas/Conversation/properties/id'
+        name:
+          $ref: '#/components/schemas/Conversation/properties/name'
+        participants:
+          $ref: '#/components/schemas/Conversation/properties/participants'
+        isGroup:
+          $ref: '#/components/schemas/Conversation/properties/isGroup'
+        photoId:
+          $ref: '#/components/schemas/Conversation/properties/photoId'
+        lastMessage:
+          description: The last message sent in the conversation
+          $ref: '#/components/schemas/Message'
+
     Message:
       type: object
       description: A message within a conversation
       required:
-        - id
-        - text
+        - messageId
+        - content
         - timestamp
         - sentBy
       properties:
-        id:
+        messageId:
           type: integer
           format: int64
           description: Unique identifier for the message
           example: 1
-        text:
+        replyToMessageId:
+          type: integer
+          format: int64
+          description: ID of the message this message is replying to (if any)
+          example: 0
+        content:
           type: string
           description: Text content of the message
           example: "Hello, world!"
           pattern: '^[\s\S]*$' # Allows any character including whitespace
           minLength: 1
           maxLength: 65536
-        media:
+        photoId:
             $ref: '#/components/schemas/ImageReference'
         timestamp:
           type: string
@@ -254,20 +305,11 @@ components:
           example: "2025-05-03T12:34:56Z"
           minLength: 20
           maxLength: 20
-        receivedBy:
-          type: array
-          description: Users who have received the message
-          items: 
-            $ref: '#/components/schemas/PublicUser'
-          minItems: 0
-          maxItems: 1000
-        seenBy:
-          type: array
-          description: Users who have viewed the message
-          items:
-            $ref: '#/components/schemas/PublicUser'
-          minItems: 0
-          maxItems: 1000
+        status:
+          type: string
+          description: Status of the message (e.g., sent, delivered, read)
+          example: "sent"
+          enum: ["sent", "delivered", "read"]
         reactions:
           type: array
           description: Reactions applied to the message
@@ -290,13 +332,15 @@ components:
         - content
         - sentBy
       properties:
-        content:
-          type: integer
-          format: int64
-          description: The emoji code for the reaction
-          example: 1
         sentBy:
           $ref: '#/components/schemas/PublicUser'
+        content:
+          type: string
+          description: The emoji or text content of the reaction
+          example: "👍"
+          minLength: 1
+          maxLength: 1
+          pattern: '^[\s\S]*$'
 
     ForwardMessageRequest:
       type: object
@@ -328,7 +372,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PublicUser'
+              $ref: '#/components/schemas/Username'
       responses:
         '201':
           description: User log-in action successful
@@ -375,11 +419,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImageReference'
+                $ref: '#/components/schemas/Image'
               examples:
                 success:
                   value:
                     uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -454,14 +499,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PrivateUser'
+                $ref: '#/components/schemas/Image'
               examples:
                 success:
                   value:
-                    id: 1
-                    username: "Maria"
-                    photo:
-                      uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -489,7 +532,7 @@ paths:
                     description: List of conversations
                     type: array
                     items:
-                      $ref: '#/components/schemas/Conversation'
+                      $ref: '#/components/schemas/ConversationPreview'
                     minItems: 0
                     maxItems: 100000
               examples:
@@ -579,6 +622,8 @@ paths:
                     participants:
                       - id: 1
                         username: "Maria"
+                      - id: 2
+                        username: "John"
                     messages: []
                     isGroup: false
         '401':
@@ -614,17 +659,26 @@ paths:
               description: Request body containing the message text and optional media
               type: object
               properties:
-                text:
+                replyTo:
+                  type: integer
+                  format: int64
+                  description: ID of the message this message is replying to (if any)
+                  example: 0
+                content:
                   type: string
                   description: Message text
                   example: Hello, world!
                   minLength: 1
                   maxLength: 65536
                   pattern: '^[\s\S]*$' # Allows any character including whitespace
-                media:
-                  $ref: '#/components/schemas/ImageReference'
-              required:
-                - text
+                photoId:
+                  type: string
+                  format: uuid
+                  description: UUID reference to an image file
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+              anyOf:
+                  - required: ["content"]
+                  - required: ["photoId"]
       responses:
         '201':
           description: Message sent
@@ -679,7 +733,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Reaction'
+              $ref: '#/components/schemas/Reaction/content'
       responses:
         '200':
           description: Reaction added/updated
@@ -722,8 +776,29 @@ paths:
       description: Deletes the user’s reaction from a message.
       operationId: uncommentMessage
       responses:
-        '204':
+        '200':
           description: Reaction removed
+          content:
+            application/json:
+              schema:
+                description: Response containing the updated reactions list
+                type: object
+                properties:
+                  reactions:
+                    description: List of reactions to the message
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reaction'
+                    minItems: 0
+                    maxItems: 1000
+              examples:
+                success:
+                  value:
+                    reactions:
+                      - content: 1
+                        sentBy:
+                          id: 1
+                          username: "Maria"   
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -797,16 +872,8 @@ paths:
               required:
                 - name
       responses:
-        '200':
-          description: Group renamed
-          content:
-            application/json:
-              schema:
-                type: string
-                description: The new name of the group
-              examples:
-                success:
-                  value: "Group 1"
+        '204':
+          description: Group name updated successfully
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -845,16 +912,8 @@ paths:
               required:
                 - image
       responses:
-        '200':
-          description: Group photo updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ImageReference'
-              examples:
-                success:
-                  value:
-                    uuid: "550e8400-e29b-41d4-a716-446655440000"
+        '204':
+          description: Group photo updated successfully
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -892,14 +951,26 @@ paths:
                   type: array
                   description: Users to add
                   items:
-                    $ref: '#/components/schemas/PublicUser'
+                    $ref: '#/components/schemas/Username'
                   minItems: 1
                   maxItems: 1000
               required:
                 - participants
       responses:
-        '204':
+        '200':
           description: Participants added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation/participants'
+              examples:
+                success:
+                  value:
+                    participants:
+                    - username: "Maria"
+                      uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    - username: "John"
+                      uuid: "550e8400-e29b-41d4-a716-446655440001"
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
