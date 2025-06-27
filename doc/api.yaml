@@ -8,7 +8,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://127.0.1:8080/api/v1
+  - url: http://0.0.0.0:3000/
     description: Local development server
 security:
   - bearerAuth: []
@@ -427,8 +427,6 @@ paths:
                     path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
         '400':
           $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /me/username:
