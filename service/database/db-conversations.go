@@ -57,8 +57,8 @@ func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, partic
 
 func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
 	stmt := `SELECT u.username, u.photoId FROM participants p
-         JOIN users u ON p.userId = u.id
-         WHERE p.conversationId = ?`
+		 JOIN users u ON p.userId = u.id
+		 WHERE p.conversationId = ?`
 	rows, err := db.c.Query(stmt, conversationId)
 	if err != nil {
 		return nil, err
@@ -75,13 +75,13 @@ func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error)
 		}
 		if nsPhotoId.Valid {
 			participant.PhotoId = &nsPhotoId.String
-			participants = append(participants, participant)
 		}
+		participants = append(participants, participant)
+	}
 
-		// Check rows.Err after iteration
-		if err := rows.Err(); err != nil {
-			return nil, err
-		}
+	// Check rows.Err after iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return participants, nil
 }
