@@ -14,9 +14,9 @@ type Conversation struct {
 }
 
 type ReactionView struct {
-	SentBy    *PublicUser
-	Content   *string
-	Timestamp *string
+	SentBy    PublicUser
+	Content   string
+	Timestamp string
 }
 
 type MessageView struct {

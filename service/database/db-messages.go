@@ -163,19 +163,19 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 				rSenderPhoto = &nsReactionSenderPhotoID.String
 			}
 			// build reaction timestamp pointer
-			var rTs *string
+			var rTs string
 			if nrReactionTimestamp.Valid {
-				rTs = &nrReactionTimestamp.String
+				rTs = nrReactionTimestamp.String
 			}
 			// build reaction-sender username
 			senderName := nsReactionSenderUsername.String
 
 			msg.Reactions = append(msg.Reactions, ReactionView{
-				SentBy: &PublicUser{
+				SentBy: PublicUser{
 					Username: senderName,
 					PhotoId:  rSenderPhoto,
 				},
-				Content:   &nsReactionContent.String,
+				Content:   nsReactionContent.String,
 				Timestamp: rTs,
 			})
 		}

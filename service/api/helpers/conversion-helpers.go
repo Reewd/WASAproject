@@ -24,9 +24,9 @@ func ConvertReactions(reactions []database.ReactionView) []dto.Reaction {
 	convertedReactions := make([]dto.Reaction, 0, len(reactions))
 	for _, reaction := range reactions {
 		convertedReactions = append(convertedReactions, dto.Reaction{
-			SentBy:    ConvertPublicUser(*reaction.SentBy),
-			Content:   *reaction.Content,
-			Timestamp: *reaction.Timestamp,
+			SentBy:    ConvertPublicUser(reaction.SentBy),
+			Content:   reaction.Content,
+			Timestamp: reaction.Timestamp,
 		})
 	}
 	return convertedReactions
