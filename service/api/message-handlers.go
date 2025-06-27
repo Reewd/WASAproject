@@ -211,6 +211,12 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	err := helpers.IsSingleEmoji(req.Content)
+	if err != nil {
+		http.Error(w, "Invalid reaction content: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	messageId, err := strconv.ParseInt(ps.ByName("messageId"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid message ID", http.StatusBadRequest)
