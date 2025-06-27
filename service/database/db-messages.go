@@ -8,7 +8,7 @@ import (
 )
 
 func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64) (int64, string, error) {
-	stmt := `INSERT into messages (conversationId, userId, content, photoId, replyTo) VALUES (?, ?, ?, ?, ?) RETURNING id, timestamp`
+	stmt := `INSERT into messages (conversationId, senderId, content, photoId, replyTo) VALUES (?, ?, ?, ?, ?) RETURNING id, timestamp`
 	var timestamp string
 	var messageId int64
 
@@ -269,7 +269,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 
 	stmt := `SELECT m.id, m.content, m.photoId, m.replyTo, m.timestamp, u.username, u.photoId, ms.status
 			FROM messages m
-			JOIN users u ON m.userId = u.id
+			JOIN users u ON m.senderId = u.id
 			JOIN message_status ms ON m.id = ms.messageId
 			WHERE m.conversationId = ?
 			ORDER BY m.timestamp DESC
