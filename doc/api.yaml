@@ -224,7 +224,7 @@ components:
           minItems: 0
           maxItems: 1000000
         photoId:
-          $ref: '#/components/schemas/ImageReference'
+          $ref: '#/components/schemas/ImageReference/properties/uuid'
     
     ConversationPrototype:
       type: object
@@ -245,7 +245,7 @@ components:
         isGroup:
           $ref: '#/components/schemas/Conversation/properties/isGroup'
         photoId:
-          $ref: '#/components/schemas/Conversation/properties/photoId'
+          $ref: '#/components/schemas/Conversation/properties/photoId/properties/uuid'
     
     ConversationPreview:
       type: object

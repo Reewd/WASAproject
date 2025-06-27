@@ -31,7 +31,11 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "Failed to get image file", http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			ctx.Logger.WithError(err).Error("Failed to close file")
+		}
+	}()
 
 	// Validate MIME type
 	buffer := make([]byte, 512)
@@ -39,7 +43,13 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to read file for MIME type validation")
 		return
 	}
-	file.Seek(0, 0) // Reset file pointer after reading
+
+	_, err = file.Seek(0, 0) // Reset file pointer after reading
+
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to reset file pointer")
+		return
+	}
 
 	mimeType := http.DetectContentType(buffer)
 	isValidMimeType := false
@@ -72,7 +82,11 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to create destination file")
 		return
 	}
-	defer dst.Close()
+	defer func() {
+		if err := dst.Close(); err != nil {
+			ctx.Logger.WithError(err).Error("Failed to close destination file")
+		}
+	}()
 
 	if _, err = io.Copy(dst, file); err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to save uploaded file")
@@ -80,8 +94,11 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	if err := rt.db.InsertImage(uuid, filePath); err != nil {
+		err = os.Remove(filePath)
+		if err != nil {
+			ctx.Logger.WithError(err).Error("Failed to remove uploaded file after database error")
+		}
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to store image path in database")
-		os.Remove(filePath)
 		return
 	}
 

@@ -1,6 +1,10 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/Reewd/WASAproject/service/database/helpers"
+)
 
 func (db *appdbimpl) InsertReaction(messageId, senderId int64, content string) error {
 	stmt := `
@@ -29,7 +33,7 @@ func (db *appdbimpl) GetReactions(messageId int64) ([]ReactionView, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer helpers.CloseRows(rows)
 
 	var reactions []ReactionView
 	for rows.Next() {

@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+
+	"github.com/Reewd/WASAproject/service/database/helpers"
 )
 
 func (db *appdbimpl) InsertConversation(name string, participants []string, isGroup bool, photo *string) (int64, error) {
@@ -54,14 +56,14 @@ func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, partic
 }
 
 func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
-	stmt := `SELECT u.username u.photoId FROM participants p
-			 JOIN users u ON p.userId = u.id
-			 WHERE p.conversationId = ?`
+	stmt := `SELECT u.username, u.photoId FROM participants p
+         JOIN users u ON p.userId = u.id
+         WHERE p.conversationId = ?`
 	rows, err := db.c.Query(stmt, conversationId)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer helpers.CloseRows(rows)
 
 	var participants []PublicUser
 	for rows.Next() {
@@ -92,7 +94,7 @@ func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, err
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer helpers.CloseRows(rows)
 
 	var conversations []Conversation
 	for rows.Next() {

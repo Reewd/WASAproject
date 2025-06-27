@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/Reewd/WASAproject/service/database/helpers"
 )
 
 func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64) (int64, string, error) {
@@ -69,7 +71,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying messages: %w", err)
 	}
-	defer rows.Close()
+	defer helpers.CloseRows(rows)
 
 	// map for message aggregation
 	msgMap := make(map[int64]*MessageView)
@@ -289,6 +291,9 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		&nsSenderPhotoId,
 		&msg.Status,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	if nsContent.Valid {
 		msg.Content = &nsContent.String
