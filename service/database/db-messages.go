@@ -59,7 +59,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
         ru.photoId            AS reactionSenderPhotoId,
         ms.status             AS messageStatus
     FROM messages m
-    LEFT JOIN users u  ON m.userId    = u.id
+    LEFT JOIN users u  ON m.senderId    = u.id
     LEFT JOIN reactions r  ON m.id     = r.messageId
     LEFT JOIN users ru ON r.senderId   = ru.id
     LEFT JOIN message_status ms ON m.id = ms.messageId
