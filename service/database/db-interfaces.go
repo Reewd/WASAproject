@@ -22,6 +22,12 @@ type ReactionDatabase interface {
 type ParticipantDatabase interface {
 	InsertParticipants(conversationId int64, userId []int64) error
 	RemoveParticipant(conversationId int64, userId int64) error
+	GetParticipants(conversationId int64) ([]PublicUser, error)
+	GetParticipantIds(conversationId int64) ([]int64, error)
+}
+
+type StatusDatabase interface {
+	InsertSent(messageId int64, conversationId int64, recipientIds []int64) error
 }
 
 type GroupDatabase interface {
@@ -31,7 +37,6 @@ type GroupDatabase interface {
 
 type ConversationDatabase interface {
 	InsertConversation(name string, participants []string, isGroup bool, photo *string) (int64, error)
-	GetParticipants(conversationId int64) ([]PublicUser, error)
 	GetConversationsByUserId(userId int64) ([]Conversation, error)
 	GetConversationById(conversationId int64) (*Conversation, error)
 	ParticipantExists(conversationId int64, userId int64) (bool, error)
@@ -66,6 +71,7 @@ type AppDatabase interface {
 	GroupDatabase
 	MessageDatabase
 	ReactionDatabase
+	StatusDatabase
 	Ping() error
 }
 

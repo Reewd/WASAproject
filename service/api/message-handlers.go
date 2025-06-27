@@ -53,6 +53,17 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	participantIds, err := rt.db.GetParticipantIds(conversationId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participant IDs")
+		return
+	}
+
+	if err := rt.db.InsertSent(messageId, conversationId, participantIds); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert sent status")
+		return
+	}
+
 	var resp dto.SentMessage
 	resp.MessageId = messageId
 	resp.ConversationId = conversationId

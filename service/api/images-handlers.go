@@ -112,5 +112,4 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
 }

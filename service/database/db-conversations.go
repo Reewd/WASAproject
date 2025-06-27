@@ -1,8 +1,6 @@
 package database
 
 import (
-	"database/sql"
-
 	"github.com/Reewd/WASAproject/service/database/helpers"
 )
 
@@ -53,37 +51,6 @@ func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, partic
 		}
 	}
 	return nil
-}
-
-func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
-	stmt := `SELECT u.username, u.photoId FROM participants p
-		 JOIN users u ON p.userId = u.id
-		 WHERE p.conversationId = ?`
-	rows, err := db.c.Query(stmt, conversationId)
-	if err != nil {
-		return nil, err
-	}
-	defer helpers.CloseRows(rows)
-
-	var participants []PublicUser
-	for rows.Next() {
-		var participant PublicUser
-		var nsPhotoId sql.NullString
-		err := rows.Scan(&participant.Username, &nsPhotoId)
-		if err != nil {
-			return nil, err
-		}
-		if nsPhotoId.Valid {
-			participant.PhotoId = &nsPhotoId.String
-		}
-		participants = append(participants, participant)
-	}
-
-	// Check rows.Err after iteration
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return participants, nil
 }
 
 func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, error) {

@@ -44,6 +44,7 @@ func ConvertToSentMessages(messages []database.MessageView) []dto.SentMessage {
 			Reactions:        ConvertReactions(msg.Reactions),
 			ReplyToMessageId: msg.ReplyTo,
 			Status:           msg.Status,
+			ConversationId:   msg.ConversationId,
 		})
 	}
 	return sentMessages
