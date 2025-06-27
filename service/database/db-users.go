@@ -2,14 +2,11 @@ package database
 
 import "database/sql"
 
-// Define a constant for the repeated query string
-const querySelectUserId = `SELECT id FROM users WHERE username = ?`
-
 func (db *appdbimpl) Login(username string) (int64, *string, error) {
 	var id int64
 	var nsPhotoId sql.NullString
 	var photoId *string
-	stmt := querySelectUserId
+	stmt := `SELECT id, photoId FROM users WHERE username = ?`
 	err := db.c.QueryRow(stmt, username).Scan(&id, &nsPhotoId)
 	if err == sql.ErrNoRows {
 		id, err := db.InsertUser(username)
