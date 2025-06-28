@@ -42,7 +42,7 @@ type Reaction struct {
 
 type SentMessage struct {
 	MessageId        int64      `json:"messageId"`
-	Content          *string    `json:"content"`
+	Text             *string    `json:"text"`
 	ConversationId   int64      `json:"conversationId"` // ID of the conversation this message belongs to
 	SentBy           PublicUser `json:"sentBy"`
 	Timestamp        string     `json:"timestamp"`

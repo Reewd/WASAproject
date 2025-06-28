@@ -178,7 +178,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 	err = rt.db.UpdateGroupPhoto(req.ConversationId, req.PhotoId)
-
+	//TODO: Return new uuid of the group photo
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to update group photo")
 		return

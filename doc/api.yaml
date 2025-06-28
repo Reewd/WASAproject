@@ -8,7 +8,7 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://0.0.0.0:3000/
+  - url: http://0.0.0.0:3000/v1
     description: Local development server
 security:
   - bearerAuth: []
@@ -41,55 +41,55 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             invalidData:
               value:
                 code: 400
                 message: "Invalid request data"
-    
+
     Unauthorized:
       description: Unauthorized - Authentication is required or has failed
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             unauthorized:
               value:
                 code: 401
                 message: "Authentication required"
-    
+
     Forbidden:
       description: Forbidden - The request is understood but access is denied
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             forbidden:
               value:
                 code: 403
                 message: "Access denied"
-    
+
     NotFound:
       description: Not Found - The requested resource was not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             notFound:
               value:
                 code: 404
                 message: "Resource not found"
-    
+
     InternalServerError:
       description: Internal Server Error - An unexpected error occurred
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
           examples:
             serverError:
               value:
@@ -97,7 +97,6 @@ components:
                 message: "Internal server error"
 
   schemas:
-
     ErrorResponse:
       type: object
       description: Error response
@@ -119,7 +118,7 @@ components:
       type: object
       description: Reference to an image file
       required:
-      - uuid
+        - uuid
       properties:
         uuid:
           type: string
@@ -128,7 +127,7 @@ components:
           example: "550e8400-e29b-41d4-a716-446655440000"
           minLength: 36
           maxLength: 36
-          pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+          pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 
     Image:
       type: object
@@ -138,7 +137,7 @@ components:
         - path
       properties:
         uuid:
-          $ref: '#/components/schemas/ImageReference/properties/uuid'
+          $ref: "#/components/schemas/ImageReference/properties/uuid"
         path:
           type: string
           description: The file path where the image is stored
@@ -153,7 +152,7 @@ components:
       example: Maria
       minLength: 3
       maxLength: 16
-      pattern: '^[a-zA-Z0-9_]+$'
+      pattern: "^[a-zA-Z0-9_]+$"
 
     PublicUser:
       type: object
@@ -162,13 +161,13 @@ components:
         - username
       properties:
         username:
-          $ref: '#/components/schemas/Username'
+          $ref: "#/components/schemas/Username"
         photo:
-          $ref: '#/components/schemas/ImageReference'
-    
+          $ref: "#/components/schemas/ImageReference"
+
     PrivateUser:
       allOf:
-        - $ref: '#/components/schemas/PublicUser'
+        - $ref: "#/components/schemas/PublicUser"
         - type: object
           description: An internal user object
           required:
@@ -182,36 +181,43 @@ components:
               maximum: 9223372036854775807
               minimum: 1
 
+    Participants:
+      type: object
+      description: Users participating
+      properties:
+        items:
+          type: array
+          description: List of users
+          items:
+            $ref: "#/components/schemas/PublicUser"
+          minItems: 1
+          maxItems: 1000
+
     Conversation:
       type: object
       description: A conversation object representing a chat or group conversation
       required:
-        - id
+        - conversationId
         - name
         - participants
         - isGroup
         - messages
       properties:
-        id:
+        conversationId:
           type: integer
           format: int64
           description: Database-generated ID
           example: 1
-          readOnly: true             # ← only here
+          readOnly: true # ← only here
         name:
           type: string
           description: The conversation’s name or group name
           example: "Conversation 1"
-          pattern: '^[a-zA-Z0-9_ ]+$'
+          pattern: "^[a-zA-Z0-9_ ]+$"
           minLength: 1
           maxLength: 16
         participants:
-          type: array
-          description: Users participating
-          items:
-            $ref: '#/components/schemas/PublicUser'
-          minItems: 1
-          maxItems: 1000
+          $ref: "#/components/schemas/Participants"
         isGroup:
           type: boolean
           description: Indicates if the conversation is a group chat
@@ -220,12 +226,14 @@ components:
           type: array
           description: Messages exchanged
           items:
-            $ref: '#/components/schemas/Message'
+            $ref: "#/components/schemas/Message"
           minItems: 0
           maxItems: 1000000
         photoId:
-          $ref: '#/components/schemas/ImageReference/properties/uuid'
-    
+          $ref: "#/components/schemas/ImageReference/properties/uuid"
+        lastMessage:
+          $ref: "#/components/schemas/Message"
+
     ConversationPrototype:
       type: object
       description: A prototype for creating a new conversation
@@ -234,20 +242,15 @@ components:
         - isGroup
       properties:
         name:
-          $ref: '#/components/schemas/Conversation/properties/name'
+          $ref: "#/components/schemas/Conversation/properties/name"
         participants:
-          type: array
-          description: List of usernames participating in the conversation
-          items:
-            $ref: '#/components/schemas/Username'
-          minItems: 1
-          maxItems: 1000
+          $ref: "#/components/schemas/Participants"
         isGroup:
-          $ref: '#/components/schemas/Conversation/properties/isGroup'
+          $ref: "#/components/schemas/Conversation/properties/isGroup"
         photoId:
-          $ref: '#/components/schemas/Conversation/properties/photoId/properties/uuid'
-    
-    ConversationPreview:
+          $ref: "#/components/schemas/ImageReference/properties/uuid"
+
+    ConversationSummary:
       type: object
       description: A preview of a conversation
       required:
@@ -255,27 +258,28 @@ components:
         - name
         - participants
         - isGroup
+        - lastMessage
       properties:
         conversationId:
-          $ref: '#/components/schemas/Conversation/properties/id'
+          $ref: "#/components/schemas/Conversation/properties/conversationId"
         name:
-          $ref: '#/components/schemas/Conversation/properties/name'
+          $ref: "#/components/schemas/Conversation/properties/name"
         participants:
-          $ref: '#/components/schemas/Conversation/properties/participants'
+          $ref: "#/components/schemas/Participants"
         isGroup:
-          $ref: '#/components/schemas/Conversation/properties/isGroup'
+          $ref: "#/components/schemas/Conversation/properties/isGroup"
         photoId:
-          $ref: '#/components/schemas/Conversation/properties/photoId'
+          $ref: "#/components/schemas/ImageReference/properties/uuid"
         lastMessage:
-          description: The last message sent in the conversation
-          $ref: '#/components/schemas/Message'
+          $ref: "#/components/schemas/Conversation/properties/lastMessage"
+
 
     Message:
       type: object
       description: A message within a conversation
       required:
         - messageId
-        - content
+        - text
         - timestamp
         - sentBy
       properties:
@@ -289,7 +293,7 @@ components:
           format: int64
           description: ID of the message this message is replying to (if any)
           example: 0
-        content:
+        text:
           type: string
           description: Text content of the message
           example: "Hello, world!"
@@ -297,7 +301,7 @@ components:
           minLength: 1
           maxLength: 65536
         photoId:
-            $ref: '#/components/schemas/ImageReference'
+          $ref: "#/components/schemas/ImageReference/properties/uuid"
         timestamp:
           type: string
           format: date-time
@@ -314,7 +318,7 @@ components:
           type: array
           description: Reactions applied to the message
           items:
-            $ref: '#/components/schemas/Reaction'
+            $ref: "#/components/schemas/Reaction"
           minItems: 0
           maxItems: 1000
         conversationId:
@@ -323,20 +327,41 @@ components:
           description: Identifier of the conversation this message belongs to
           example: 1
         sentBy:
-          $ref: '#/components/schemas/PublicUser'
+          $ref: "#/components/schemas/PublicUser"
+
+    MessagePrototype:
+      type: object
+      description: A prototype for creating a new message
+      properties:
+        # replyTo is allowed in either case:
+        replyTo:
+          $ref: "#/components/schemas/Message/properties/replyToMessageId"
+      anyOf:
+        - description: text‐only message
+          properties:
+            text:
+              $ref: "#/components/schemas/Message/properties/text"
+          required:
+            - text
+        - description: photo‐only message
+          properties:
+            photoId:
+              $ref: "#/components/schemas/ImageReference/properties/uuid"
+          required:
+            - photoId
 
     Reaction:
       type: object
       description: A reaction (emoji) to a message
       required:
-        - content
+        - emoji
         - sentBy
       properties:
         sentBy:
-          $ref: '#/components/schemas/PublicUser'
-        content:
+          $ref: "#/components/schemas/PublicUser"
+        emoji:
           type: string
-          description: The emoji or text content of the reaction
+          description: The emoji content of the reaction
           example: "👍"
           minLength: 1
           maxLength: 1
@@ -372,23 +397,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Username'
+              type: object
+              description: Request body containing the username
+              properties:
+                username:
+                  $ref: "#/components/schemas/Username"
       responses:
-        '201':
+        "201":
           description: User log-in action successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PrivateUser'
+                $ref: "#/components/schemas/PrivateUser"
               examples:
                 success:
                   value:
                     id: 1
                     username: "Maria"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /upload:
     post:
@@ -410,25 +439,25 @@ paths:
                   format: binary
                   description: The image file to upload
                   minLength: 1
-                  maxLength:  10485760 # 10 MB
+                  maxLength: 10485760 # 10 MB
               required:
                 - imageFile
       responses:
-        '201':
+        "201":
           description: Image uploaded successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Image'
+                $ref: "#/components/schemas/Image"
               examples:
                 success:
                   value:
                     uuid: "550e8400-e29b-41d4-a716-446655440000"
                     path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /me/username:
     put:
       tags:
@@ -450,27 +479,27 @@ paths:
                   example: Maria
                   minLength: 3
                   maxLength: 16
-                  pattern: '^[a-zA-Z0-9_]+$'
+                  pattern: "^[a-zA-Z0-9_]+$"
               required:
                 - name
       responses:
-        '200':
+        "200":
           description: Username updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PrivateUser'
+                $ref: "#/components/schemas/PrivateUser"
               examples:
                 success:
                   value:
                     id: 1
                     username: "Maria"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /me/photo:
     put:
@@ -488,27 +517,27 @@ paths:
               description: Request body containing the image UUID reference
               properties:
                 image:
-                  $ref: '#/components/schemas/ImageReference'
+                  $ref: "#/components/schemas/ImageReference"
               required:
                 - image
       responses:
-        '200':
+        "200":
           description: Photo updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Image'
+                $ref: "#/components/schemas/Image"
               examples:
                 success:
                   value:
                     uuid: "550e8400-e29b-41d4-a716-446655440000"
                     path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations:
     get:
@@ -518,7 +547,7 @@ paths:
       description: Retrieves all conversations for the authenticated user.
       operationId: getMyConversations
       responses:
-        '200':
+        "200":
           description: List of user's conversations
           content:
             application/json:
@@ -530,19 +559,19 @@ paths:
                     description: List of conversations
                     type: array
                     items:
-                      $ref: '#/components/schemas/ConversationPreview'
+                      $ref: "#/components/schemas/ConversationSummary"
                     minItems: 0
                     maxItems: 100000
               examples:
                 success:
                   value:
                     conversations: []
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - conversation
@@ -554,40 +583,47 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ConversationPrototype'
+              $ref: "#/components/schemas/ConversationPrototype"
             examples:
               success:
                 value:
                   name: "Conversation 1"
                   participants:
-                    - id: 1
-                      username: "Maria"
+                    items:
+                      - username: "Maria"
+                        uuid: "550e8400-e29b-41d4-a716-446655440000"
+                      - username: "John"
+                        uuid: "550e8400-e29b-41d4-a716-446655440001"
+                  messages: []
                   isGroup: false
       responses:
-        '201':
+        "201":
           description: Conversation created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
+                $ref: "#/components/schemas/Conversation"
               examples:
                 success:
                   value:
-                    id: 1
+                    conversationId: 1
                     name: "Conversation 1"
                     participants:
-                      - id: 1
-                        username: "Maria"
+                      items:
+                        - username: "Maria"
+                          uuid: "550e8400-e29b-41d4-a716-446655440000"
+                        - username: "John"
+                          uuid: "550e8400-e29b-41d4-a716-446655440001"
                     messages: []
                     isGroup: false
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}:
     parameters:
@@ -606,32 +642,33 @@ paths:
       description: Retrieves a specific conversation by ID.
       operationId: getConversation
       responses:
-        '200':
+        "200":
           description: Conversation retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation'
+                $ref: "#/components/schemas/Conversation"
               examples:
                 success:
                   value:
-                    id: 1
+                    conversationId: 1
                     name: "Conversation 1"
                     participants:
-                      - id: 1
-                        username: "Maria"
-                      - id: 2
-                        username: "John"
+                      items:
+                        - username: "Maria"
+                          uuid: "550e8400-e29b-41d4-a716-446655440000"
+                        - username: "John"
+                          uuid: "550e8400-e29b-41d4-a716-446655440001"
                     messages: []
                     isGroup: false
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/messages:
     parameters:
@@ -654,55 +691,33 @@ paths:
         content:
           application/json:
             schema:
-              description: Request body containing the message text and optional media
-              type: object
-              properties:
-                replyTo:
-                  type: integer
-                  format: int64
-                  description: ID of the message this message is replying to (if any)
-                  example: 0
-                content:
-                  type: string
-                  description: Message text
-                  example: Hello, world!
-                  minLength: 1
-                  maxLength: 65536
-                  pattern: '^[\s\S]*$' # Allows any character including whitespace
-                photoId:
-                  type: string
-                  format: uuid
-                  description: UUID reference to an image file
-                  example: "550e8400-e29b-41d4-a716-446655440000"
-              anyOf:
-                  - required: ["content"]
-                  - required: ["photoId"]
+              $ref: "#/components/schemas/MessagePrototype"
       responses:
-        '201':
+        "201":
           description: Message sent
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
+                $ref: "#/components/schemas/Message"
               examples:
                 success:
                   value:
-                    id: 1
+                    messageId: 1
                     text: "Hello, world!"
                     timestamp: "2025-05-03T12:34:56Z"
                     sentBy:
                       id: 1
                       username: "Maria"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/messages/{message_id}/reactions:
     parameters:
@@ -731,9 +746,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Reaction/content'
+              description: Request body containing the emoji for the reaction
+              type: object
+              properties:
+                emoji:
+                  $ref: "#/components/schemas/Reaction/properties/emoji"
+              required:
+                - emoji
       responses:
-        '200':
+        "200":
           description: Reaction added/updated
           content:
             application/json:
@@ -745,28 +766,28 @@ paths:
                     description: List of reactions to the message
                     type: array
                     items:
-                      $ref: '#/components/schemas/Reaction'
+                      $ref: "#/components/schemas/Reaction"
                     minItems: 0
                     maxItems: 1000
               examples:
                 success:
                   value:
                     reactions:
-                      - content: 1
+                      - emoji: "👍"
                         sentBy:
                           id: 1
-                          username: "Maria"                  
-                      
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                          username: "Maria"
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - reaction
@@ -774,37 +795,16 @@ paths:
       description: Deletes the user’s reaction from a message.
       operationId: uncommentMessage
       responses:
-        '200':
+        "204":
           description: Reaction removed
-          content:
-            application/json:
-              schema:
-                description: Response containing the updated reactions list
-                type: object
-                properties:
-                  reactions:
-                    description: List of reactions to the message
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Reaction'
-                    minItems: 0
-                    maxItems: 1000
-              examples:
-                success:
-                  value:
-                    reactions:
-                      - content: 1
-                        sentBy:
-                          id: 1
-                          username: "Maria"   
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/messages/{message_id}:
     parameters:
@@ -827,16 +827,16 @@ paths:
       description: Deletes a specific message.
       operationId: deleteMessage
       responses:
-        '204':
+        "204":
           description: Message deleted
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/name:
     parameters:
@@ -866,22 +866,36 @@ paths:
                   example: Group 1
                   minLength: 1
                   maxLength: 16
-                  pattern: '^[a-zA-Z0-9_ ]+$'
+                  pattern: "^[a-zA-Z0-9_ ]+$"
               required:
                 - name
       responses:
-        '204':
+        "200":
           description: Group name updated successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          content:
+            application/json:
+              schema:
+                description: Response containing the updated group name
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The updated group name
+                    example: "Group 1"
+              examples:
+                success:
+                  value:
+                    name: "Group 1"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/photo:
     parameters:
@@ -906,22 +920,30 @@ paths:
               description: Request body containing the image UUID reference
               properties:
                 image:
-                  $ref: '#/components/schemas/ImageReference'
+                  $ref: "#/components/schemas/ImageReference"
               required:
                 - image
       responses:
-        '204':
+        "200":
           description: Group photo updated successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageReference"
+              examples:
+                success:
+                  value:
+                    uuid: "550e8400-e29b-41d4-a716-446655440000"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/participants:
     parameters:
@@ -946,39 +968,35 @@ paths:
               type: object
               properties:
                 participants:
-                  type: array
-                  description: Users to add
-                  items:
-                    $ref: '#/components/schemas/Username'
-                  minItems: 1
-                  maxItems: 1000
+                  $ref: "#/components/schemas/Participants"
               required:
                 - participants
       responses:
-        '200':
+        "200":
           description: Participants added successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Conversation/participants'
+                $ref: "#/components/schemas/Participants"
               examples:
                 success:
                   value:
                     participants:
-                    - username: "Maria"
-                      uuid: "550e8400-e29b-41d4-a716-446655440000"
-                    - username: "John"
-                      uuid: "550e8400-e29b-41d4-a716-446655440001"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                      items:
+                        - username: "Maria"
+                          uuid: "550e8400-e29b-41d4-a716-446655440000"
+                        - username: "John"
+                          uuid: "550e8400-e29b-41d4-a716-446655440001"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - group
@@ -986,16 +1004,16 @@ paths:
       description: Current user leaves the group conversation.
       operationId: leaveGroup
       responses:
-        '204':
+        "204":
           description: Left group successfully
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /conversations/{conversationId}/forwarded_messages:
     parameters:
@@ -1016,30 +1034,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ForwardMessageRequest'
+              $ref: "#/components/schemas/ForwardMessageRequest"
       responses:
-        '200':
+        "200":
           description: Message forwarded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
+                $ref: "#/components/schemas/Message"
               examples:
                 success:
                   value:
-                    id: 1
+                    messageId: 1
                     text: "Hello, world!"
                     timestamp: "2025-05-03T12:34:56Z"
                     sentBy:
                       id: 1
                       username: "Maria"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

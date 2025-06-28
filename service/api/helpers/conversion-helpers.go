@@ -37,7 +37,7 @@ func ConvertToSentMessages(messages []database.MessageView) []dto.SentMessage {
 	for _, msg := range messages {
 		sentMessages = append(sentMessages, dto.SentMessage{
 			MessageId:        msg.MessageId,
-			Content:          msg.Content,
+			Text:             msg.Text,
 			SentBy:           ConvertPublicUser(msg.SentBy),
 			Timestamp:        msg.Timestamp,
 			PhotoId:          msg.PhotoId,
@@ -53,7 +53,7 @@ func ConvertToSentMessages(messages []database.MessageView) []dto.SentMessage {
 func ConvertToSentMessage(msg database.MessageView) dto.SentMessage {
 	return dto.SentMessage{
 		MessageId:        msg.MessageId,
-		Content:          msg.Content,
+		Text:             msg.Text,
 		SentBy:           ConvertPublicUser(msg.SentBy),
 		Timestamp:        msg.Timestamp,
 		PhotoId:          msg.PhotoId,

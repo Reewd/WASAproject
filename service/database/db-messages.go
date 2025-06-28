@@ -46,7 +46,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	const stmt = `
     SELECT 
         m.id                  AS messageId,
-        m.content             AS messageContent,
+        m.content             AS messageText,
         m.conversationId,
         m.photoId             AS messagePhotoId,
         m.replyTo,
@@ -81,7 +81,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	for rows.Next() {
 		var (
 			messageID                int64
-			nsMessageContent         sql.NullString
+			nsmessageText            sql.NullString
 			convID                   int64
 			nsMessagePhotoID         sql.NullString
 			nrReplyTo                sql.NullInt64
@@ -97,7 +97,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 
 		if err := rows.Scan(
 			&messageID,
-			&nsMessageContent,
+			&nsmessageText,
 			&convID,
 			&nsMessagePhotoID,
 			&nrReplyTo,
@@ -123,9 +123,9 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			replyTo = &nrReplyTo.Int64
 		}
 
-		var messageContent *string
-		if nsMessageContent.Valid {
-			messageContent = &nsMessageContent.String
+		var messageText *string
+		if nsmessageText.Valid {
+			messageText = &nsmessageText.String
 		}
 
 		statusMap[messageID] = append(statusMap[messageID], MessageStatus)
@@ -141,7 +141,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 
 			msg = &MessageView{
 				MessageId:      messageID,
-				Content:        messageContent,
+				Text:           messageText,
 				ConversationId: convID,
 				PhotoId:        photoID,
 				ReplyTo:        replyTo,
@@ -224,7 +224,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 
 func (db *appdbimpl) ForwardMessage(messageIdToForward int64, conversationId int64, forwarderId int64) (messageId int64, timestamp string, content *string, photoId *string, err error) {
 	stmt := `SELECT content, photoId FROM messages WHERE id = ?`
-	var nsContent sql.NullString
+	var nsText sql.NullString
 	var nsPhotoId sql.NullString
 	err = db.c.QueryRow(stmt, messageIdToForward).Scan(&content, &nsPhotoId)
 	if err != nil {
@@ -235,8 +235,8 @@ func (db *appdbimpl) ForwardMessage(messageIdToForward int64, conversationId int
 		photoId = &nsPhotoId.String
 	}
 
-	if nsContent.Valid {
-		content = &nsContent.String
+	if nsText.Valid {
+		content = &nsText.String
 	}
 
 	forwardedMessageId, timestamp, err := db.InsertMessage(conversationId, forwarderId, content, photoId, nil)
@@ -276,14 +276,14 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 			LIMIT 1`
 
 	var msg MessageView
-	var nsContent sql.NullString
+	var nsText sql.NullString
 	var nsPhotoId sql.NullString
 	var nsReplyTo sql.NullInt64
 	var nsSenderPhotoId sql.NullString
 
 	err = db.c.QueryRow(stmt, conversationId).Scan(
 		&msg.MessageId,
-		&nsContent,
+		&nsText,
 		&nsPhotoId,
 		&nsReplyTo,
 		&msg.Timestamp,
@@ -295,8 +295,8 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		return nil, err
 	}
 
-	if nsContent.Valid {
-		msg.Content = &nsContent.String
+	if nsText.Valid {
+		msg.Text = &nsText.String
 	}
 	if nsPhotoId.Valid {
 		msg.PhotoId = &nsPhotoId.String

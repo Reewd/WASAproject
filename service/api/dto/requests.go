@@ -40,7 +40,7 @@ type SetGroupPhotoRequest struct {
 
 type SendMessageRequest struct {
 	ReplyToMessageId *int64  `json:"replyTo"`
-	Content          *string `json:"content,omitempty"`
+	Text             *string `json:"text,omitempty"`
 	PhotoId          *string `json:"photoId,omitempty"`
 }
 

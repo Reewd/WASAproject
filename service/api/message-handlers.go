@@ -20,12 +20,12 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	if req.Content != nil && req.PhotoId != nil {
+	if req.Text != nil && req.PhotoId != nil {
 		http.Error(w, "You must send either a message or a photo, or both", http.StatusBadRequest)
 	}
 
-	if req.Content != nil {
-		if len(*req.Content) == 0 || len(*req.Content) > constraints.MaxMessageLength {
+	if req.Text != nil {
+		if len(*req.Text) == 0 || len(*req.Text) > constraints.MaxMessageLength {
 			http.Error(w, fmt.Sprintf("Message content cannot be empty and must not exceed %d characters", constraints.MaxMessageLength), http.StatusBadRequest)
 			return
 		}
@@ -47,7 +47,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Content, req.PhotoId, req.ReplyToMessageId)
+	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, req.PhotoId, req.ReplyToMessageId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert message")
 		return
@@ -73,7 +73,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		Username: ctx.Username,
 		PhotoId:  nil,
 	}
-	resp.Content = req.Content
+	resp.Text = req.Text
 	resp.ReplyToMessageId = req.ReplyToMessageId
 	resp.Status = "sent" // Initial status is "sent"
 
@@ -178,7 +178,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	messageId, timestamp, content, photoId, err := rt.db.ForwardMessage(req.MessageId, conversationId, ctx.UserID)
+	messageId, timestamp, text, photoId, err := rt.db.ForwardMessage(req.MessageId, conversationId, ctx.UserID)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to forward message")
 		return
@@ -192,7 +192,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		Username: ctx.Username,
 		PhotoId:  nil,
 	}
-	resp.Content = content
+	resp.Text = text
 	resp.ReplyToMessageId = nil
 	resp.Status = "sent" // Initial status is "sent"
 

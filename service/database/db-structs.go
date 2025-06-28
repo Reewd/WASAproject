@@ -23,7 +23,7 @@ type MessageView struct {
 	MessageId      int64
 	SentBy         PublicUser
 	ConversationId int64
-	Content        *string
+	Text           *string
 	Timestamp      string
 	PhotoId        *string
 	Reactions      []ReactionView // aggregated reactions from rows sharing the same messageId

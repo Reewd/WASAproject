@@ -65,7 +65,7 @@ func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps http
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to set username")
 		return
 	}
-
+	//TODO: Return new privateUser
 	w.WriteHeader(http.StatusNoContent) // No content response for successful update
 }
 
