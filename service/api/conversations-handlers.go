@@ -137,8 +137,12 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		})
 	}
 
+	resp := map[string]interface{}{
+		"conversations": conversations, // Wrap the conversations array with a key
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(conversations)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
 		return
