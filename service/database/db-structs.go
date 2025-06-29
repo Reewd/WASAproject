@@ -2,7 +2,7 @@ package database
 
 type PublicUser struct {
 	Username string
-	PhotoId  *string
+	Photo    *Photo
 }
 
 type Conversation struct {
@@ -10,7 +10,7 @@ type Conversation struct {
 	Name           string
 	Participants   []PublicUser
 	IsGroup        bool
-	PhotoId        *string
+	Photo          *Photo
 }
 
 type ReactionView struct {
@@ -25,8 +25,13 @@ type MessageView struct {
 	ConversationId int64
 	Text           *string
 	Timestamp      string
-	PhotoId        *string
+	Photo          *Photo
 	Reactions      []ReactionView // aggregated reactions from rows sharing the same messageId
 	ReplyTo        *int64
 	Status         string // e.g., "sent", "delivered", "read"
+}
+
+type Photo struct {
+	PhotoId string
+	Path    string
 }

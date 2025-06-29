@@ -27,8 +27,9 @@ func (db *appdbimpl) RemoveParticipant(conversationId int64, userId int64) error
 }
 
 func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
-	stmt := `SELECT u.username, u.photoId FROM participants p
+	stmt := `SELECT u.username, u.photoId, i.path FROM participants p
 		 JOIN users u ON p.userId = u.id
+		 LEFT JOIN images i ON u.photoId = i.id
 		 WHERE p.conversationId = ?`
 	rows, err := db.c.Query(stmt, conversationId)
 	if err != nil {
@@ -40,12 +41,16 @@ func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error)
 	for rows.Next() {
 		var participant PublicUser
 		var nsPhotoId sql.NullString
-		err := rows.Scan(&participant.Username, &nsPhotoId)
+		var nsPhotoPath sql.NullString
+		err := rows.Scan(&participant.Username, &nsPhotoId, &nsPhotoPath)
 		if err != nil {
 			return nil, err
 		}
-		if nsPhotoId.Valid {
-			participant.PhotoId = &nsPhotoId.String
+		if nsPhotoId.Valid && nsPhotoPath.Valid {
+			participant.Photo = &Photo{
+				PhotoId: nsPhotoId.String,
+				Path:    nsPhotoPath.String,
+			}
 		}
 		participants = append(participants, participant)
 	}

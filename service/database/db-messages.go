@@ -44,28 +44,34 @@ func (db *appdbimpl) RemoveMessage(messageId int64) error {
 //	TODO: Split this into smaller functions
 func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	const stmt = `
-    SELECT 
-        m.id                  AS messageId,
-        m.content             AS messageText,
-        m.conversationId,
-        m.photoId             AS messagePhotoId,
-        m.replyTo,
-        m.timestamp           AS messageTimestamp,
-        u.username            AS messageSenderUsername,
-        u.photoId             AS messageSenderPhotoId,
-        r.content             AS reactionContent,
-        r.timestamp           AS reactionTimestamp,
-        ru.username           AS reactionSenderUsername,
-        ru.photoId            AS reactionSenderPhotoId,
-        ms.status             AS messageStatus
-    FROM messages m
-    LEFT JOIN users u  ON m.senderId    = u.id
-    LEFT JOIN reactions r  ON m.id     = r.messageId
-    LEFT JOIN users ru ON r.senderId   = ru.id
-    LEFT JOIN message_status ms ON m.id = ms.messageId
-    WHERE m.conversationId = ?
-    ORDER BY m.timestamp ASC
-    `
+	SELECT 
+		m.id                  AS messageId,
+		m.content             AS messageText,
+		m.conversationId,
+		m.photoId             AS messagePhotoId,
+		i.path                AS messagePhotoPath,
+		m.replyTo,
+		m.timestamp           AS messageTimestamp,
+		u.username            AS messageSenderUsername,
+		u.photoId             AS messageSenderPhotoId,
+		ui.path               AS messageSenderPhotoPath,
+		r.content             AS reactionContent,
+		r.timestamp           AS reactionTimestamp,
+		ru.username           AS reactionSenderUsername,
+		ru.photoId            AS reactionSenderPhotoId,
+		ri.path               AS reactionSenderPhotoPath,
+		ms.status             AS messageStatus
+	FROM messages m
+	LEFT JOIN users u  ON m.senderId    = u.id
+	LEFT JOIN reactions r  ON m.id     = r.messageId
+	LEFT JOIN users ru ON r.senderId   = ru.id
+	LEFT JOIN message_status ms ON m.id = ms.messageId
+	LEFT JOIN images i ON m.photoId = i.id
+	LEFT JOIN images ui on u.photoId = ui.id
+	LEFT JOIN images ri on ru.photoId = ri.id
+	WHERE m.conversationId = ?
+	ORDER BY m.timestamp ASC
+	`
 
 	rows, err := db.c.Query(stmt, conversationID)
 	if err != nil {
@@ -84,14 +90,17 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			nsmessageText            sql.NullString
 			convID                   int64
 			nsMessagePhotoID         sql.NullString
+			nsMessagePhotoPath       sql.NullString
 			nrReplyTo                sql.NullInt64
 			messageTimestamp         string
 			senderUsername           string
 			nsSenderPhotoID          sql.NullString
+			nsSenderPhotoPath        sql.NullString
 			nsReactionContent        sql.NullString
 			nrReactionTimestamp      sql.NullString
 			nsReactionSenderUsername sql.NullString
 			nsReactionSenderPhotoID  sql.NullString
+			nsReactionSenderPhotoPath sql.NullString
 			MessageStatus            string
 		)
 
@@ -100,14 +109,17 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			&nsmessageText,
 			&convID,
 			&nsMessagePhotoID,
+			&nsMessagePhotoPath,
 			&nrReplyTo,
 			&messageTimestamp,
 			&senderUsername,
 			&nsSenderPhotoID,
+			&nsSenderPhotoPath,
 			&nsReactionContent,
 			&nrReactionTimestamp,
 			&nsReactionSenderUsername,
 			&nsReactionSenderPhotoID,
+			&nsReactionSenderPhotoPath,
 			&MessageStatus,
 		); err != nil {
 			return nil, fmt.Errorf("scanning row: %w", err)
@@ -117,6 +129,10 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		var photoID *string
 		if nsMessagePhotoID.Valid {
 			photoID = &nsMessagePhotoID.String
+		}
+		var photoPath *string
+		if nsMessagePhotoPath.Valid {
+			photoPath = &nsMessagePhotoPath.String
 		}
 		var replyTo *int64
 		if nrReplyTo.Valid {
@@ -134,21 +150,32 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		msg, ok := msgMap[messageID]
 		if !ok {
 			// build the sender’s photo pointer
-			var senderPhoto *string
-			if nsSenderPhotoID.Valid {
-				senderPhoto = &nsSenderPhotoID.String
+			var senderPhoto *Photo
+			if nsSenderPhotoID.Valid && nsSenderPhotoPath.Valid {
+				senderPhoto = &Photo{
+					PhotoId: nsSenderPhotoID.String,
+					Path:    nsSenderPhotoPath.String,
+				}
+			}
+
+			var photo *Photo
+			if photoID != nil && photoPath != nil {
+				photo = &Photo{
+					PhotoId: *photoID,
+					Path:    *photoPath,
+				}
 			}
 
 			msg = &MessageView{
 				MessageId:      messageID,
 				Text:           messageText,
 				ConversationId: convID,
-				PhotoId:        photoID,
+				Photo:          photo,
 				ReplyTo:        replyTo,
 				Timestamp:      messageTimestamp,
 				SentBy: PublicUser{
 					Username: senderUsername,
-					PhotoId:  senderPhoto,
+					Photo:    senderPhoto,
 				},
 				Reactions: []ReactionView{},
 			}
@@ -158,9 +185,12 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		// Append reaction if there is one
 		if nsReactionContent.Valid {
 			// build reaction-sender photo pointer
-			var rSenderPhoto *string
-			if nsReactionSenderPhotoID.Valid {
-				rSenderPhoto = &nsReactionSenderPhotoID.String
+			var rSenderPhoto *Photo
+			if nsReactionSenderPhotoID.Valid && nsReactionSenderPhotoPath.Valid {
+				rSenderPhoto = &Photo{
+					PhotoId: nsReactionSenderPhotoID.String,
+					Path:    nsReactionSenderPhotoPath.String,
+				}
 			}
 			// build reaction timestamp pointer
 			var rTs string
@@ -173,7 +203,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			msg.Reactions = append(msg.Reactions, ReactionView{
 				SentBy: PublicUser{
 					Username: senderName,
-					PhotoId:  rSenderPhoto,
+					Photo:    rSenderPhoto,
 				},
 				Content:   nsReactionContent.String,
 				Timestamp: rTs,
@@ -267,9 +297,11 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		return nil, nil
 	}
 
-	stmt := `SELECT m.id, m.content, m.photoId, m.replyTo, m.timestamp, u.username, u.photoId, ms.status
+	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.username, u.photoId, ui.path, ms.status
 			FROM messages m
+			LEFT JOIN images i ON m.photoId = i.id
 			JOIN users u ON m.senderId = u.id
+			LEFT JOIN images ui ON u.photoId = ui.id
 			JOIN message_status ms ON m.id = ms.messageId
 			WHERE m.conversationId = ?
 			ORDER BY m.timestamp DESC
@@ -278,17 +310,21 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 	var msg MessageView
 	var nsText sql.NullString
 	var nsPhotoId sql.NullString
+	var nsPhotoPath sql.NullString
 	var nsReplyTo sql.NullInt64
 	var nsSenderPhotoId sql.NullString
+	var nsSenderPhotoPath sql.NullString
 
 	err = db.c.QueryRow(stmt, conversationId).Scan(
 		&msg.MessageId,
 		&nsText,
 		&nsPhotoId,
+		&nsPhotoPath,
 		&nsReplyTo,
 		&msg.Timestamp,
 		&msg.SentBy.Username,
 		&nsSenderPhotoId,
+		&nsSenderPhotoPath,
 		&msg.Status,
 	)
 	if err != nil {
@@ -298,14 +334,23 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 	if nsText.Valid {
 		msg.Text = &nsText.String
 	}
-	if nsPhotoId.Valid {
-		msg.PhotoId = &nsPhotoId.String
+
+	if nsPhotoId.Valid && nsPhotoPath.Valid {
+		msg.Photo = &Photo{
+			PhotoId: nsPhotoId.String,
+			Path:    nsPhotoPath.String,
+		}
 	}
+
 	if nsReplyTo.Valid {
 		msg.ReplyTo = &nsReplyTo.Int64
 	}
-	if nsSenderPhotoId.Valid {
-		msg.SentBy.PhotoId = &nsSenderPhotoId.String
+
+	if nsSenderPhotoId.Valid && nsSenderPhotoPath.Valid {
+		msg.SentBy.Photo = &Photo{
+			PhotoId: nsSenderPhotoId.String,
+			Path:    nsSenderPhotoPath.String,
+		}
 	}
 
 	return &msg, nil

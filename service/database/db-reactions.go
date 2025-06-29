@@ -30,13 +30,15 @@ func (db *appdbimpl) RemoveReaction(messageId, senderId int64) error {
 func (db *appdbimpl) GetReactions(messageId int64) ([]ReactionView, error) {
 	stmt := `
 	SELECT 
-		u.photoId, 
+		u.photoId,
+		i.path,
 		u.username, 
 		r.content, 
 		r.timestamp 
 	FROM 
 		reactions AS r 
 	LEFT JOIN users AS u ON r.senderId = u.Id
+	LEFT JOIN images AS i ON u.photoId = i.id
 	WHERE r.messageId = ?
 	`
 	rows, err := db.c.Query(stmt, messageId)
@@ -48,13 +50,17 @@ func (db *appdbimpl) GetReactions(messageId int64) ([]ReactionView, error) {
 	var reactions []ReactionView
 	for rows.Next() {
 		var nsPhotoId sql.NullString
+		var nsImagePath sql.NullString
 		var reaction ReactionView
 
-		if err := rows.Scan(&nsPhotoId, &reaction.SentBy.Username, &reaction.Content, &reaction.Timestamp); err != nil {
+		if err := rows.Scan(&nsPhotoId, &nsImagePath, &reaction.SentBy.Username, &reaction.Content, &reaction.Timestamp); err != nil {
 			return nil, err
 		}
 		if nsPhotoId.Valid {
-			reaction.SentBy.PhotoId = &nsPhotoId.String
+			reaction.SentBy.Photo.PhotoId = nsPhotoId.String
+		}
+		if nsImagePath.Valid {
+			reaction.SentBy.Photo.Path = nsImagePath.String
 		}
 		reactions = append(reactions, reaction)
 	}
