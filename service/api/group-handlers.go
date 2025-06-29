@@ -173,15 +173,21 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		http.Error(w, "You are not a participant of this conversation", http.StatusForbidden)
 		return
 	}
-	if len(req.PhotoId) != 20 {
+	if len(req.Photo.PhotoId) != 20 {
 		http.Error(w, "Invalid photo ID", http.StatusBadRequest)
 		return
 	}
-	err = rt.db.UpdateGroupPhoto(req.ConversationId, req.PhotoId)
-	//TODO: Return new uuid of the group photo
+	err = rt.db.UpdateGroupPhoto(req.ConversationId, req.Photo.PhotoId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to update group photo")
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // No content response for successful update
+	var resp dto.Photo
+	resp.PhotoId = req.Photo.PhotoId
+	resp.Path = req.Photo.Path
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }

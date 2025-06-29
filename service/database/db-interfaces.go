@@ -44,7 +44,7 @@ type ConversationDatabase interface {
 
 // All user related operations on the DB are handled by this interface.
 type UserDatabase interface {
-	Login(string) (int64, *string, error)
+	Login(string) (*User, error)
 	GetUserId(string) (int64, error)
 	GetUsersIds([]string) ([]int64, error)
 	GetUserPhoto(int64) (string, error)
@@ -54,6 +54,7 @@ type UserDatabase interface {
 	UpdateUsername(string, int64) error
 	UpdateUserPhoto(string, int64) error
 	GetPublicUsersByName([]string) ([]PublicUser, error)
+	GetPublicUser(int64) (*PublicUser, error)
 }
 
 // All image related operations on the DB are handled by this interface.

@@ -2,26 +2,28 @@ package database
 
 import "database/sql"
 
-func (db *appdbimpl) Login(username string) (int64, *string, error) {
+func (db *appdbimpl) Login(username string) (*User, error) {
 	var id int64
 	var nsPhotoId sql.NullString
-	var photoId *string
-	stmt := `SELECT id, photoId FROM users WHERE username = ?`
-	err := db.c.QueryRow(stmt, username).Scan(&id, &nsPhotoId)
+	var nsImagePath sql.NullString
+	stmt := `SELECT id, photoId, i.path FROM users LEFT JOIN images as i ON users.photoId = images.id WHERE username = ?`
+	err := db.c.QueryRow(stmt, username).Scan(&id, &nsPhotoId, &nsImagePath)
 	if err == sql.ErrNoRows {
 		id, err := db.InsertUser(username)
 		if err != nil {
-			return 0, nil, err
+			return nil, err
 		}
-		return id, nil, err
+		return &User{UserId: id, Username: username}, nil
+	} else if err != nil {
+		return nil, err
 	}
 
-	if nsPhotoId.Valid {
-		photoId = &nsPhotoId.String
+	var photo *Photo
+	if nsPhotoId.Valid && nsImagePath.Valid {
+		photo = &Photo{PhotoId: nsPhotoId.String, Path: nsImagePath.String}
 	}
 
-	return id, photoId, err
-
+	return &User{UserId: id, Username: username, Photo: photo}, nil
 }
 
 func (db *appdbimpl) InsertUser(username string) (int64, error) {
@@ -119,4 +121,21 @@ func (db *appdbimpl) GetPublicUsersByName(usernames []string) ([]PublicUser, err
 		publicUsers = append(publicUsers, user)
 	}
 	return publicUsers, nil
+}
+
+func (db *appdbimpl) GetPublicUser(id int64) (*PublicUser, error) {
+	var user PublicUser
+	var nsPhotoId sql.NullString
+	var nsImagePath sql.NullString
+	stmt := `SELECT username, photoId, i.path FROM users WHERE id = ? LEFT JOIN images as i ON users.photoId = images.id`
+	err := db.c.QueryRow(stmt, id).Scan(&user.Username, &nsPhotoId, &nsImagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	if nsPhotoId.Valid && nsImagePath.Valid {
+		user.Photo = &Photo{PhotoId: nsPhotoId.String, Path: nsImagePath.String}
+	}
+
+	return &user, nil
 }

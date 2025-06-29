@@ -9,14 +9,14 @@ type SetUsernameRequest struct {
 }
 
 type PhotoRequest struct {
-	PhotoId string `json:"photoId"`
+	Photo *Photo `json:"photo,omitempty"`
 }
 
 type CreateConversationRequest struct {
 	Name         string   `json:"name,omitempty"`
 	Participants []string `json:"participants"`
 	IsGroup      bool     `json:"isGroup"`
-	PhotoId      *string  `json:"photoId,omitempty"`
+	Photo        *Photo   `json:"photo,omitempty"`
 }
 
 type AddToGroupRequest struct {
@@ -35,13 +35,13 @@ type SetGroupNameRequest struct {
 
 type SetGroupPhotoRequest struct {
 	ConversationId int64  `json:"conversationId"`
-	PhotoId        string `json:"photoId"`
+	Photo          *Photo `json:"photo,omitempty"`
 }
 
 type SendMessageRequest struct {
 	ReplyToMessageId *int64  `json:"replyTo"`
 	Text             *string `json:"text,omitempty"`
-	PhotoId          *string `json:"photoId,omitempty"`
+	Photo            *Photo  `json:"photo,omitempty"`
 }
 
 type ForwardMessageRequest struct {

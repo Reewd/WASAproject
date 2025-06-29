@@ -20,7 +20,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	if req.Text != nil && req.PhotoId != nil {
+	if req.Text != nil && req.Photo != nil {
 		http.Error(w, "You must send either a message or a photo, or both", http.StatusBadRequest)
 	}
 
@@ -47,7 +47,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, req.PhotoId, req.ReplyToMessageId)
+	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, &req.Photo.PhotoId, req.ReplyToMessageId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert message")
 		return
@@ -64,15 +64,22 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to get sender's public user information")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	var resp dto.SentMessage
 	resp.MessageId = messageId
 	resp.ConversationId = conversationId
 	resp.Timestamp = timestamp
-	resp.PhotoId = req.PhotoId
-	resp.SentBy = dto.PublicUser{
-		Username: ctx.Username,
-		PhotoId:  nil,
+	resp.Photo = &dto.Photo{
+		PhotoId: req.Photo.PhotoId,
+		Path:    req.Photo.Path,
 	}
+	resp.SentBy = helpers.ConvertPublicUser(*dbUser)
 	resp.Text = req.Text
 	resp.ReplyToMessageId = req.ReplyToMessageId
 	resp.Status = "sent" // Initial status is "sent"
@@ -184,14 +191,29 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to get sender's public user information")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var respPhoto *dto.Photo
+	if photoId == nil {
+		path, err := rt.db.GetImagePath(*photoId)
+		if err != nil {
+			helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve image path")
+			return
+		}
+		respPhoto.PhotoId = *photoId
+		respPhoto.Path = path
+	}
+
 	var resp dto.SentMessage
 	resp.MessageId = messageId
 	resp.Timestamp = timestamp
-	resp.PhotoId = photoId
-	resp.SentBy = dto.PublicUser{
-		Username: ctx.Username,
-		PhotoId:  nil,
-	}
+	resp.Photo = respPhoto
+	resp.SentBy = helpers.ConvertPublicUser(*dbUser)
 	resp.Text = text
 	resp.ReplyToMessageId = nil
 	resp.Status = "sent" // Initial status is "sent"

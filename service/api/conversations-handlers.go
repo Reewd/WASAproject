@@ -19,8 +19,14 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+	username, err := rt.db.GetUsername(ctx.UserID)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to get username")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
-	req.Participants = append(req.Participants, ctx.Username) // Add the current user to participants
+	req.Participants = append(req.Participants, username) // Add the current user to participants
 
 	if req.IsGroup {
 		rt.createGroup(w, ctx, req)
@@ -41,7 +47,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 		return
 	}
 
-	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, req.PhotoId)
+	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, &req.Photo.PhotoId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 		return
@@ -61,7 +67,11 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 		Name:           req.Name,
 		Participants:   participants,
 		IsGroup:        req.IsGroup,
-		PhotoId:        req.PhotoId})
+		Photo: &dto.Photo{
+			PhotoId: req.Photo.PhotoId,
+			Path:    req.Photo.Path,
+		},
+	})
 
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
@@ -70,13 +80,12 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 }
 
 func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqcontext.RequestContext, req dto.CreateConversationRequest) {
-	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, req.PhotoId)
-
 	if len(req.Participants) != 2 {
 		http.Error(w, "A private conversation must have exactly 2 participants", http.StatusBadRequest)
 		return
 	}
 
+	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, &req.Photo.PhotoId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 		return
@@ -96,7 +105,11 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		Name:           req.Name,
 		Participants:   participants,
 		IsGroup:        req.IsGroup,
-		PhotoId:        req.PhotoId})
+		Photo: &dto.Photo{
+			PhotoId: req.Photo.PhotoId,
+			Path:    req.Photo.Path,
+		},
+	})
 
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
@@ -132,7 +145,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 			Name:           dbConv.Name,
 			Participants:   helpers.ConvertPublicUsers(dbConv.Participants),
 			IsGroup:        dbConv.IsGroup,
-			PhotoId:        dbConv.PhotoId,
+			Photo:          helpers.ConvertPhoto(dbConv.Photo),
 			LastMessage:    lastMessage,
 		})
 	}
@@ -172,8 +185,15 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	isIn := false
+	username, err := rt.db.GetUsername(ctx.UserID)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to get username")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	for _, participant := range database_conversation.Participants {
-		if participant.Username == ctx.Username {
+		if participant.Username == username {
 			isIn = true
 			break
 		}
@@ -201,14 +221,14 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	participants := helpers.ConvertPublicUsers(database_conversation.Participants)
 	name := database_conversation.Name
 	isGroup := database_conversation.IsGroup
-	photoId := database_conversation.PhotoId
+	photo := helpers.ConvertPhoto(database_conversation.Photo)
 
 	conversation := dto.Chat{
 		ConversationId: conversationId,
 		Name:           name,
 		Participants:   participants,
 		IsGroup:        isGroup,
-		PhotoId:        photoId,
+		Photo:          photo,
 		Messages:       messages,
 	}
 

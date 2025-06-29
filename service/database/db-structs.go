@@ -5,6 +5,12 @@ type PublicUser struct {
 	Photo    *Photo
 }
 
+type User struct {
+	UserId   int64
+	Username string
+	Photo    *Photo // optional, can be nil
+}
+
 type Conversation struct {
 	ConversationId int64
 	Name           string

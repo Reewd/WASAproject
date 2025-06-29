@@ -26,7 +26,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	// Get or create user ID
-	id, photoId, err := rt.db.Login(req.Username)
+	dbUser, err := rt.db.Login(req.Username)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Login failed")
 		return
@@ -34,8 +34,8 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	var resp dto.User
 	resp.Username = req.Username
-	resp.UserId = id
-	resp.PhotoId = photoId
+	resp.UserId = dbUser.UserId
+	resp.Photo = helpers.ConvertPhoto(dbUser.Photo)
 
 	// Return the user ID to be used as bearer token
 	w.Header().Set("Content-Type", "application/json")
@@ -79,26 +79,20 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Validate photo ID
-	if req.PhotoId == "" {
+	if req.Photo.PhotoId == "" {
 		http.Error(w, "Photo ID cannot be empty", http.StatusBadRequest)
 		return
 	}
 
 	// Update the photo ID in the database
-	if err := rt.db.UpdateUserPhoto(req.PhotoId, ctx.UserID); err != nil {
+	if err := rt.db.UpdateUserPhoto(req.Photo.PhotoId, ctx.UserID); err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to set photo")
 		return
 	}
 
-	path, err := rt.db.GetImagePath(req.PhotoId)
-	if err != nil {
-		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve image path")
-		return
-	}
-
-	var resp dto.Photo
-	resp.PhotoId = req.PhotoId
-	resp.Path = path
+	var resp dto.User
+	resp.Photo.PhotoId = req.Photo.PhotoId
+	resp.Photo.Path = req.Photo.Path
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
