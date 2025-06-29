@@ -205,8 +205,10 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 			helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve image path")
 			return
 		}
-		respPhoto.PhotoId = *photoId
-		respPhoto.Path = path
+		respPhoto = &dto.Photo{
+			PhotoId: *photoId,
+			Path:    path,
+		}
 	}
 
 	var resp dto.SentMessage
