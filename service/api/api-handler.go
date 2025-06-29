@@ -28,7 +28,7 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.POST("/conversations/:conversationId/messages/:messageId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.commentMessage)))
 	rt.router.DELETE("/conversations/:conversationId/messages/:messageId/reactions", rt.wrap(rt.idVerifierMiddleware(rt.uncommentMessage)))
-
+	rt.router.ServeFiles("/uploads/*filepath", http.Dir("./uploads"))
 	// Special routes
 	rt.router.GET("/liveness", rt.liveness)
 

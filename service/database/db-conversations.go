@@ -56,9 +56,9 @@ func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, partic
 }
 
 func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, error) {
-	stmt := `SELECT c.id, c.name, c.isGroup, c.photoId i.path FROM conversations c
+	stmt := `SELECT c.id, c.name, c.isGroup, c.photoId, i.path FROM conversations c
 			 JOIN participants p ON c.id = p.conversationId
-			 LEFT JOIN images i ON c.photoId = i.id
+			 LEFT JOIN images AS i ON c.photoId = i.uuid
 			 WHERE p.userId = ?`
 	rows, err := db.c.Query(stmt, userId)
 	if err != nil {
