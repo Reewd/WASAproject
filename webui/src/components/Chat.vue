@@ -2,13 +2,8 @@
   <div class="chat-container" v-if="conversation">
     <h2>{{ conversation.name }}</h2>
     <div class="chat-messages">
-      <!-- Placeholder for messages -->
-      <p>Messages will be displayed here...</p>
     </div>
-    <div class="chat-input">
-      <input type="text" placeholder="Type a message..." />
-      <button>Send</button>
-    </div>
+    <ChatInput />
   </div>
   <div v-else class="no-conversation">
     <p>Please select a conversation to start chatting.</p>
@@ -17,6 +12,7 @@
 
 <script setup>
 import { defineProps } from 'vue';
+import ChatInput from './ChatInput.vue'; // Import the ChatInput component
 
 // Accept the selected conversation as a prop
 defineProps({
@@ -42,31 +38,6 @@ defineProps({
   margin-bottom: 10px;
   border: 1px solid #ddd;
   padding: 10px;
-}
-
-.chat-input {
-  display: flex;
-  gap: 10px;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.chat-input button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.chat-input button:hover {
-  background-color: #0056b3;
 }
 
 .no-conversation {

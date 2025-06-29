@@ -57,9 +57,11 @@ const getDefaultPhoto = (isGroup) => {
 .conversation-preview {
   display: flex;
   align-items: center;
-  border: 1px solid #ccc;
   padding: 10px;
   border-radius: 5px;
+}
+.conversation-preview:hover {
+  background-color: #f0f0f0; /* Light gray background on hover */
 }
 
 .conversation-photo {
@@ -67,6 +69,11 @@ const getDefaultPhoto = (isGroup) => {
   height: 50px;
   border-radius: 50%;
   margin-right: 10px;
+}
+
+.conversation-preview.selected {
+  background-color: #333; /* Dark gray background for selected conversation */
+  color: #fff; /* White text for better contrast */
 }
 
 .conversation-details {
