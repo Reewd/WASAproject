@@ -6,7 +6,7 @@ func (db *appdbimpl) Login(username string) (*User, error) {
 	var id int64
 	var nsPhotoId sql.NullString
 	var nsImagePath sql.NullString
-	stmt := `SELECT id, photoId, i.path FROM users LEFT JOIN images as i ON users.photoId = images.id WHERE username = ?`
+	stmt := `SELECT id, photoId, i.path FROM users LEFT JOIN images as i ON users.photoId = i.uuid WHERE username = ?`
 	err := db.c.QueryRow(stmt, username).Scan(&id, &nsPhotoId, &nsImagePath)
 	if err == sql.ErrNoRows {
 		id, err := db.InsertUser(username)
