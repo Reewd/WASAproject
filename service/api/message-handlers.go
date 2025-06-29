@@ -199,7 +199,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	var respPhoto *dto.Photo
-	if photoId == nil {
+	if photoId != nil {
 		path, err := rt.db.GetImagePath(*photoId)
 		if err != nil {
 			helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve image path")
