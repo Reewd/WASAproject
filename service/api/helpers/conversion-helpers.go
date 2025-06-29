@@ -8,7 +8,10 @@ import (
 func ConvertPublicUser(user database.PublicUser) dto.PublicUser {
 	return dto.PublicUser{
 		Username: user.Username,
-		PhotoId:  user.PhotoId,
+		Photo: &dto.Photo{
+			PhotoId: user.Photo.PhotoId,
+			Path:    user.Photo.Path,
+		},
 	}
 }
 
@@ -36,11 +39,14 @@ func ConvertToSentMessages(messages []database.MessageView) []dto.SentMessage {
 	sentMessages := make([]dto.SentMessage, 0, len(messages))
 	for _, msg := range messages {
 		sentMessages = append(sentMessages, dto.SentMessage{
-			MessageId:        msg.MessageId,
-			Text:             msg.Text,
-			SentBy:           ConvertPublicUser(msg.SentBy),
-			Timestamp:        msg.Timestamp,
-			PhotoId:          msg.PhotoId,
+			MessageId: msg.MessageId,
+			Text:      msg.Text,
+			SentBy:    ConvertPublicUser(msg.SentBy),
+			Timestamp: msg.Timestamp,
+			Photo: &dto.Photo{
+				PhotoId: msg.Photo.PhotoId,
+				Path:    msg.Photo.Path,
+			},
 			Reactions:        ConvertReactions(msg.Reactions),
 			ReplyToMessageId: msg.ReplyTo,
 			Status:           msg.Status,
@@ -52,11 +58,14 @@ func ConvertToSentMessages(messages []database.MessageView) []dto.SentMessage {
 
 func ConvertToSentMessage(msg database.MessageView) dto.SentMessage {
 	return dto.SentMessage{
-		MessageId:        msg.MessageId,
-		Text:             msg.Text,
-		SentBy:           ConvertPublicUser(msg.SentBy),
-		Timestamp:        msg.Timestamp,
-		PhotoId:          msg.PhotoId,
+		MessageId: msg.MessageId,
+		Text:      msg.Text,
+		SentBy:    ConvertPublicUser(msg.SentBy),
+		Timestamp: msg.Timestamp,
+		Photo: &dto.Photo{
+			PhotoId: msg.Photo.PhotoId,
+			Path:    msg.Photo.Path,
+		},
 		Reactions:        ConvertReactions(msg.Reactions),
 		ReplyToMessageId: msg.ReplyTo,
 		Status:           msg.Status,
