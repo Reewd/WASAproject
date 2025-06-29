@@ -55,6 +55,7 @@ type UserDatabase interface {
 	UpdateUserPhoto(string, int64) error
 	GetPublicUsersByName([]string) ([]PublicUser, error)
 	GetPublicUser(int64) (*PublicUser, error)
+	GetAllPublicUsers() ([]PublicUser, error)
 }
 
 // All image related operations on the DB are handled by this interface.

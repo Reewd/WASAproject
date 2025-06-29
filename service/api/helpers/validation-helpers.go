@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/Reewd/WASAproject/service/api/dto"
 	"github.com/rivo/uniseg"
 	"github.com/ucarion/emoji"
 )
@@ -22,4 +23,11 @@ func IsSingleEmoji(s string) error {
 	}
 
 	return nil
+}
+
+func ExtractPhoto(reqPhoto *dto.Photo) (*string, *dto.Photo) {
+	if reqPhoto != nil {
+		return &reqPhoto.PhotoId, reqPhoto
+	}
+	return nil, nil
 }

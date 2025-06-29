@@ -38,7 +38,7 @@ func (db *appdbimpl) GetReactions(messageId int64) ([]ReactionView, error) {
 	FROM 
 		reactions AS r 
 	LEFT JOIN users AS u ON r.senderId = u.Id
-	LEFT JOIN images AS i ON u.photoId = i.id
+	LEFT JOIN images AS i ON u.photoId = i.uuid
 	WHERE r.messageId = ?
 	`
 	rows, err := db.c.Query(stmt, messageId)

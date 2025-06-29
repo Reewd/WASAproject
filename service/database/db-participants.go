@@ -29,7 +29,7 @@ func (db *appdbimpl) RemoveParticipant(conversationId int64, userId int64) error
 func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
 	stmt := `SELECT u.username, u.photoId, i.path FROM participants p
 		 JOIN users u ON p.userId = u.id
-		 LEFT JOIN images i ON u.photoId = i.id
+		 LEFT JOIN images i ON u.photoId = i.uuid
 		 WHERE p.conversationId = ?`
 	rows, err := db.c.Query(stmt, conversationId)
 	if err != nil {

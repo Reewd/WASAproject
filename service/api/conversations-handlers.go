@@ -36,7 +36,7 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 }
 
 func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestContext, req dto.CreateConversationRequest) {
-	// Create the conversation in the database
+	// Validate input
 	if req.Name == "" {
 		http.Error(w, "Name of a group cannot be empty", http.StatusBadRequest)
 		return
@@ -47,12 +47,17 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 		return
 	}
 
-	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, &req.Photo.PhotoId)
+	// Extract Photo
+	photoId, Photo := helpers.ExtractPhoto(req.Photo)
+
+	// Insert conversation into the database
+	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, photoId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 		return
 	}
 
+	// Retrieve participants
 	database_participants, err := rt.db.GetParticipants(conversationId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participants")
@@ -61,16 +66,14 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 
 	participants := helpers.ConvertPublicUsers(database_participants)
 
+	// Respond with the created conversation
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(dto.Chat{
 		ConversationId: conversationId,
 		Name:           req.Name,
 		Participants:   participants,
 		IsGroup:        req.IsGroup,
-		Photo: &dto.Photo{
-			PhotoId: req.Photo.PhotoId,
-			Path:    req.Photo.Path,
-		},
+		Photo:          Photo,
 	})
 
 	if err != nil {
@@ -85,7 +88,7 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		return
 	}
 
-	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, &req.Photo.PhotoId)
+	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, nil)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 		return
@@ -105,10 +108,6 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		Name:           req.Name,
 		Participants:   participants,
 		IsGroup:        req.IsGroup,
-		Photo: &dto.Photo{
-			PhotoId: req.Photo.PhotoId,
-			Path:    req.Photo.Path,
-		},
 	})
 
 	if err != nil {

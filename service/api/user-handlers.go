@@ -101,3 +101,25 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 }
+
+func (rt *_router) getUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	// Get all users from the database
+	users, err := rt.db.GetAllPublicUsers()
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve users")
+		return
+	}
+
+	// Convert users to public user DTOs
+	publicUsers := helpers.ConvertPublicUsers(users)
+
+	resp := map[string][]dto.PublicUser{
+		"users": publicUsers,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
+}

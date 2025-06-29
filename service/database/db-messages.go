@@ -66,9 +66,9 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	LEFT JOIN reactions r  ON m.id     = r.messageId
 	LEFT JOIN users ru ON r.senderId   = ru.id
 	LEFT JOIN message_status ms ON m.id = ms.messageId
-	LEFT JOIN images i ON m.photoId = i.id
-	LEFT JOIN images ui on u.photoId = ui.id
-	LEFT JOIN images ri on ru.photoId = ri.id
+	LEFT JOIN images i ON m.photoId = i.uuid
+	LEFT JOIN images ui on u.photoId = ui.uuid
+	LEFT JOIN images ri on ru.photoId = ri.uuid
 	WHERE m.conversationId = ?
 	ORDER BY m.timestamp ASC
 	`
@@ -86,22 +86,22 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 
 	for rows.Next() {
 		var (
-			messageID                int64
-			nsmessageText            sql.NullString
-			convID                   int64
-			nsMessagePhotoID         sql.NullString
-			nsMessagePhotoPath       sql.NullString
-			nrReplyTo                sql.NullInt64
-			messageTimestamp         string
-			senderUsername           string
-			nsSenderPhotoID          sql.NullString
-			nsSenderPhotoPath        sql.NullString
-			nsReactionContent        sql.NullString
-			nrReactionTimestamp      sql.NullString
-			nsReactionSenderUsername sql.NullString
-			nsReactionSenderPhotoID  sql.NullString
+			messageID                 int64
+			nsmessageText             sql.NullString
+			convID                    int64
+			nsMessagePhotoID          sql.NullString
+			nsMessagePhotoPath        sql.NullString
+			nrReplyTo                 sql.NullInt64
+			messageTimestamp          string
+			senderUsername            string
+			nsSenderPhotoID           sql.NullString
+			nsSenderPhotoPath         sql.NullString
+			nsReactionContent         sql.NullString
+			nrReactionTimestamp       sql.NullString
+			nsReactionSenderUsername  sql.NullString
+			nsReactionSenderPhotoID   sql.NullString
 			nsReactionSenderPhotoPath sql.NullString
-			MessageStatus            string
+			MessageStatus             string
 		)
 
 		if err := rows.Scan(
@@ -299,9 +299,9 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 
 	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.username, u.photoId, ui.path, ms.status
 			FROM messages m
-			LEFT JOIN images i ON m.photoId = i.id
+			LEFT JOIN images i ON m.photoId = i.uuid
 			JOIN users u ON m.senderId = u.id
-			LEFT JOIN images ui ON u.photoId = ui.id
+			LEFT JOIN images ui ON u.photoId = ui.uuid
 			JOIN message_status ms ON m.id = ms.messageId
 			WHERE m.conversationId = ?
 			ORDER BY m.timestamp DESC

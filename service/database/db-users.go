@@ -1,6 +1,10 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/Reewd/WASAproject/service/database/helpers"
+)
 
 func (db *appdbimpl) Login(username string) (*User, error) {
 	var id int64
@@ -138,4 +142,38 @@ func (db *appdbimpl) GetPublicUser(id int64) (*PublicUser, error) {
 	}
 
 	return &user, nil
+}
+
+func (db *appdbimpl) GetAllPublicUsers() ([]PublicUser, error) {
+	stmt := `SELECT username, photoId, i.path FROM users 
+             LEFT JOIN images AS i ON users.photoId = i.uuid`
+	rows, err := db.c.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer helpers.CloseRows(rows)
+
+	var publicUsers []PublicUser
+	for rows.Next() {
+		var user PublicUser
+		var nsPhotoId sql.NullString
+		var nsImagePath sql.NullString
+
+		err := rows.Scan(&user.Username, &nsPhotoId, &nsImagePath)
+		if err != nil {
+			return nil, err
+		}
+
+		if nsPhotoId.Valid && nsImagePath.Valid {
+			user.Photo = &Photo{PhotoId: nsPhotoId.String, Path: nsImagePath.String}
+		}
+
+		publicUsers = append(publicUsers, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return publicUsers, nil
 }

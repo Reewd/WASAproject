@@ -65,10 +65,9 @@ func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, err
 		return nil, err
 	}
 	defer helpers.CloseRows(rows)
-
 	var conversations []Conversation
-	var nsPhotoId *sql.NullString
-	var nsPhotoPath *sql.NullString
+	var nsPhotoId sql.NullString
+	var nsPhotoPath sql.NullString
 	for rows.Next() {
 		var conv Conversation
 		err := rows.Scan(&conv.ConversationId, &conv.Name, &conv.IsGroup, &nsPhotoId, &nsPhotoPath)
@@ -81,31 +80,31 @@ func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, err
 				PhotoId: nsPhotoId.String,
 				Path:    nsPhotoPath.String,
 			}
-
-			conv.Participants, err = db.GetParticipants(conv.ConversationId)
-			if err != nil {
-				return nil, err
-			}
-			conversations = append(conversations, conv)
 		}
 
-		// Check rows.Err after iteration
-		if err := rows.Err(); err != nil {
+		conv.Participants, err = db.GetParticipants(conv.ConversationId)
+		if err != nil {
 			return nil, err
 		}
+		conversations = append(conversations, conv)
+
+		// Check rows.Err after iteration
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return conversations, nil
 }
 
 func (db *appdbimpl) GetConversationById(conversationId int64) (*Conversation, error) {
 	stmt := `SELECT c.id, c.name, c.isGroup, c.photoId, i.path FROM conversations c
-			 LEFT JOIN images i ON c.photoId = i.id
+			 LEFT JOIN images i ON c.photoId = i.uuid
 			 WHERE c.id = ?`
 	row := db.c.QueryRow(stmt, conversationId)
 
 	var conv Conversation
-	var nsPhotoId *sql.NullString
-	var nsPhotoPath *sql.NullString
+	var nsPhotoId sql.NullString
+	var nsPhotoPath sql.NullString
 	err := row.Scan(&conv.ConversationId, &conv.Name, &conv.IsGroup, &nsPhotoId, &nsPhotoPath)
 	if err != nil {
 		return nil, err
