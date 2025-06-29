@@ -91,8 +91,10 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	var resp dto.User
-	resp.Photo.PhotoId = req.Photo.PhotoId
-	resp.Photo.Path = req.Photo.Path
+	resp.Photo = &dto.Photo{
+		PhotoId: req.Photo.PhotoId,
+		Path:    req.Photo.Path,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
