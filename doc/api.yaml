@@ -458,6 +458,38 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
+          
+  /users:
+    get:
+      tags:
+        - user
+      summary: List all users
+      description: Retrieves a list of all users in the system.
+      operationId: getUsers
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response containing a list of users
+                properties:
+                  users:
+                    type: array
+                    description: List of user profiles
+                    items:
+                      $ref: "#/components/schemas/PublicUser"
+                    minItems: 0
+                    maxItems: 100000
+              examples:
+                success:
+                  value:
+                    users: []
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /me/username:
     put:
       tags:
