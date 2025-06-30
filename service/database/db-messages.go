@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 
 	"github.com/Reewd/WASAproject/service/database/helpers"
 )
@@ -70,7 +71,6 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	LEFT JOIN images ui on u.photoId = ui.uuid
 	LEFT JOIN images ri on ru.photoId = ri.uuid
 	WHERE m.conversationId = ?
-	ORDER BY m.timestamp ASC
 	`
 
 	rows, err := db.c.Query(stmt, conversationID)
@@ -243,11 +243,14 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		}
 	}
 
-	// Convert map→slice, then sort by timestamp
 	var out []MessageView
 	for _, m := range msgMap {
 		out = append(out, *m)
 	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Timestamp < out[j].Timestamp
+	})
 
 	return out, nil
 }
