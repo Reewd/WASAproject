@@ -45,34 +45,41 @@ func (db *appdbimpl) RemoveMessage(messageId int64) error {
 //	TODO: Split this into smaller functions
 func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	const stmt = `
-	SELECT 
-		m.id                  AS messageId,
-		m.content             AS messageText,
-		m.conversationId,
-		m.photoId             AS messagePhotoId,
-		i.path                AS messagePhotoPath,
-		m.isForwarded         AS isForwarded,
-		m.replyTo,
-		m.timestamp           AS messageTimestamp,
-		u.username            AS messageSenderUsername,
-		u.photoId             AS messageSenderPhotoId,
-		ui.path               AS messageSenderPhotoPath,
-		r.content             AS reactionContent,
-		r.timestamp           AS reactionTimestamp,
-		ru.username           AS reactionSenderUsername,
-		ru.photoId            AS reactionSenderPhotoId,
-		ri.path               AS reactionSenderPhotoPath,
-		ms.status             AS messageStatus
-	FROM messages m
-	LEFT JOIN users u  ON m.senderId    = u.id
-	LEFT JOIN reactions r  ON m.id     = r.messageId
-	LEFT JOIN users ru ON r.senderId   = ru.id
-	LEFT JOIN message_status ms ON m.id = ms.messageId
-	LEFT JOIN images i ON m.photoId = i.uuid
-	LEFT JOIN images ui on u.photoId = ui.uuid
-	LEFT JOIN images ri on ru.photoId = ri.uuid
-	WHERE m.conversationId = ?
-	`
+    SELECT 
+        m.id                  AS messageId,
+        m.content             AS messageText,
+        m.conversationId,
+        m.photoId             AS messagePhotoId,
+        i.path                AS messagePhotoPath,
+        m.isForwarded         AS isForwarded,
+        m.replyTo,
+        m.timestamp           AS messageTimestamp,
+        u.username            AS messageSenderUsername,
+        u.photoId             AS messageSenderPhotoId,
+        ui.path               AS messageSenderPhotoPath,
+        r.content             AS reactionContent,
+        r.timestamp           AS reactionTimestamp,
+        ru.username           AS reactionSenderUsername,
+        ru.photoId            AS reactionSenderPhotoId,
+        ri.path               AS reactionSenderPhotoPath
+    FROM messages m
+    LEFT JOIN users u  ON m.senderId    = u.id
+    LEFT JOIN reactions r  ON m.id     = r.messageId
+    LEFT JOIN users ru ON r.senderId   = ru.id
+    LEFT JOIN images i ON m.photoId = i.uuid
+    LEFT JOIN images ui on u.photoId = ui.uuid
+    LEFT JOIN images ri on ru.photoId = ri.uuid
+    WHERE m.conversationId = ?
+    `
+
+	// Separate query for message statuses
+	const statusStmt = `
+    SELECT messageId, status 
+    FROM message_status 
+    WHERE messageId IN (
+        SELECT id FROM messages WHERE conversationId = ?
+    )
+    `
 
 	rows, err := db.c.Query(stmt, conversationID)
 	if err != nil {
@@ -123,9 +130,24 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			&nsReactionSenderUsername,
 			&nsReactionSenderPhotoID,
 			&nsReactionSenderPhotoPath,
-			&MessageStatus,
 		); err != nil {
 			return nil, fmt.Errorf("scanning row: %w", err)
+		}
+		statusRows, err := db.c.Query(statusStmt, conversationID)
+		if err != nil {
+			return nil, fmt.Errorf("querying message statuses: %w", err)
+		}
+
+		defer helpers.CloseRows(statusRows)
+
+		statusMap := make(map[int64][]string)
+		for statusRows.Next() {
+			var messageID int64
+			var status string
+			if err := statusRows.Scan(&messageID, &status); err != nil {
+				return nil, fmt.Errorf("scanning status row: %w", err)
+			}
+			statusMap[messageID] = append(statusMap[messageID], status)
 		}
 
 		// Build nullable pointers
