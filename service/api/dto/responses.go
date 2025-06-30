@@ -49,5 +49,6 @@ type SentMessage struct {
 	Photo            *Photo     `json:"photo,omitempty"`
 	Reactions        []Reaction `json:"reactions,omitempty"` // aggregated reactions from rows sharing the same messageId
 	ReplyToMessageId *int64     `json:"replyTo,omitempty"`
-	Status           string     `json:"status"` // e.g., "sent", "delivered", "read"
+	Status           string     `json:"status"`      // e.g., "sent", "delivered", "read"
+	IsForwarded      bool       `json:"isForwarded"` // indicates if the message is forwarded
 }
