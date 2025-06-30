@@ -131,7 +131,7 @@ func (db *appdbimpl) GetPublicUser(id int64) (*PublicUser, error) {
 	var user PublicUser
 	var nsPhotoId sql.NullString
 	var nsImagePath sql.NullString
-	stmt := `SELECT username, photoId, i.path FROM users WHERE id = ? LEFT JOIN images as i ON users.photoId = images.id`
+	stmt := `SELECT username, photoId, i.path FROM users LEFT JOIN images AS i ON users.photoId = i.uuid WHERE id = ?`
 	err := db.c.QueryRow(stmt, id).Scan(&user.Username, &nsPhotoId, &nsImagePath)
 	if err != nil {
 		return nil, err

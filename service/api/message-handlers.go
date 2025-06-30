@@ -20,7 +20,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	if req.Text != nil && req.Photo != nil {
+	if req.Text == nil && req.Photo == nil {
 		http.Error(w, "You must send either a message or a photo, or both", http.StatusBadRequest)
 	}
 
@@ -30,6 +30,8 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 			return
 		}
 	}
+
+	photoId, Photo := helpers.ExtractPhoto(req.Photo)
 
 	conversationId, err := strconv.ParseInt(ps.ByName("conversationId"), 10, 64)
 	if err != nil {
@@ -47,7 +49,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, &req.Photo.PhotoId, req.ReplyToMessageId)
+	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, photoId, req.ReplyToMessageId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert message")
 		return
@@ -63,7 +65,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert sent status")
 		return
 	}
-
 	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Failed to get sender's public user information")
@@ -75,10 +76,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	resp.MessageId = messageId
 	resp.ConversationId = conversationId
 	resp.Timestamp = timestamp
-	resp.Photo = &dto.Photo{
-		PhotoId: req.Photo.PhotoId,
-		Path:    req.Photo.Path,
-	}
+	resp.Photo = Photo
 	resp.SentBy = helpers.ConvertPublicUser(*dbUser)
 	resp.Text = req.Text
 	resp.ReplyToMessageId = req.ReplyToMessageId
