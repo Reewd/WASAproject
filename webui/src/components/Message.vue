@@ -123,7 +123,6 @@ const closeForwardModal = () => {
 
 const handleMessageForwarded = (data) => {
   console.log('Message forwarded:', data);
-  alert(`Message forwarded to ${data.forwardedTo.name || 'conversation'}`);
   showForwardModal.value = false;
 };
 const handleRemoveReaction = async () => {

@@ -3,6 +3,7 @@
     <ChatHeader 
       :chat="chat" 
       :conversationPreview="conversationPreview"
+      @groupUpdated="handleGroupUpdated"
     />
     
     <div class="chat-messages" ref="messagesContainer">
@@ -66,7 +67,12 @@ const showEmojiPicker = ref(false);
 const emojiPickerPosition = ref({ x: 0, y: 0 });
 const currentMessageId = ref(null);
 const currentConversationId = ref(null);
-
+// Handle group updates
+const handleGroupUpdated = () => {
+  if (props.conversationPreview?.conversationId) {
+    fetchChat(props.conversationPreview.conversationId);
+  }
+};
 // Fetch chat data when conversation is selected
 const fetchChat = async (conversationId) => {
   if (!conversationId) {
