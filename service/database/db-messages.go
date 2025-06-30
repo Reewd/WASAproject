@@ -81,6 +81,28 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
     )
     `
 
+	statusRows, err := db.c.Query(statusStmt, conversationID)
+	if err != nil {
+		return nil, fmt.Errorf("querying message statuses: %w", err)
+	}
+	defer helpers.CloseRows(statusRows)
+
+	statusMap := make(map[int64][]string)
+	for statusRows.Next() {
+		var messageID int64
+		var status string
+		if err := statusRows.Scan(&messageID, &status); err != nil {
+			return nil, fmt.Errorf("scanning status row: %w", err)
+		}
+		statusMap[messageID] = append(statusMap[messageID], status)
+	}
+
+	// Check for errors in status query
+	if err := statusRows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating status rows: %w", err)
+	}
+
+	// Now query and process the messages
 	rows, err := db.c.Query(stmt, conversationID)
 	if err != nil {
 		return nil, fmt.Errorf("querying messages: %w", err)
@@ -89,8 +111,6 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 
 	// map for message aggregation
 	msgMap := make(map[int64]*MessageView)
-	// map for collecting status strings per message
-	statusMap := make(map[int64][]string)
 
 	for rows.Next() {
 		var (
@@ -110,7 +130,6 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			nsReactionSenderUsername  sql.NullString
 			nsReactionSenderPhotoID   sql.NullString
 			nsReactionSenderPhotoPath sql.NullString
-			MessageStatus             string
 		)
 
 		if err := rows.Scan(
@@ -133,22 +152,6 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		); err != nil {
 			return nil, fmt.Errorf("scanning row: %w", err)
 		}
-		statusRows, err := db.c.Query(statusStmt, conversationID)
-		if err != nil {
-			return nil, fmt.Errorf("querying message statuses: %w", err)
-		}
-
-		defer helpers.CloseRows(statusRows)
-
-		statusMap := make(map[int64][]string)
-		for statusRows.Next() {
-			var messageID int64
-			var status string
-			if err := statusRows.Scan(&messageID, &status); err != nil {
-				return nil, fmt.Errorf("scanning status row: %w", err)
-			}
-			statusMap[messageID] = append(statusMap[messageID], status)
-		}
 
 		// Build nullable pointers
 		var photoID *string
@@ -169,12 +172,10 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			messageText = &nsmessageText.String
 		}
 
-		statusMap[messageID] = append(statusMap[messageID], MessageStatus)
-
 		// Create the MessageView if first time we see this message
 		msg, ok := msgMap[messageID]
 		if !ok {
-			// build the sender’s photo pointer
+			// build the sender's photo pointer
 			var senderPhoto *Photo
 			if nsSenderPhotoID.Valid && nsSenderPhotoPath.Valid {
 				senderPhoto = &Photo{
@@ -242,9 +243,12 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		return nil, err
 	}
 
-	// Determine each message’s final status
+	// Determine each message's final status
 	for id, statuses := range statusMap {
-		m := msgMap[id]
+		m, exists := msgMap[id]
+		if !exists {
+			continue // Skip if the message doesn't exist
+		}
 
 		allRead, allDelivered := true, true
 		for _, s := range statuses {
