@@ -29,18 +29,18 @@ func (db *appdbimpl) RemoveReaction(messageId, senderId int64) error {
 
 func (db *appdbimpl) GetReactions(messageId int64) ([]ReactionView, error) {
 	stmt := `
-	SELECT 
-		u.photoId,
-		i.path,
-		u.username, 
-		r.content, 
-		r.timestamp 
-	FROM 
-		reactions AS r 
-	LEFT JOIN users AS u ON r.senderId = u.Id
-	LEFT JOIN images AS i ON u.photoId = i.uuid
-	WHERE r.messageId = ?
-	`
+    SELECT 
+        u.photoId,
+        i.path,
+        u.username, 
+        r.content, 
+        r.timestamp 
+    FROM 
+        reactions AS r 
+    LEFT JOIN users AS u ON r.senderId = u.Id
+    LEFT JOIN images AS i ON u.photoId = i.uuid
+    WHERE r.messageId = ?
+    `
 	rows, err := db.c.Query(stmt, messageId)
 	if err != nil {
 		return nil, err
@@ -56,12 +56,20 @@ func (db *appdbimpl) GetReactions(messageId int64) ([]ReactionView, error) {
 		if err := rows.Scan(&nsPhotoId, &nsImagePath, &reaction.SentBy.Username, &reaction.Content, &reaction.Timestamp); err != nil {
 			return nil, err
 		}
-		if nsPhotoId.Valid {
-			reaction.SentBy.Photo.PhotoId = nsPhotoId.String
+
+		// Initialize the Photo pointer if we have photo data
+		if nsPhotoId.Valid || nsImagePath.Valid {
+			reaction.SentBy.Photo = &Photo{} // Initialize the pointer
+
+			if nsPhotoId.Valid {
+				reaction.SentBy.Photo.PhotoId = nsPhotoId.String
+			}
+			if nsImagePath.Valid {
+				reaction.SentBy.Photo.Path = nsImagePath.String
+			}
 		}
-		if nsImagePath.Valid {
-			reaction.SentBy.Photo.Path = nsImagePath.String
-		}
+		// If no photo data, leave Photo as nil
+
 		reactions = append(reactions, reaction)
 	}
 

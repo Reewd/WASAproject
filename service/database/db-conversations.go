@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/Reewd/WASAproject/service/database/helpers"
 )
@@ -133,6 +132,5 @@ func (db *appdbimpl) ParticipantExists(conversationId int64, userId int64) (bool
 	if err != nil {
 		return false, err
 	}
-	fmt.Println("userId:", userId, "exists in conversationId:", conversationId, "->", exists)
 	return exists, nil
 }
