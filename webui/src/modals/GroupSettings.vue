@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click="closeModal">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h2>{{ isGroup ? 'Group Settings' : 'Chat Settings' }}</h2>
+        <h2>Group Settings</h2>
         <button @click="closeModal" class="close-button">✕</button>
       </div>
 
