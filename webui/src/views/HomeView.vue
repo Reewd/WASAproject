@@ -1,24 +1,38 @@
 <template>
-  <div class="home-view d-flex">
-    <Sidebar />
-    <ConversationBar @selectConversation="selectedConversation = $event" />
-    <Chat :conversationPreview="selectedConversation" />
-  </div>
+    <div class="home-view d-flex">
+        <Sidebar />
+        <ConversationBar 
+            ref="conversationBarRef"
+            @selectConversation="selectedConversation = $event" 
+        />
+        <Chat
+            :conversationPreview="selectedConversation"
+            @groupUpdated="handleGroupUpdated"
+        />
+    </div>
 </template>
 
 <script setup>
-import Sidebar from '@/components/Sidebar.vue';
-import ConversationBar from '@/components/ConversationBar.vue';
-import Chat from '@/components/Chat.vue';
+import Sidebar from "@/components/Sidebar.vue";
+import ConversationBar from "@/components/ConversationBar.vue";
+import Chat from "@/components/Chat.vue";
 
-import { ref } from 'vue';
+import { ref } from "vue";
 
 const selectedConversation = ref(null); // State to store the selected conversation
+const conversationBarRef = ref(null); // Reference to the ConversationBar component
+
+// Handler for groupUpdated event from Chat
+const handleGroupUpdated = () => {
+  console.log('Group updated, refreshing conversations list');
+  // Call the fetchConversations method on the ConversationBar component
+  conversationBarRef.value?.fetchConversations();
+};
 </script>
 
 <style>
 .home-view {
-  display: flex;
-  height: 100vh;
+    display: flex;
+    height: 100vh;
 }
 </style>

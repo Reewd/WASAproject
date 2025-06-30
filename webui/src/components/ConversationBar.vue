@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, defineExpose } from "vue";
 import axios from "../services/axios.js";
 import ConversationPreview from "./ConversationPreview.vue";
 import { useUser } from "../composables/useUser.js"; // Import the composable
@@ -106,6 +106,9 @@ onMounted(() => {
 onUnmounted(() => {
 	document.removeEventListener("mousemove", resizeSidebar);
 	document.removeEventListener("mouseup", stopResizing);
+});
+defineExpose({
+  fetchConversations
 });
 </script>
 

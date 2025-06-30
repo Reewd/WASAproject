@@ -57,6 +57,8 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(['groupUpdated']);
+
 const chat = ref(null);
 const replyingTo = ref(null);
 const messagesContainer = ref(null);
@@ -71,6 +73,7 @@ const currentConversationId = ref(null);
 const handleGroupUpdated = () => {
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
+    emit('groupUpdated');
   }
 };
 // Fetch chat data when conversation is selected
