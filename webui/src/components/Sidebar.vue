@@ -14,25 +14,51 @@
         class="profile-picture"
       />
     </div>
-    <button class="settings-button">
+    <button class="settings-button" @click="openProfileSettings">
       <img src="/assets/icons/account-settings.png" alt="Settings" class="settings-icon" />
     </button>
+
+    <!-- Profile Settings Modal -->
+    <ProfileSettings 
+      v-if="showProfileSettings" 
+      @close="closeProfileSettings"
+      @updated="handleProfileUpdated"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useImageUrl } from '@/composables/useImageUrl.js';
+import ProfileSettings from '@/modals/ProfileSettings.vue';
 
 const loggedInUser = ref(null);
+const showProfileSettings = ref(false);
 const { getImageUrl } = useImageUrl();
 
-onMounted(() => {
+const loadUserData = () => {
   const userData = localStorage.getItem('loggedInUser');
   if (userData) {
     loggedInUser.value = JSON.parse(userData);
     console.log('Logged in user:', loggedInUser.value);
   }
+};
+
+const openProfileSettings = () => {
+  showProfileSettings.value = true;
+};
+
+const closeProfileSettings = () => {
+  showProfileSettings.value = false;
+};
+
+const handleProfileUpdated = () => {
+  // Reload user data from localStorage after profile update
+  loadUserData();
+};
+
+onMounted(() => {
+  loadUserData();
 });
 </script>
 
