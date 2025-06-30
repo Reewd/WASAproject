@@ -1,9 +1,13 @@
 <template>
-  <div :class="['message-container', { 'own-message': isOwnMessage }]">
-    <!-- Profile picture and username for group conversations -->
+  <div 
+    :class="['message-container', { 'own-message': isOwnMessage }]"
+    @contextmenu.prevent="showContextMenu"
+    @click="hideContextMenu"
+  >
+    <!-- Existing message content -->
     <div v-if="isGroupConversation && !isOwnMessage" class="message-header">
       <img 
-        :src="message.sentBy.photo?.path || '/assets/icons/user-default.png'" 
+        :src="getImageUrl(message.sentBy.photo?.path) || '/assets/icons/user-default.png'" 
         alt="User Photo" 
         class="profile-picture"
       />
@@ -28,7 +32,7 @@
         <!-- Photo -->
         <img 
           v-if="message.photo" 
-          :src="message.photo.path" 
+          :src="getImageUrl(message.photo.path)" 
           alt="Message Photo" 
           class="message-photo"
         />
@@ -45,13 +49,28 @@
         </span>
       </div>
     </div>
+
+    <!-- Context Menu -->
+    <MessageContextMenu
+      :isVisible="showMenu"
+      :position="menuPosition"
+      :message="message"
+      @close="hideContextMenu"
+      @reply="handleReply"
+      @copy="handleCopy"
+      @forward="handleForward"
+      @delete="handleDelete"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useUser } from '../composables/useUser.js';
+import { useImageUrl } from '../composables/useImageUrl.js';
+import MessageContextMenu from './MessageContextMenu.vue';
 
+const { getImageUrl } = useImageUrl();
 const { getUsername } = useUser();
 const currentUsername = getUsername();
 
@@ -70,10 +89,50 @@ const props = defineProps({
   },
 });
 
+const emits = defineEmits(['reply']);
+
+// Context menu state
+const showMenu = ref(false);
+const menuPosition = ref({ x: 0, y: 0 });
+
 // Check if this message is sent by the current user
 const isOwnMessage = computed(() => {
   return props.message.sentBy.username === currentUsername;
 });
+
+// Context menu handlers
+const showContextMenu = (event) => {
+  event.preventDefault();
+  menuPosition.value = {
+    x: event.clientX,
+    y: event.clientY
+  };
+  showMenu.value = true;
+};
+
+const hideContextMenu = () => {
+  showMenu.value = false;
+};
+
+const handleReply = (message) => {
+  console.log('Reply to message:', message);
+  emits('reply', message);
+};
+
+const handleCopy = (message) => {
+  console.log('Copy message:', message);
+  // Copy logic would go here
+};
+
+const handleForward = (message) => {
+  console.log('Forward message:', message);
+  // Forward logic would go here
+};
+
+const handleDelete = (message) => {
+  console.log('Delete message:', message);
+  // Delete logic would go here
+};
 
 // Format timestamp
 const formatTimestamp = (timestamp) => {
@@ -223,5 +282,17 @@ const getStatusIcon = (status) => {
     max-width: 150px;
     max-height: 150px;
   }
+}
+.message-container {
+  position: relative; /* Add this for context menu positioning */
+}
+
+/* Add subtle hover effect to indicate interactive message */
+.message-bubble {
+  transition: transform 0.1s ease;
+}
+
+.message-container:hover .message-bubble {
+  transform: scale(1.02);
 }
 </style>
