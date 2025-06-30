@@ -9,15 +9,27 @@ export const useUser = () => {
     }
   };
 
+  // Keep getUsername as a function but make it always read fresh data
   const getUsername = () => {
     try {
       const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-      return loggedInUser?.name || null;
+      return loggedInUser?.username || null; // Note: changed from loggedInUser?.name
     } catch (error) {
       console.error('Error retrieving username:', error);
       return null;
     }
   };
 
-  return { getUserId, getUsername };
+  // Add a function to update user data in localStorage
+  const updateUserData = (userData) => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+      const updatedUser = { ...currentUser, ...userData };
+      localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('Error updating user data:', error);
+    }
+  };
+
+  return { getUserId, getUsername, updateUserData };
 };
