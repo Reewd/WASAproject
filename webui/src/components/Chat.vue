@@ -12,7 +12,10 @@
         :message="message"
         :isGroupConversation="chat?.isGroup || false"
         :replyToMessage="getReplyToMessage(message.replyTo)"
+        :conversationId="conversationPreview.conversationId"
         @reply="setReplyToMessage"
+        @reactionRemoved="handleReactionUpdate"
+        @openEmojiPicker="handleOpenEmojiPicker"
       />
     </div>
     
@@ -20,6 +23,14 @@
       :conversationId="conversationPreview.conversationId" 
       :replyToMessage="replyingTo"
       @cancelReply="clearReplyState"
+    />
+    
+    <!-- Emoji Picker Modal -->
+    <EmojiPicker
+      :isVisible="showEmojiPicker"
+      :position="emojiPickerPosition"
+      @close="closeEmojiPicker"
+      @selectEmoji="handleEmojiSelect"
     />
   </div>
   <div v-else class="no-conversation">
@@ -34,6 +45,7 @@ import { useUser } from '../composables/useUser.js';
 import ChatInput from './ChatInput.vue';
 import ChatHeader from './ChatHeader.vue';
 import Message from './Message.vue';
+import EmojiPicker from '../modals/EmojiPicker.vue';
 
 const { getUserId } = useUser();
 
@@ -48,6 +60,12 @@ const chat = ref(null);
 const replyingTo = ref(null);
 const messagesContainer = ref(null);
 const isLoading = ref(false);
+
+// Emoji picker state
+const showEmojiPicker = ref(false);
+const emojiPickerPosition = ref({ x: 0, y: 0 });
+const currentMessageId = ref(null);
+const currentConversationId = ref(null);
 
 // Fetch chat data when conversation is selected
 const fetchChat = async (conversationId) => {
@@ -80,6 +98,14 @@ const fetchChat = async (conversationId) => {
   }
 };
 
+// Handle reaction updates
+const handleReactionUpdate = () => {
+  // Refresh chat data to get updated reactions
+  if (props.conversationPreview?.conversationId) {
+    fetchChat(props.conversationPreview.conversationId);
+  }
+};
+
 // Helper functions
 const getReplyToMessage = (replyToId) => {
   if (!replyToId || !chat.value?.messages) return null;
@@ -92,6 +118,46 @@ const setReplyToMessage = (message) => {
 
 const clearReplyState = () => {
   replyingTo.value = null;
+};
+
+// Emoji picker handlers
+const handleOpenEmojiPicker = (data) => {
+  currentMessageId.value = data.messageId;
+  currentConversationId.value = data.conversationId;
+  emojiPickerPosition.value = data.position;
+  showEmojiPicker.value = true;
+};
+
+const closeEmojiPicker = () => {
+  showEmojiPicker.value = false;
+  currentMessageId.value = null;
+  currentConversationId.value = null;
+};
+
+const handleEmojiSelect = async (emoji) => {
+  if (!currentMessageId.value || !currentConversationId.value) return;
+  
+  try {
+    await axios.post(
+      `/conversations/${currentConversationId.value}/messages/${currentMessageId.value}/reactions`,
+      { content: emoji },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: getUserId(),
+        },
+      }
+    );
+    
+    console.log('Reaction added:', emoji);
+    handleReactionUpdate();
+    
+  } catch (error) {
+    console.error('Error adding reaction:', error);
+    alert('Failed to add reaction. Please try again.');
+  }
+  
+  closeEmojiPicker();
 };
 
 const scrollToBottom = () => {

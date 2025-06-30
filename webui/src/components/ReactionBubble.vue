@@ -2,7 +2,7 @@
   <div 
     v-if="aggregatedReactions.length > 0" 
     class="reaction-bubble"
-    @click="showReactionDetails"
+    @click="removeReaction"
   >
     <span 
       v-for="reaction in aggregatedReactions" 
@@ -10,8 +10,8 @@
       class="reaction-item"
     >
       {{ reaction.emoji }}
+      <span v-if="reaction.count > 1" class="emoji-count">{{ reaction.count }}</span>
     </span>
-    <span class="reaction-count">{{ totalReactions }}</span>
   </div>
 </template>
 
@@ -25,7 +25,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['showDetails']);
+const emits = defineEmits(['removeReaction']);
 
 // Aggregate reactions by emoji and count them
 const aggregatedReactions = computed(() => {
@@ -52,14 +52,9 @@ const aggregatedReactions = computed(() => {
   return Array.from(reactionMap.values()).sort((a, b) => b.count - a.count);
 });
 
-// Total number of reactions
-const totalReactions = computed(() => {
-  return props.reactions.length;
-});
-
 // Show reaction details when clicked
-const showReactionDetails = () => {
-  emits('showDetails', {
+const removeReaction = () => {
+  emits('removeReaction', {
     reactions: props.reactions,
     aggregated: aggregatedReactions.value
   });
@@ -91,18 +86,21 @@ const showReactionDetails = () => {
 
 .reaction-item {
   font-size: 14px;
-  margin-right: 2px;
+  margin-right: 6px;
   line-height: 1;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
-.reaction-count {
-  font-size: 12px;
+.reaction-item:last-child {
+  margin-right: 0;
+}
+
+.emoji-count {
+  font-size: 11px;
   font-weight: 600;
   color: #666;
-  margin-left: 4px;
-  flex-shrink: 0;
+  margin-left: 2px;
 }
-
-
 </style>
