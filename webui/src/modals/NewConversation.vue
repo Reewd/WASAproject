@@ -132,7 +132,7 @@ const isGroup = ref(false);
 const groupName = ref('');
 
 // Computed properties
-const currentUsername = computed(() => getUsername.value);
+const currentUsername = computed(() => getUsername());
 
 const filteredUsers = computed(() =>
   users.value.filter((user) => 
@@ -193,7 +193,7 @@ const createConversation = async () => {
     return;
   }
 
-  const userId = getUserId.value;
+  const userId = getUserId();
   if (!userId) {
     console.error('User ID not found');
     alert('Authentication error. Please try again.');
