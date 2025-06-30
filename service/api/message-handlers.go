@@ -196,6 +196,17 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	participantIds, err := rt.db.GetParticipantIds(conversationId)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participant IDs")
+		return
+	}
+
+	if err := rt.db.InsertSent(messageId, conversationId, participantIds); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert sent status")
+		return
+	}
+
 	var respPhoto *dto.Photo
 	if photoId != nil {
 		path, err := rt.db.GetImagePath(*photoId)
