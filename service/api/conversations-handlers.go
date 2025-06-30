@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Reewd/WASAproject/service/api/constraints"
 	"github.com/Reewd/WASAproject/service/api/dto"
 	"github.com/Reewd/WASAproject/service/api/helpers"
 	"github.com/Reewd/WASAproject/service/api/reqcontext"
@@ -37,8 +38,8 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 
 func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestContext, req dto.CreateConversationRequest) {
 	// Validate input
-	if req.Name == "" {
-		http.Error(w, "Name of a group cannot be empty", http.StatusBadRequest)
+	if len(req.Name) < constraints.MinGroupNameLength || len(req.Name) > constraints.MaxGroupNameLength {
+		http.Error(w, fmt.Sprintf("Group name must be between %d and %d characters", constraints.MinGroupNameLength, constraints.MaxGroupNameLength), http.StatusBadRequest)
 		return
 	}
 

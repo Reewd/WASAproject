@@ -7,7 +7,7 @@ import (
 )
 
 func (db *appdbimpl) InsertParticipants(conversationId int64, userId []int64) error {
-	stmt := `INSERT INTO participants (conversation_id, user_id) VALUES (?, ?)`
+	stmt := `INSERT INTO participants (conversationId, userId) VALUES (?, ?)`
 	for _, id := range userId {
 		_, err := db.c.Exec(stmt, conversationId, id)
 		if err != nil {
@@ -18,7 +18,7 @@ func (db *appdbimpl) InsertParticipants(conversationId int64, userId []int64) er
 }
 
 func (db *appdbimpl) RemoveParticipant(conversationId int64, userId int64) error {
-	stmt := `DELETE FROM participants WHERE conversation_id = ? AND user_id = ?`
+	stmt := `DELETE FROM participants WHERE conversationId = ? AND userId = ?`
 	_, err := db.c.Exec(stmt, conversationId, userId)
 	if err != nil {
 		return err
