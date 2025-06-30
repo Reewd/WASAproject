@@ -1,7 +1,7 @@
 <template>
   <div class="conversation-preview">
     <img 
-      :src="conversation.photo?.path || getDefaultPhoto(conversation.isGroup)" 
+      :src="conversationPhotoUrl" 
       alt="Conversation Photo" 
       class="conversation-photo"
     />
@@ -21,8 +21,10 @@
 <script setup>
 import { computed } from 'vue';
 import { useUser } from '../composables/useUser.js';
+import { useImageUrl } from '../composables/useImageUrl.js';
 
 const { getUsername } = useUser();
+const { getImageUrl } = useImageUrl();
 const currentUsername = getUsername();
 
 const props = defineProps({
@@ -32,25 +34,40 @@ const props = defineProps({
   },
 });
 
+// Find the other participant in private conversations
+const otherParticipant = computed(() => {
+  if (props.conversation.isGroup) return null;
+  
+  return props.conversation.participants?.find(
+    participant => participant.username !== currentUsername
+  ) || null;
+});
+
 // Compute the display name based on whether it's a group or private conversation
 const displayName = computed(() => {
   if (props.conversation.isGroup) {
     return props.conversation.name;
   } else {
-    // For private conversations, find the other participant's name
-    const otherParticipant = props.conversation.participants?.find(
-      participant => participant.username !== currentUsername
-    );
-    return otherParticipant ? otherParticipant.username : props.conversation.name;
+    return otherParticipant.value ? otherParticipant.value.username : props.conversation.name;
   }
 });
 
-// Function to return default photo paths
-const getDefaultPhoto = (isGroup) => {
-  return isGroup 
-    ? '/assets/icons/group-default.png' 
-    : '/assets/icons/user-default.png';
-};
+// Compute the photo URL based on conversation type
+const conversationPhotoUrl = computed(() => {
+  if (props.conversation.isGroup) {
+    // Group conversation - use group photo or default group icon
+    if (props.conversation.photo?.path) {
+      return getImageUrl(props.conversation.photo.path);
+    }
+    return '/assets/icons/group-default.png';
+  } else {
+    // Private conversation - use other participant's photo or default user icon
+    if (otherParticipant.value?.photo?.path) {
+      return getImageUrl(otherParticipant.value.photo.path);
+    }
+    return '/assets/icons/user-default.png';
+  }
+});
 </script>
 
 <style scoped>
@@ -60,8 +77,9 @@ const getDefaultPhoto = (isGroup) => {
   padding: 10px;
   border-radius: 5px;
 }
+
 .conversation-preview:hover {
-  background-color: #f0f0f0; /* Light gray background on hover */
+  background-color: #f0f0f0;
 }
 
 .conversation-photo {
@@ -69,11 +87,12 @@ const getDefaultPhoto = (isGroup) => {
   height: 50px;
   border-radius: 50%;
   margin-right: 10px;
+  object-fit: cover;
 }
 
 .conversation-preview.selected {
-  background-color: #333; /* Dark gray background for selected conversation */
-  color: #fff; /* White text for better contrast */
+  background-color: #333;
+  color: #fff;
 }
 
 .conversation-details {
@@ -90,5 +109,9 @@ const getDefaultPhoto = (isGroup) => {
   font-size: 14px;
   color: #666;
   margin: 0;
+}
+
+.conversation-preview.selected .last-message {
+  color: #ccc;
 }
 </style>
