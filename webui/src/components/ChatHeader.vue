@@ -7,7 +7,6 @@
 				v-if="!isGroup && otherParticipant"
 				class="participant-status"
 			>
-				{{ otherParticipant.username }}
 			</span>
 			<span v-else-if="isGroup && participants" class="participant-count">
 				{{ participants.length }} participants
