@@ -58,7 +58,7 @@ const emits = defineEmits([
 
 // Calculate menu position
 const menuPosition = computed(() => ({
-  left: `${props.position.x}px`,
+  left: `${props.position.x - 180}px`,
   top: `${props.position.y}px`,
 }));
 
