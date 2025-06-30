@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
     content TEXT,
     photoId TEXT,
     replyTo INTEGER,
+    isForwarded BOOLEAN DEFAULT FALSE,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (senderId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
@@ -37,7 +38,7 @@ CREATE TABLE IF NOT EXISTS "message_status" (
     status TEXT NOT NULL CHECK (status IN ('sent', 'delivered', 'read')),
     deliveredAt DATETIME,
     readAt DATETIME,
-    FOREIGN KEY (messageId) REFERENCES messages(id),
+    FOREIGN KEY (messageId) REFERENCES messages(id) ON DELETE CASCADE,
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
     FOREIGN KEY (recipientId) REFERENCES users(id)
     
@@ -49,7 +50,7 @@ CREATE TABLE IF NOT EXISTS "reactions" (
     senderId INTEGER NOT NULL,
     content TEXT NOT NULL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (messageId) REFERENCES messages(id),
+    FOREIGN KEY (messageId) REFERENCES messages(id) ON DELETE CASCADE,
     FOREIGN KEY (senderId) REFERENCES users(id)
     UNIQUE(messageId, senderId)
 );
@@ -57,7 +58,6 @@ CREATE TABLE IF NOT EXISTS "reactions" (
 CREATE TABLE IF NOT EXISTS "participants" (
     userId INTEGER NOT NULL,
     conversationId INTEGER NOT NULL,
-    firstMessageId INTEGER,
     FOREIGN KEY (userId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id) ON DELETE CASCADE
 );
