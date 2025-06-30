@@ -8,8 +8,8 @@ import (
 	"github.com/Reewd/WASAproject/service/database/helpers"
 )
 
-func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64) (int64, string, error) {
-	stmt := `INSERT into messages (conversationId, senderId, content, photoId, replyTo) VALUES (?, ?, ?, ?, ?) RETURNING id, timestamp`
+func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64, isForwarded bool) (int64, string, error) {
+	stmt := `INSERT into messages (conversationId, senderId, content, photoId, replyTo, isForwarded) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, timestamp`
 	var timestamp string
 	var messageId int64
 
@@ -51,6 +51,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		m.conversationId,
 		m.photoId             AS messagePhotoId,
 		i.path                AS messagePhotoPath,
+		m.isForwarded         AS isForwarded,
 		m.replyTo,
 		m.timestamp           AS messageTimestamp,
 		u.username            AS messageSenderUsername,
@@ -89,6 +90,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			messageID                 int64
 			nsmessageText             sql.NullString
 			convID                    int64
+			isForwarded               bool
 			nsMessagePhotoID          sql.NullString
 			nsMessagePhotoPath        sql.NullString
 			nrReplyTo                 sql.NullInt64
@@ -110,6 +112,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			&convID,
 			&nsMessagePhotoID,
 			&nsMessagePhotoPath,
+			&isForwarded,
 			&nrReplyTo,
 			&messageTimestamp,
 			&senderUsername,
@@ -177,7 +180,8 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 					Username: senderUsername,
 					Photo:    senderPhoto,
 				},
-				Reactions: []ReactionView{},
+				Reactions:   []ReactionView{},
+				IsForwarded: isForwarded,
 			}
 			msgMap[messageID] = msg
 		}
@@ -272,7 +276,7 @@ func (db *appdbimpl) ForwardMessage(messageIdToForward int64, conversationId int
 		content = &nsText.String
 	}
 
-	forwardedMessageId, timestamp, err := db.InsertMessage(conversationId, forwarderId, content, photoId, nil)
+	forwardedMessageId, timestamp, err := db.InsertMessage(conversationId, forwarderId, content, photoId, nil, true)
 	if err != nil {
 		return 0, "", nil, nil, err
 	}
@@ -300,7 +304,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		return nil, nil
 	}
 
-	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.username, u.photoId, ui.path, ms.status
+	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.username, u.photoId, ui.path, ms.status, m.isForwarded
 			FROM messages m
 			LEFT JOIN images i ON m.photoId = i.uuid
 			JOIN users u ON m.senderId = u.id
@@ -317,6 +321,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 	var nsReplyTo sql.NullInt64
 	var nsSenderPhotoId sql.NullString
 	var nsSenderPhotoPath sql.NullString
+	var isForwarded bool
 
 	err = db.c.QueryRow(stmt, conversationId).Scan(
 		&msg.MessageId,
@@ -329,6 +334,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		&nsSenderPhotoId,
 		&nsSenderPhotoPath,
 		&msg.Status,
+		&isForwarded,
 	)
 	if err != nil {
 		return nil, err
@@ -355,6 +361,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 			Path:    nsSenderPhotoPath.String,
 		}
 	}
+	msg.IsForwarded = isForwarded
 
 	return &msg, nil
 }

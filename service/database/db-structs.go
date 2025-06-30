@@ -35,6 +35,7 @@ type MessageView struct {
 	Reactions      []ReactionView // aggregated reactions from rows sharing the same messageId
 	ReplyTo        *int64
 	Status         string // e.g., "sent", "delivered", "read"
+	IsForwarded    bool   // indicates if the message was forwarded
 }
 
 type Photo struct {

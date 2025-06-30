@@ -3,7 +3,7 @@ package database
 import "database/sql"
 
 type MessageDatabase interface {
-	InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64) (int64, string, error)
+	InsertMessage(conversationId int64, userId int64, content *string, photoId *string, replyTo *int64, isForwarded bool) (int64, string, error)
 	RemoveMessage(messageId int64) error
 	GetSenderId(messageId int64) (int64, error)
 	GetChat(conversationID int64) ([]MessageView, error)

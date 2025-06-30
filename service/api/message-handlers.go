@@ -49,7 +49,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, photoId, req.ReplyToMessageId)
+	messageId, timestamp, err := rt.db.InsertMessage(conversationId, ctx.UserID, req.Text, photoId, req.ReplyToMessageId, false)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert message")
 		return
