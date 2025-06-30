@@ -22,7 +22,11 @@
 		<div class="resize-handle" @mousedown="startResizing"></div>
 
 		<!-- New Conversation Modal -->
-		<NewConversation v-if="showModal" @close="showModal = false" />
+		<NewConversation
+			v-if="showModal"
+			@close="showModal = false"
+			@conversationCreated="fetchConversations"
+		/>
 	</div>
 </template>
 
@@ -163,8 +167,7 @@ onUnmounted(() => {
 }
 
 .selected {
-  background-color: #333; /* Dark gray background */
-  color: #fff; /* White text for better contrast */
+	background-color: #333; /* Dark gray background */
+	color: #fff; /* White text for better contrast */
 }
-
 </style>

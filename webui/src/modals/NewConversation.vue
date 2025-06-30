@@ -122,7 +122,7 @@ import { useImageUrl } from '../composables/useImageUrl.js';
 const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
 
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close', 'conversationCreated']);
 
 // Reactive data
 const searchQuery = ref('');
@@ -212,8 +212,9 @@ const createConversation = async () => {
         'Authorization': userId
       }
     });
-    
+
     console.log(`${isGroup.value ? 'Group' : 'Private'} conversation created`);
+    emits('conversationCreated'); // Emit event to notify parent component
     emits('close');
   } catch (error) {
     console.error('Error creating conversation:', error);
