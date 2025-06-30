@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-input">
+  <div class="chat-input ">
     <!-- Reply preview -->
     <div v-if="replyToMessage" class="reply-preview">
       <div class="reply-info">
@@ -123,6 +123,7 @@ const uploadPhoto = async (photoFile) => {
         Authorization: getUserId(),
       },
     });
+    console.log('Photo uploaded successfully:', response.data);
     return response.data; // Assuming this returns a Photo object
   } catch (error) {
     console.error('Error uploading photo:', error);
@@ -151,6 +152,7 @@ const sendMessage = async () => {
       text: message.value.trim() || null,
       photo: photoData || null,
     };
+    console.log('Message request:', messageRequest);
 
     // Send message
     const response = await axios.post(

@@ -11,7 +11,7 @@
       </h3>
       <p class="last-message" v-if="conversation.lastMessage">
         <strong>{{ conversation.lastMessage.sentBy.username }}:</strong> 
-        {{ conversation.lastMessage.text || 'Attachment' }}
+        {{ conversation.lastMessage.text || '📷 Photo' }}
       </p>
       <p class="last-message" v-else>No messages yet</p>
     </div>

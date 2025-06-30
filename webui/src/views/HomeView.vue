@@ -2,7 +2,7 @@
   <div class="home-view d-flex">
     <Sidebar />
     <ConversationBar @selectConversation="selectedConversation = $event" />
-    <Chat :conversation="selectedConversation" />
+    <Chat :conversationPreview="selectedConversation" />
   </div>
 </template>
 
