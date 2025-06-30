@@ -13,7 +13,7 @@ func (db *appdbimpl) InsertMessage(conversationId int64, userId int64, content *
 	var timestamp string
 	var messageId int64
 
-	err := db.c.QueryRow(stmt, conversationId, userId, content, photoId, replyTo).Scan(&messageId, &timestamp)
+	err := db.c.QueryRow(stmt, conversationId, userId, content, photoId, replyTo, isForwarded).Scan(&messageId, &timestamp)
 	if err != nil {
 		return 0, "", err
 	}
