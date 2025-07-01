@@ -4,7 +4,15 @@
     <div v-if="replyToMessage" class="reply-preview">
       <div class="reply-info">
         <strong>Replying to {{ replyToMessage.sentBy.username }}</strong>
-        <span>{{ replyToMessage.text || '📷 Photo' }}</span>
+        <div class="reply-content">
+          <img 
+            v-if="replyToMessage.photo" 
+            :src="getImageUrl(replyToMessage.photo.path)" 
+            alt="Reply photo" 
+            class="reply-photo"
+          />
+          <span>{{ replyToMessage.text || (!replyToMessage.text && replyToMessage.photo ? '📷 Photo' : '') }}</span>
+        </div>
       </div>
       <button @click="cancelReply" class="cancel-reply">✕</button>
     </div>
@@ -55,8 +63,10 @@
 import { ref, computed, nextTick } from 'vue';
 import axios from '../services/axios.js';
 import { useUser } from '../composables/useUser.js';
+import { useImageUrl } from '../composables/useImageUrl.js';
 
 const { getUserId } = useUser();
+const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
   conversationId: {
@@ -213,15 +223,31 @@ const cancelReply = () => {
   font-size: 14px;
 }
 
+
 .reply-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .reply-info strong {
   font-size: 12px;
   color: #1976d2;
   margin-bottom: 2px;
+}
+
+.reply-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reply-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .cancel-reply {
