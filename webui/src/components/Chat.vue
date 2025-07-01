@@ -24,6 +24,7 @@
       :conversationId="conversationPreview.conversationId" 
       :replyToMessage="replyingTo"
       @cancelReply="clearReplyState"
+      @messageSent="fetchChat(conversationPreview.conversationId)"
     />
     
     <!-- Emoji Picker Modal -->
@@ -40,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue';
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import axios from '../services/axios.js';
 import { useUser } from '../composables/useUser.js';
 import ChatInput from './ChatInput.vue';
@@ -63,6 +64,8 @@ const chat = ref(null);
 const replyingTo = ref(null);
 const messagesContainer = ref(null);
 const isLoading = ref(false);
+const pollingInterval = ref(null);
+const POLLING_DELAY = 5000; // Poll every 5 seconds
 
 // Emoji picker state
 const showEmojiPicker = ref(false);
@@ -92,18 +95,46 @@ const fetchChat = async (conversationId) => {
       },
     });
     
-    chat.value = response.data;
-    console.log('Chat data fetched:', chat.value);
+    // Only update and scroll if we have new messages or first load
+    const isFirstLoad = !chat.value;
+    const hasNewMessages = chat.value && 
+      (chat.value.messages.length !== response.data.messages.length || 
+       JSON.stringify(chat.value.messages) !== JSON.stringify(response.data.messages));
     
-    // Scroll to bottom after messages are rendered
-    await nextTick();
-    scrollToBottom();
+    chat.value = response.data;
+    
+    // Scroll to bottom after messages are rendered if there are new messages or first load
+    if (isFirstLoad || hasNewMessages) {
+      await nextTick();
+      scrollToBottom();
+    }
     
   } catch (error) {
     console.error('Error fetching chat:', error);
-    chat.value = null;
+    // Don't reset chat on error to maintain existing messages
   } finally {
     isLoading.value = false;
+  }
+};
+
+// Start polling for new messages
+const startPolling = () => {
+  // Clear any existing interval first
+  stopPolling();
+  
+  // Start new polling interval
+  if (props.conversationPreview?.conversationId) {
+    pollingInterval.value = setInterval(() => {
+      fetchChat(props.conversationPreview.conversationId);
+    }, POLLING_DELAY);
+  }
+};
+
+// Stop polling
+const stopPolling = () => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value);
+    pollingInterval.value = null;
   }
 };
 
@@ -176,9 +207,14 @@ const scrollToBottom = () => {
 };
 
 // Watch for conversation changes
-watch(() => props.conversationPreview?.conversationId, (newId) => {
+watch(() => props.conversationPreview?.conversationId, (newId, oldId) => {
+  // Stop previous polling
+  stopPolling();
+  
   if (newId) {
     fetchChat(newId);
+    // Start polling for the new conversation
+    startPolling();
   } else {
     chat.value = null;
   }
@@ -190,7 +226,13 @@ watch(() => props.conversationPreview?.conversationId, (newId) => {
 onMounted(() => {
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
+    startPolling();
   }
+});
+
+// Clean up polling when component is unmounted
+onUnmounted(() => {
+  stopPolling();
 });
 </script>
 
