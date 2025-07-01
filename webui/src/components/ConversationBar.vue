@@ -51,7 +51,8 @@ const { getUserId } = useUser(); // Use the composable to retrieve the userId
 
 const fetchConversations = async () => {
 	try {
-		const userId = getUserId(); // Retrieve the userId using the composable
+		const userId = getUserId.value; // Retrieve the userId using the composable
+		console.log("Fetching conversations for user ID:", userId);
 
 		if (!userId) {
 			console.error("User ID not found");

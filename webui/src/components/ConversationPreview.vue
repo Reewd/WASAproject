@@ -27,7 +27,6 @@ import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
-const currentUsername = getUsername();
 
 const props = defineProps({
   conversation: {
@@ -41,7 +40,7 @@ const otherParticipant = computed(() => {
   if (props.conversation.isGroup) return null;
   
   return props.conversation.participants?.find(
-    participant => participant.username !== currentUsername
+    participant => participant.username !== getUsername.value
   ) || null;
 });
 

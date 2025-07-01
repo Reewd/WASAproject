@@ -91,7 +91,6 @@ const allUsers = ref([]);
 const selectedUsers = ref([...props.initialSelectedUsers]);
 
 // Current username to exclude from the list
-const currentUsername = computed(() => getUsername());
 
 const availableUsers = computed(() => {
 	return allUsers.value.filter((user) => {
@@ -101,7 +100,7 @@ const availableUsers = computed(() => {
 				.toLowerCase()
 				.includes(searchQuery.value.toLowerCase());
 
-		const isNotCurrentUser = user.username !== currentUsername.value; // ← add .value
+		const isNotCurrentUser = user.username !== getUsername.value; // ← add .value
 
 		const isNotExcluded = !props.excludeUsers.some(
 			(excludedUser) => excludedUser.username === user.username
@@ -113,7 +112,7 @@ const availableUsers = computed(() => {
 
 const logUserData = () => {
 	console.log("All users:", allUsers.value);
-	console.log("Current username:", currentUsername.value);
+	console.log("Current username:", getUsername.value);
 	console.log("Excluded users:", props.excludeUsers);
 	console.log("Available users count:", availableUsers.value.length);
 };
@@ -123,7 +122,7 @@ const fetchUsers = async () => {
 	try {
 		const response = await axios.get("/users", {
 			headers: {
-				Authorization: getUserId(),
+				Authorization: getUserId.value,
 			},
 		});
 

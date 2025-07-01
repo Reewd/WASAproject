@@ -84,7 +84,9 @@ import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
+import { useAuth } from "../composables/useAuth.js";
 
+const { updateUser } = useAuth();
 const { getUserId, updateUserData } = useUser();
 const { getImageUrl } = useImageUrl();
 
@@ -163,7 +165,7 @@ const uploadPhoto = async (photoFile) => {
 		const response = await axios.post("/upload", formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
-				Authorization: getUserId(),
+				Authorization: getUserId.value,
 			},
 		});
 		return response.data;
@@ -174,30 +176,30 @@ const uploadPhoto = async (photoFile) => {
 };
 
 const updateUsername = async () => {
-	if (!hasUsernameChanged.value) return;
+    if (!hasUsernameChanged.value) return;
 
-	try {
-		await axios.put(
-			"/me/username",
-			{
-				username: newUsername.value,
-			},
-			{
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: getUserId(),
-				},
-			}
-		);
+    try {
+        await axios.put(
+            "/me/username",
+            {
+                username: newUsername.value,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: getUserId.value,
+                },
+            }
+        );
 
-		// Update local storage
-		currentUser.value.username = newUsername.value;
-		updateUserData({ username: newUsername.value });
-	} catch (error) {
-		console.error("Error updating username:", error);
-		throw error;
-	}
+        // Update reactive state (this will update everywhere)
+        updateUser({ username: newUsername.value });
+    } catch (error) {
+        console.error("Error updating username:", error);
+        throw error;
+    }
 };
+
 
 const updateProfilePhoto = async (photoData) => {
 	try {
@@ -209,7 +211,7 @@ const updateProfilePhoto = async (photoData) => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 			}
 		);

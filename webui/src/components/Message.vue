@@ -139,7 +139,6 @@ import userDefaultIcon from "/assets/icons/user-default.png";
 const { getImageUrl } = useImageUrl();
 const { getUsername } = useUser();
 const { getUserId } = useUser();
-const currentUsername = getUsername();
 const showForwardModal = ref(false);
 const handleForward = (message) => {
 	console.log("Forward message:", message);
@@ -163,7 +162,7 @@ const handleRemoveReaction = async () => {
 			`/conversations/${props.conversationId}/messages/${props.message.messageId}/reactions`,
 			{
 				headers: {
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 			}
 		);
@@ -211,7 +210,7 @@ const menuPosition = ref({ x: 0, y: 0 });
 
 // Check if this message is sent by the current user
 const isOwnMessage = computed(() => {
-	return props.message.sentBy.username === currentUsername;
+	return props.message.sentBy.username === getUsername.value;
 });
 
 // Context menu handlers
@@ -244,7 +243,7 @@ const handleDelete = async (message) => {
 			`/conversations/${props.conversationId}/messages/${props.message.messageId}`,
 			{
 				headers: {
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 			}
 		);

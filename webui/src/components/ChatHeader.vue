@@ -83,9 +83,8 @@ const participants = computed(() => {
 const otherParticipant = computed(() => {
 	if (isGroup.value || !participants.value.length) return null;
 
-	const currentUsername = getUsername();
 	return (
-		participants.value.find((p) => p.username !== currentUsername) || null
+		participants.value.find((p) => p.username !== getUsername.value) || null
 	);
 });
 

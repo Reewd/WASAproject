@@ -100,7 +100,7 @@ const fetchChat = async (conversationId) => {
   try {
     const response = await axios.get(`/conversations/${conversationId}`, {
       headers: {
-        Authorization: getUserId(),
+        Authorization: getUserId.value,
       },
     });
     
@@ -201,7 +201,7 @@ const handleEmojiSelect = async (emoji) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: getUserId(),
+          Authorization: getUserId.value,
         },
       }
     );

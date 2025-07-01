@@ -71,7 +71,7 @@
 								participant.username
 							}}</span>
 							<span
-								v-if="participant.username === currentUsername"
+								v-if="participant.username === getUsername.value"
 								class="current-user-badge"
 								>You</span
 							>
@@ -175,8 +175,6 @@ const isUpdating = ref(false);
 const pendingParticipants = ref([]);
 
 // Computed properties
-const currentUsername = computed(() => getUsername.value);
-
 const participants = computed(() => props.chat?.participants || []);
 
 const groupPhotoUrl = computed(() => {
@@ -254,7 +252,7 @@ const uploadPhoto = async (photoFile) => {
 		const response = await axios.post("/upload", formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
-				Authorization: getUserId(),
+				Authorization: getUserId.value,
 			},
 		});
 		return response.data;
@@ -276,7 +274,7 @@ const updateGroupName = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 			}
 		);
@@ -296,7 +294,7 @@ const updateGroupPhoto = async (photoData) => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 			}
 		);
@@ -315,7 +313,7 @@ const addParticipantsToGroup = async () => {
     }, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: getUserId(),
+        Authorization: getUserId.value,
       },
     });
     
@@ -335,7 +333,7 @@ const leaveGroup = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 				data: {
 					conversationId: props.chat.conversationId,

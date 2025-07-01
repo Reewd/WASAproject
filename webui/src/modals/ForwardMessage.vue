@@ -208,7 +208,6 @@ const users = ref([]);
 const selectedUser = ref(null);
 
 // Computed properties
-const currentUsername = computed(() => getUsername());
 
 const filteredConversations = computed(() => {
 	if (!searchQuery.value) return conversations.value;
@@ -238,7 +237,7 @@ const getUsersWithExistingConversations = () => {
     conversations.value.forEach((conversation) => {
         if (!conversation.isGroup) {
             const otherParticipant = conversation.participants?.find(
-                (participant) => participant.username !== currentUsername.value
+                (participant) => participant.username !== getUsername.value
             );
             if (otherParticipant) {
                 usersWithConversations.push(otherParticipant);
@@ -257,7 +256,7 @@ const handleSelectedUsersUpdate = (selectedUsersList) => {
 // Methods
 const fetchConversations = async () => {
 	try {
-		const userId = getUserId(); // Retrieve the userId using the composable
+		const userId = getUserId.value; // Retrieve the userId using the composable
 
 		if (!userId) {
 			console.error("User ID not found");
@@ -281,7 +280,7 @@ const getConversationName = (conversation) => {
 		return conversation.name;
 	} else {
 		const otherParticipant = conversation.participants?.find(
-			(participant) => participant.username !== currentUsername.value
+			(participant) => participant.username !== getUsername.value
 		);
 		return otherParticipant ? otherParticipant.username : conversation.name;
 	}
@@ -295,7 +294,7 @@ const getConversationPhotoUrl = (conversation) => {
 		return groupDefaultIcon;
 	} else {
 		const otherParticipant = conversation.participants?.find(
-			(participant) => participant.username !== currentUsername.value
+			(participant) => participant.username !== getUsername.value
 		);
 		if (otherParticipant?.photo?.path) {
 			return getImageUrl(otherParticipant.photo.path);
@@ -364,7 +363,7 @@ const forwardMessage = async () => {
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: getUserId(),
+						Authorization: getUserId.value,
 					},
 				}
 			);
@@ -387,7 +386,7 @@ const forwardMessage = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId(),
+					Authorization: getUserId.value,
 				},
 			}
 		);

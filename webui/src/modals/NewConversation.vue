@@ -138,12 +138,11 @@ const isGroup = ref(false);
 const groupName = ref('');
 
 // Computed properties
-const currentUsername = computed(() => getUsername());
 
 const filteredUsers = computed(() =>
   users.value.filter((user) => 
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) && 
-    user.username !== currentUsername.value
+    user.username !== getUsername.value
   )
 );
 
@@ -199,7 +198,7 @@ const createConversation = async () => {
     return;
   }
 
-  const userId = getUserId();
+  const userId = getUserId.value;
   if (!userId) {
     console.error('User ID not found');
     alert('Authentication error. Please try again.');

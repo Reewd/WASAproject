@@ -132,7 +132,7 @@ const uploadPhoto = async (photoFile) => {
     const response = await axios.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: getUserId(),
+        Authorization: getUserId.value,
       },
     });
     console.log('Photo uploaded successfully:', response.data);
@@ -173,7 +173,7 @@ const sendMessage = async () => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: getUserId(),
+          Authorization: getUserId.value,
         },
       }
     );

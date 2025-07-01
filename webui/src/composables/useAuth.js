@@ -8,6 +8,30 @@ function login(userInfo) {
   user.value = userInfo
 }
 
+function updateUser(userData) {
+  if (user.value) {
+    const updatedUser = { ...user.value, ...userData }
+    user.value = updatedUser
+    localStorage.setItem('loggedInUser', JSON.stringify(updatedUser))
+  }
+}
+
+function logout() {
+  localStorage.removeItem('loggedInUser')
+  user.value = null
+}
+
+const getCurrentUsername = () => user.value?.username || null
+const getCurrentUserId = () => user.value?.userId || null
+
 export function useAuth() {
-  return { user, isLoggedIn, login }
+  return { 
+    user, 
+    isLoggedIn, 
+    login, 
+    logout, 
+    updateUser,
+    getCurrentUsername,
+    getCurrentUserId
+  }
 }
