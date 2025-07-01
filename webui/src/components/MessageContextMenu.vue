@@ -10,11 +10,6 @@
         <span class="menu-text">Reply</span>
       </div>
       
-      <div class="context-menu-item" @click="handleCopy">
-        <span class="menu-icon">📋</span>
-        <span class="menu-text">Copy</span>
-      </div>
-      
       <div class="context-menu-item" @click="handleForward">
         <span class="menu-icon">➡️</span>
         <span class="menu-text">Forward</span>
@@ -51,7 +46,6 @@ const props = defineProps({
 const emits = defineEmits([
   'close',
   'reply',
-  'copy',
   'forward',
   'delete'
 ]);
@@ -65,11 +59,6 @@ const menuPosition = computed(() => ({
 // Menu action handlers (no logic, just emit events)
 const handleReply = () => {
   emits('reply', props.message);
-  closeMenu();
-};
-
-const handleCopy = () => {
-  emits('copy', props.message);
   closeMenu();
 };
 
