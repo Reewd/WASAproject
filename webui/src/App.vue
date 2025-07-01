@@ -1,8 +1,10 @@
 <template>
-  <component
-    :is="isLoggedIn ? HomeView : LoginView"
-    @login-success="login"
-  />
+  <div id="app">
+    <component
+      :is="isLoggedIn ? HomeView : LoginView"
+      @login-success="login"
+    />
+  </div>
 </template>
 
 <script setup>
