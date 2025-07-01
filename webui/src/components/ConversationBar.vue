@@ -4,7 +4,7 @@
 		<!-- New Conversation Button -->
 		<button class="new-conversation-button" @click="showModal = true">
 			<img
-				src="/assets/icons/new-conversation.png"
+				:src="newConversationIcon"
 				alt="New Conversation"
 			/>
 		</button>
@@ -37,6 +37,7 @@ import axios from "../services/axios.js";
 import ConversationPreview from "./ConversationPreview.vue";
 import { useUser } from "../composables/useUser.js"; // Import the composable
 import NewConversation from "../modals/NewConversation.vue"; // Import the modal
+import newConversationIcon from "/assets/icons/new-conversation.png";
 
 const conversations = ref([]);
 const sidebar = ref(null);

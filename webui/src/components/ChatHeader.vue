@@ -40,6 +40,8 @@ import { ref, computed } from "vue";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import GroupSettings from "../modals/GroupSettings.vue"; // Import the modal
+import groupDefaultIcon from "/assets/icons/group-default.png";
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
@@ -107,13 +109,13 @@ const headerImageUrl = computed(() => {
 		if (props.chat?.photo?.path) {
 			return getImageUrl(props.chat.photo.path);
 		}
-		return "/assets/icons/group-default.png";
+		return groupDefaultIcon;
 	} else {
 		// Private conversation - use other participant's photo or default user icon
 		if (otherParticipant.value?.photo?.path) {
 			return getImageUrl(otherParticipant.value.photo.path);
 		}
-		return "/assets/icons/user-default.png";
+		return userDefaultIcon;
 	}
 });
 

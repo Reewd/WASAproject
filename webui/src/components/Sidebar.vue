@@ -9,14 +9,14 @@
 			/>
 			<img
 				v-else
-				src="/assets/icons/user-default.png"
+				:src="userDefaultIcon"
 				alt="Default profile picture"
 				class="profile-picture"
 			/>
 		</div>
 		<button class="settings-button" @click="openProfileSettings">
 			<img
-				src="/assets/icons/account-settings.png"
+				:src="accountSettingsIcon"
 				alt="Settings"
 				class="settings-icon"
 			/>
@@ -24,7 +24,7 @@
 
 		<button class="logout-button" @click="logout">
 			<img
-				src="/assets/icons/logout.png"
+				:src="logoutIcon"
 				alt="Logout"
 				class="logout-icon"
 			/>
@@ -43,6 +43,9 @@
 import { ref, onMounted } from "vue";
 import { useImageUrl } from "@/composables/useImageUrl.js";
 import ProfileSettings from "@/modals/ProfileSettings.vue";
+import userDefaultIcon from "/assets/icons/user-default.png";
+import accountSettingsIcon from "/assets/icons/account-settings.png";
+import logoutIcon from "/assets/icons/logout.png";
 
 const loggedInUser = ref(null);
 const showProfileSettings = ref(false);

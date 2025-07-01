@@ -7,7 +7,7 @@
     <!-- Existing message content -->
     <div v-if="isGroupConversation && !isOwnMessage" class="message-header">
       <img 
-        :src="getImageUrl(message.sentBy.photo?.path) || '/assets/icons/user-default.png'" 
+        :src="getImageUrl(message.sentBy.photo?.path) || userDefaultIcon" 
         alt="User Photo" 
         class="profile-picture"
       />
@@ -106,6 +106,7 @@ import ReactionButton from './ReactionButton.vue';
 import MessageContextMenu from './MessageContextMenu.vue';
 import ReactionBubble from './ReactionBubble.vue';
 import ForwardMessage from '../modals/ForwardMessage.vue'; // Add this import
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getImageUrl } = useImageUrl();
 const { getUsername } = useUser();

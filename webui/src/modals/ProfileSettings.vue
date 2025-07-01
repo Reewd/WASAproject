@@ -83,6 +83,7 @@ import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUserId, updateUserData } = useUser();
 const { getImageUrl } = useImageUrl();
@@ -100,7 +101,7 @@ const profilePictureUrl = computed(() => {
 	if (currentUser.value?.photo?.path) {
 		return getImageUrl(currentUser.value.photo.path);
 	}
-	return "/assets/icons/user-default.png";
+	return userDefaultIcon;
 });
 
 const photoPreviewUrl = computed(() => {

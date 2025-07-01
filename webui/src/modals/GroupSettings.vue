@@ -148,6 +148,8 @@ import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import UserSelection from '../components/UserSelection.vue';
+import groupDefaultIcon from "/assets/icons/group-default.png";
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
@@ -182,8 +184,8 @@ const groupPhotoUrl = computed(() => {
 		return getImageUrl(props.chat.photo.path);
 	}
 	return props.isGroup
-		? "/assets/icons/group-default.png"
-		: "/assets/icons/user-default.png";
+		? groupDefaultIcon
+		: userDefaultIcon;
 });
 
 const photoPreviewUrl = computed(() => {
@@ -210,7 +212,7 @@ const getParticipantPhotoUrl = (participant) => {
 	if (participant.photo?.path) {
 		return getImageUrl(participant.photo.path);
 	}
-	return "/assets/icons/user-default.png";
+	return userDefaultIcon;
 };
 
 const triggerPhotoUpload = () => {

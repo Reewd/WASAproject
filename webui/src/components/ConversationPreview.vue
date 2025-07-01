@@ -22,6 +22,8 @@
 import { computed } from 'vue';
 import { useUser } from '../composables/useUser.js';
 import { useImageUrl } from '../composables/useImageUrl.js';
+import groupDefaultIcon from "/assets/icons/group-default.png";
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
@@ -59,13 +61,13 @@ const conversationPhotoUrl = computed(() => {
     if (props.conversation.photo?.path) {
       return getImageUrl(props.conversation.photo.path);
     }
-    return '/assets/icons/group-default.png';
+    return groupDefaultIcon;
   } else {
     // Private conversation - use other participant's photo or default user icon
     if (otherParticipant.value?.photo?.path) {
       return getImageUrl(otherParticipant.value.photo.path);
     }
-    return '/assets/icons/user-default.png';
+    return userDefaultIcon;
   }
 });
 </script>

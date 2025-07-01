@@ -61,6 +61,7 @@ import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
@@ -147,7 +148,7 @@ const getUserPhotoUrl = (user) => {
 	if (user.photo?.path) {
 		return getImageUrl(user.photo.path);
 	}
-	return "/assets/icons/user-default.png";
+	return userDefaultIcon;
 };
 
 const isUserSelected = (user) => {

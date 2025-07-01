@@ -15,7 +15,7 @@
 							<img
 								:src="
 									getImageUrl(message.sentBy.photo?.path) ||
-									'/assets/icons/user-default.png'
+									userDefaultIcon
 								"
 								alt="Sender Photo"
 								class="preview-photo"
@@ -178,6 +178,8 @@ import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import UserSelection from "../components/UserSelection.vue"; // Add this import
+import groupDefaultIcon from "/assets/icons/group-default.png";
+import userDefaultIcon from "/assets/icons/user-default.png";
 
 
 const { getUserId, getUsername } = useUser();
@@ -290,7 +292,7 @@ const getConversationPhotoUrl = (conversation) => {
 		if (conversation.photo?.path) {
 			return getImageUrl(conversation.photo.path);
 		}
-		return "/assets/icons/group-default.png";
+		return groupDefaultIcon;
 	} else {
 		const otherParticipant = conversation.participants?.find(
 			(participant) => participant.username !== currentUsername.value
@@ -298,7 +300,7 @@ const getConversationPhotoUrl = (conversation) => {
 		if (otherParticipant?.photo?.path) {
 			return getImageUrl(otherParticipant.photo.path);
 		}
-		return "/assets/icons/user-default.png";
+		return userDefaultIcon;
 	}
 };
 
