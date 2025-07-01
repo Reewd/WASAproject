@@ -1,23 +1,20 @@
 <template>
   <div 
-    v-if="aggregatedReactions.length > 0" 
+    v-if="reactions.length > 0" 
     class="reaction-bubble"
     @click="removeReaction"
   >
     <span 
-      v-for="reaction in aggregatedReactions" 
-      :key="reaction.emoji"
+      v-for="reaction in reactions" 
+      :key="reaction.reactionId"
       class="reaction-item"
     >
-      {{ reaction.emoji }}
-      <span v-if="reaction.count > 1" class="emoji-count">{{ reaction.count }}</span>
+      {{ reaction.content }} <span class="reaction-username">{{ reaction.sentBy.username }}</span>
     </span>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-
 const props = defineProps({
   reactions: {
     type: Array,
@@ -27,36 +24,10 @@ const props = defineProps({
 
 const emits = defineEmits(['removeReaction']);
 
-// Aggregate reactions by emoji and count them
-const aggregatedReactions = computed(() => {
-  const reactionMap = new Map();
-  
-  props.reactions.forEach(reaction => {
-    const emoji = reaction.content;
-    if (reactionMap.has(emoji)) {
-      reactionMap.set(emoji, {
-        emoji,
-        count: reactionMap.get(emoji).count + 1,
-        users: [...reactionMap.get(emoji).users, reaction.sentBy]
-      });
-    } else {
-      reactionMap.set(emoji, {
-        emoji,
-        count: 1,
-        users: [reaction.sentBy]
-      });
-    }
-  });
-  
-  // Convert to array and sort by count (most popular first)
-  return Array.from(reactionMap.values()).sort((a, b) => b.count - a.count);
-});
-
 // Show reaction details when clicked
 const removeReaction = () => {
   emits('removeReaction', {
-    reactions: props.reactions,
-    aggregated: aggregatedReactions.value
+    reactions: props.reactions
   });
 };
 </script>
@@ -86,7 +57,7 @@ const removeReaction = () => {
 
 .reaction-item {
   font-size: 14px;
-  margin-right: 6px;
+  margin-right: 2px;
   line-height: 1;
   flex-shrink: 0;
   display: inline-flex;
@@ -97,10 +68,10 @@ const removeReaction = () => {
   margin-right: 0;
 }
 
-.emoji-count {
-  font-size: 11px;
-  font-weight: 600;
+.reaction-username {
+  font-size: 12px;
   color: #666;
-  margin-left: 2px;
+  margin-left: 4px;
+  font-weight: 500;
 }
 </style>
