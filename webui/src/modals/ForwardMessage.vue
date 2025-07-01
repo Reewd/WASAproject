@@ -52,7 +52,7 @@
 							{ active: activeTab === 'conversations' },
 						]"
 					>
-						Conversations
+						Existing conversations
 					</button>
 					<button
 						@click="activeTab = 'users'"
@@ -61,22 +61,8 @@
 							{ active: activeTab === 'users' },
 						]"
 					>
-						Users
+						New private conversation
 					</button>
-				</div>
-
-				<!-- Search Bar -->
-				<div class="search-section">
-					<input
-						type="text"
-						v-model="searchQuery"
-						:placeholder="
-							activeTab === 'conversations'
-								? 'Search conversations...'
-								: 'Search users...'
-						"
-						class="search-input"
-					/>
 				</div>
 
 				<!-- Conversations Tab Content -->
