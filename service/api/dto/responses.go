@@ -1,7 +1,7 @@
 package dto
 
 type User struct {
-	Username string `json:"name,omitempty"`
+	Username string `json:"username,omitempty"`
 	UserId   int64  `json:"userId,omitempty"`
 	Photo    *Photo `json:"photo,omitempty"`
 }
