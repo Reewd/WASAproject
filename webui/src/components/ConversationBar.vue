@@ -43,6 +43,8 @@ const sidebar = ref(null);
 let isResizing = false;
 const showModal = ref(false); // State to control modal visibility
 const emits = defineEmits(["selectConversation"]); // Emit selected conversation
+const pollingInterval = ref(null);
+const POLLING_DELAY = 5000; // Poll every 5 seconds
 
 const { getUserId } = useUser(); // Use the composable to retrieve the userId
 
@@ -60,10 +62,33 @@ const fetchConversations = async () => {
 				Authorization: userId,
 			},
 		});
-		conversations.value = response.data.conversations;
-		console.log("Conversations fetched:", conversations.value);
+		
+		// Check if there are changes before updating to avoid unnecessary re-renders
+		if (JSON.stringify(conversations.value) !== JSON.stringify(response.data.conversations)) {
+			conversations.value = response.data.conversations;
+			console.log("Conversations updated:", conversations.value);
+		}
 	} catch (error) {
 		console.error("Error fetching conversations:", error);
+	}
+};
+
+// Start polling for conversation updates
+const startPolling = () => {
+	// Clear any existing interval first
+	stopPolling();
+	
+	// Start new polling interval
+	pollingInterval.value = setInterval(() => {
+		fetchConversations();
+	}, POLLING_DELAY);
+};
+
+// Stop polling
+const stopPolling = () => {
+	if (pollingInterval.value) {
+		clearInterval(pollingInterval.value);
+		pollingInterval.value = null;
 	}
 };
 
@@ -101,15 +126,19 @@ const stopResizing = () => {
 // Lifecycle hooks
 onMounted(() => {
 	fetchConversations();
+	startPolling();
 	document.addEventListener("mouseup", stopResizing);
 });
 
 onUnmounted(() => {
+	stopPolling();
 	document.removeEventListener("mousemove", resizeSidebar);
 	document.removeEventListener("mouseup", stopResizing);
 });
 defineExpose({
 	fetchConversations,
+	startPolling,
+	stopPolling
 });
 </script>
 
