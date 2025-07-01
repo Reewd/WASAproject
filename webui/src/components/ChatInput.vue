@@ -169,6 +169,7 @@ const sendMessage = async () => {
     // Clear input and photo
     message.value = '';
     removePhoto();
+    cancelReply();
 
     // Emit success event
     emits('messageSent', response.data);
