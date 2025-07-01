@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/Reewd/WASAproject/service/api/constraints"
@@ -157,7 +158,23 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 			Photo:          helpers.ConvertPhoto(dbConv.Photo),
 			LastMessage:    lastMessage,
 		})
+
 	}
+
+	sort.Slice(conversations, func(i, j int) bool {
+		a := conversations[i]
+		b := conversations[j]
+		if a.LastMessage == nil && b.LastMessage == nil {
+			return false // Both have no last message, consider them equal
+		}
+		if a.LastMessage == nil {
+			return false // a has no last message, b is considered "greater"
+		}
+		if b.LastMessage == nil {
+			return true // b has no last message, a is considered "greater"
+		}
+		return a.LastMessage.Timestamp > b.LastMessage.Timestamp // Sort by timestamp descending
+	})
 
 	resp := map[string]interface{}{
 		"conversations": conversations, // Wrap the conversations array with a key
