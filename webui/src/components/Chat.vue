@@ -97,11 +97,19 @@ const fetchChat = async (conversationId) => {
     
     // Only update and scroll if we have new messages or first load
     const isFirstLoad = !chat.value;
-    const hasNewMessages = chat.value && 
-      (chat.value.messages.length !== response.data.messages.length || 
-       JSON.stringify(chat.value.messages) !== JSON.stringify(response.data.messages));
+    const hasNewMessages = chat.value && (
+      // Safely check if messages exists and compare lengths
+      (chat.value?.messages?.length || 0) !== (response.data?.messages?.length || 0) || 
+      // Safely stringify messages with fallbacks to empty arrays
+      JSON.stringify(chat.value?.messages || []) !== JSON.stringify(response.data?.messages || [])
+    );
     
     chat.value = response.data;
+    
+    // Ensure chat.value.messages exists (initialize as empty array if undefined)
+    if (!chat.value.messages) {
+      chat.value.messages = [];
+    }
     
     // Scroll to bottom after messages are rendered if there are new messages or first load
     if (isFirstLoad || hasNewMessages) {
