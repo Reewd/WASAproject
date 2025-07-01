@@ -53,6 +53,11 @@ const removeReaction = () => {
   background-color: rgba(255, 255, 255, 0.95);
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  white-space: normal;
+  flex-wrap: wrap;
+  z-index: 10;
+  position: relative;
 }
 
 .reaction-item {
