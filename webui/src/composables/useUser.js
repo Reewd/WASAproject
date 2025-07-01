@@ -13,7 +13,9 @@ export const useUser = () => {
   const getUsername = () => {
     try {
       const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-      return loggedInUser?.username || null; // Note: changed from loggedInUser?.name
+      console.log('Retrieved loggedInUser:', loggedInUser); // Debugging line
+      return loggedInUser?.name || null;
+
     } catch (error) {
       console.error('Error retrieving username:', error);
       return null;
