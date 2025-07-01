@@ -350,7 +350,7 @@ onMounted(() => {
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 280px;
+  width: 320px;
   max-height: 320px;
   display: flex;
   flex-direction: column;
