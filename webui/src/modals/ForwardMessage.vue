@@ -781,38 +781,6 @@ onMounted(() => {
 	background-color: #ccc;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-	.modal-content {
-		width: 95%;
-		margin: 20px;
-		max-height: 90vh;
-	}
-
-	.modal-actions {
-		flex-direction: column;
-		align-items: stretch;
-	}
-
-	.left-info {
-		text-align: center;
-		margin-bottom: 10px;
-	}
-
-	.right-actions {
-		width: 100%;
-	}
-
-	.cancel-button,
-	.forward-button {
-		width: 100%;
-	}
-
-	.conversations-list {
-		max-height: 250px;
-	}
-}
-
 .tab-navigation {
 	display: flex;
 	margin-bottom: 20px;
@@ -895,13 +863,6 @@ onMounted(() => {
 	font-size: 16px;
 	color: #333;
 	font-weight: 500;
-}
-
-/* Responsive styles for the new elements */
-@media (max-width: 768px) {
-	.users-list {
-		max-height: 250px;
-	}
 }
 
 .empty-list-message {

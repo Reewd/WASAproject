@@ -310,24 +310,4 @@ onUnmounted(() => {
   color: #666;
   font-style: italic;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .chat-header {
-    padding: 12px 16px;
-  }
-  
-  .chat-messages {
-    padding: 12px;
-  }
-  
-  .chat-photo {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .chat-header h2 {
-    font-size: 16px;
-  }
-}
 </style>

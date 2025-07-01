@@ -211,31 +211,4 @@ const handleGroupSettingsUpdated = () => {
 .group-settings-button:active {
 	background-color: #004085;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-	.chat-header {
-		padding: 12px 16px;
-		min-height: 60px;
-	}
-
-	.chat-photo {
-		width: 32px;
-		height: 32px;
-	}
-
-	.chat-info h2 {
-		font-size: 16px;
-	}
-
-	.participant-status,
-	.participant-count {
-		font-size: 11px;
-	}
-
-	.group-settings-button {
-		padding: 6px 12px;
-		font-size: 12px;
-	}
-}
 </style>

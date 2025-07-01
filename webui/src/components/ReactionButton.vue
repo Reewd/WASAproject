@@ -101,33 +101,4 @@ const handleButtonClick = (event) => {
 .message-container:hover .reaction-button {
   opacity: 1;
 }
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .reaction-button {
-    background: #2c2c2e;
-    border-color: #38383a;
-  }
-  
-  .reaction-button:hover {
-    background-color: #38383a;
-  }
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .reaction-button-container {
-    right: -35px;
-  }
-  
-  .reaction-button-container.own-message {
-    left: -35px;
-  }
-  
-  .reaction-button {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
-  }
-}
 </style>

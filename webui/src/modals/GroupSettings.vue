@@ -743,32 +743,4 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    margin: 20px;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .right-actions {
-    width: 100%;
-  }
-  
-  .leave-button, .cancel-button, .save-button {
-    width: 100%;
-  }
-  
-  .add-input-container {
-    flex-direction: column;
-  }
-  
-  .add-button {
-    width: 100%;
-  }
-}
 </style>

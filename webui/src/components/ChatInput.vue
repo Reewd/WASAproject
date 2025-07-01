@@ -331,19 +331,4 @@ const cancelReply = () => {
   background-color: #6c757d;
   cursor: not-allowed;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .chat-input {
-    padding: 8px;
-  }
-  
-  .photo-preview {
-    max-width: 150px;
-  }
-  
-  .photo-preview img {
-    max-height: 100px;
-  }
-}
 </style>

@@ -465,20 +465,4 @@ onMounted(() => {
 	cursor: not-allowed;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-	.modal-content {
-		width: 95%;
-		margin: 20px;
-	}
-
-	.modal-actions {
-		flex-direction: column;
-	}
-
-	.cancel-button,
-	.save-button {
-		width: 100%;
-	}
-}
 </style>

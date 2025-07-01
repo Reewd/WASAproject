@@ -555,39 +555,4 @@ onMounted(() => {
   cursor: not-allowed;
   background-color: #ccc;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    margin: 20px;
-    max-height: 90vh;
-  }
-  
-  .modal-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .left-info {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  
-  .right-actions {
-    width: 100%;
-  }
-  
-  .cancel-button, .create-button {
-    width: 100%;
-  }
-  
-  .selected-list {
-    flex-direction: column;
-  }
-  
-  .selected-user {
-    justify-content: space-between;
-  }
-}
 </style>
