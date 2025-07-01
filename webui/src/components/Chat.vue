@@ -68,7 +68,7 @@ const replyingTo = ref(null);
 const messagesContainer = ref(null);
 const isLoading = ref(false);
 const pollingInterval = ref(null);
-const POLLING_DELAY = 5000; // Poll every 5 seconds
+const POLLING_DELAY = 2000;
 
 // Emoji picker state
 const showEmojiPicker = ref(false);
