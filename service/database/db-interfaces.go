@@ -28,6 +28,8 @@ type ParticipantDatabase interface {
 
 type StatusDatabase interface {
 	InsertSent(messageId int64, conversationId int64, recipientIds []int64) error
+	InsertDelivered(recipientId int64) error
+	InsertRead(conversationId int64, recipientId int64) error
 }
 
 type GroupDatabase interface {

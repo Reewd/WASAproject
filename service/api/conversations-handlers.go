@@ -154,6 +154,12 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		"conversations": conversations, // Wrap the conversations array with a key
 	}
 
+	err = rt.db.InsertDelivered(ctx.UserID)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert delivered status")
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
@@ -214,6 +220,12 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	database_chat, err := rt.db.GetChat(conversationId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve chat messages")
+		return
+	}
+
+	err = rt.db.InsertRead(conversationId, ctx.UserID)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert read status")
 		return
 	}
 

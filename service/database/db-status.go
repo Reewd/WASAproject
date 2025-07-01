@@ -18,13 +18,13 @@ func (db *appdbimpl) InsertSent(messageId int64, conversationId int64, recipient
 	return nil
 }
 
-func (db *appdbimpl) InsertDelivered(conversationId int64, recipientId int64) error {
+func (db *appdbimpl) InsertDelivered(recipientId int64) error {
 	stmt := `
         UPDATE message_status 
         SET status = 'delivered' 
         WHERE recipientId = ? AND status = 'sent'`
 
-	_, err := db.c.Exec(stmt, conversationId, recipientId)
+	_, err := db.c.Exec(stmt, recipientId)
 	if err != nil {
 		return err
 	}

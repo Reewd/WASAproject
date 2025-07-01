@@ -257,11 +257,11 @@ const formatTimestamp = (timestamp) => {
 const getStatusIcon = (status) => {
   switch (status) {
     case 'sent':
-      return '✓';
+      return '✔️';
     case 'delivered':
-      return '✓✓';
+      return '✔️✔️';
     case 'read':
-      return '✓✓';
+      return '👁️‍🗨️';
     default:
       return '';
   }
