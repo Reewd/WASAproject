@@ -210,7 +210,7 @@ const menuPosition = ref({ x: 0, y: 0 });
 
 // Check if this message is sent by the current user
 const isOwnMessage = computed(() => {
-	return props.message.sentBy.username === getUsername.value;
+	return props.message.sentBy.userId === getUserId.value;
 });
 
 // Context menu handlers

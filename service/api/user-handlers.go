@@ -71,17 +71,14 @@ func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 	// Get the updated user data
-	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
+	dbUser, err := rt.db.GetUser(ctx.UserID)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve updated user")
 		return
 	}
 
-	// Return the updated private user
-	var resp dto.User
-	resp.Username = dbUser.Username
-	resp.UserId = ctx.UserID
-	resp.Photo = helpers.ConvertPhoto(dbUser.Photo)
+	// Return the updated user
+	resp := helpers.ConvertUser(*dbUser)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -126,17 +123,17 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 func (rt *_router) getUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// Get all users from the database
-	users, err := rt.db.GetAllPublicUsers()
+	users, err := rt.db.GetAllUsers()
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve users")
 		return
 	}
 
-	// Convert users to public user DTOs
-	publicUsers := helpers.ConvertPublicUsers(users)
+	// Convert users to DTOs
+	dtoUsers := helpers.ConvertUsers(users)
 
-	resp := map[string][]dto.PublicUser{
-		"users": publicUsers,
+	resp := map[string][]dto.User{
+		"users": dtoUsers,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

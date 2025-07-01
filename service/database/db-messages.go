@@ -54,11 +54,13 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
         m.isForwarded         AS isForwarded,
         m.replyTo,
         m.timestamp           AS messageTimestamp,
+        u.id                  AS messageSenderId,
         u.username            AS messageSenderUsername,
         u.photoId             AS messageSenderPhotoId,
         ui.path               AS messageSenderPhotoPath,
         r.content             AS reactionContent,
         r.timestamp           AS reactionTimestamp,
+        ru.id                 AS reactionSenderId,
         ru.username           AS reactionSenderUsername,
         ru.photoId            AS reactionSenderPhotoId,
         ri.path               AS reactionSenderPhotoPath
@@ -122,11 +124,13 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			nsMessagePhotoPath        sql.NullString
 			nrReplyTo                 sql.NullInt64
 			messageTimestamp          string
+			senderID                  int64
 			senderUsername            string
 			nsSenderPhotoID           sql.NullString
 			nsSenderPhotoPath         sql.NullString
 			nsReactionContent         sql.NullString
 			nrReactionTimestamp       sql.NullString
+			nsReactionSenderID        sql.NullInt64
 			nsReactionSenderUsername  sql.NullString
 			nsReactionSenderPhotoID   sql.NullString
 			nsReactionSenderPhotoPath sql.NullString
@@ -141,11 +145,13 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			&isForwarded,
 			&nrReplyTo,
 			&messageTimestamp,
+			&senderID,
 			&senderUsername,
 			&nsSenderPhotoID,
 			&nsSenderPhotoPath,
 			&nsReactionContent,
 			&nrReactionTimestamp,
+			&nsReactionSenderID,
 			&nsReactionSenderUsername,
 			&nsReactionSenderPhotoID,
 			&nsReactionSenderPhotoPath,
@@ -199,7 +205,8 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 				Photo:          photo,
 				ReplyTo:        replyTo,
 				Timestamp:      messageTimestamp,
-				SentBy: PublicUser{
+				SentBy: User{
+					UserId:   senderID,
 					Username: senderUsername,
 					Photo:    senderPhoto,
 				},
@@ -224,11 +231,19 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			if nrReactionTimestamp.Valid {
 				rTs = nrReactionTimestamp.String
 			}
-			// build reaction-sender username
-			senderName := nsReactionSenderUsername.String
+			// build reaction-sender info
+			var reactionSenderID int64
+			var senderName string
+			if nsReactionSenderID.Valid {
+				reactionSenderID = nsReactionSenderID.Int64
+			}
+			if nsReactionSenderUsername.Valid {
+				senderName = nsReactionSenderUsername.String
+			}
 
 			msg.Reactions = append(msg.Reactions, ReactionView{
-				SentBy: PublicUser{
+				SentBy: User{
+					UserId:   reactionSenderID,
 					Username: senderName,
 					Photo:    rSenderPhoto,
 				},

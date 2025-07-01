@@ -22,6 +22,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 
 	if req.Text == nil && req.Photo == nil {
 		http.Error(w, "You must send either a message or a photo, or both", http.StatusBadRequest)
+		return
 	}
 
 	if req.Text != nil {
@@ -65,9 +66,9 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to insert sent status")
 		return
 	}
-	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
+	dbUser, err := rt.db.GetUser(ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to get sender's public user information")
+		ctx.Logger.WithError(err).Error("Failed to get sender's user information")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -77,7 +78,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	resp.ConversationId = conversationId
 	resp.Timestamp = timestamp
 	resp.Photo = Photo
-	resp.SentBy = helpers.ConvertPublicUser(*dbUser)
+	resp.SentBy = helpers.ConvertUser(*dbUser)
 	resp.Text = req.Text
 	resp.ReplyToMessageId = req.ReplyToMessageId
 	resp.Status = "sent" // Initial status is "sent"
@@ -189,9 +190,9 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
+	dbUser, err := rt.db.GetUser(ctx.UserID)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("Failed to get sender's public user information")
+		ctx.Logger.WithError(err).Error("Failed to get sender's user information")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -224,7 +225,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	resp.MessageId = messageId
 	resp.Timestamp = timestamp
 	resp.Photo = respPhoto
-	resp.SentBy = helpers.ConvertPublicUser(*dbUser)
+	resp.SentBy = helpers.ConvertUser(*dbUser)
 	resp.Text = text
 	resp.ReplyToMessageId = nil
 	resp.Status = "sent" // Initial status is "sent"

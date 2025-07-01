@@ -101,28 +101,28 @@ func (db *appdbimpl) UpdateUserPhoto(photoId string, id int64) error {
 	return nil
 }
 
-func (db *appdbimpl) GetPublicUsersByName(usernames []string) ([]PublicUser, error) {
-	var publicUsers []PublicUser
-	stmt := `SELECT username, photoId FROM users WHERE username = ?`
+func (db *appdbimpl) GetUsersByName(usernames []string) ([]User, error) {
+	var users []User
+	stmt := `SELECT id, username, photoId FROM users WHERE username = ?`
 	for _, username := range usernames {
-		var user PublicUser
+		var user User
 		var nsPhotoId sql.NullString
-		err := db.c.QueryRow(stmt, username).Scan(&user.Username, &nsPhotoId)
+		err := db.c.QueryRow(stmt, username).Scan(&user.UserId, &user.Username, &nsPhotoId)
 		if err != nil {
 			return nil, err
 		}
 
-		publicUsers = append(publicUsers, user)
+		users = append(users, user)
 	}
-	return publicUsers, nil
+	return users, nil
 }
 
-func (db *appdbimpl) GetPublicUser(id int64) (*PublicUser, error) {
-	var user PublicUser
+func (db *appdbimpl) GetUser(id int64) (*User, error) {
+	var user User
 	var nsPhotoId sql.NullString
 	var nsImagePath sql.NullString
-	stmt := `SELECT username, photoId, i.path FROM users LEFT JOIN images AS i ON users.photoId = i.uuid WHERE id = ?`
-	err := db.c.QueryRow(stmt, id).Scan(&user.Username, &nsPhotoId, &nsImagePath)
+	stmt := `SELECT id, username, photoId, i.path FROM users LEFT JOIN images AS i ON users.photoId = i.uuid WHERE id = ?`
+	err := db.c.QueryRow(stmt, id).Scan(&user.UserId, &user.Username, &nsPhotoId, &nsImagePath)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +134,8 @@ func (db *appdbimpl) GetPublicUser(id int64) (*PublicUser, error) {
 	return &user, nil
 }
 
-func (db *appdbimpl) GetAllPublicUsers() ([]PublicUser, error) {
-	stmt := `SELECT username, photoId, i.path FROM users 
+func (db *appdbimpl) GetAllUsers() ([]User, error) {
+	stmt := `SELECT id, username, photoId, i.path FROM users 
              LEFT JOIN images AS i ON users.photoId = i.uuid`
 	rows, err := db.c.Query(stmt)
 	if err != nil {
@@ -143,13 +143,13 @@ func (db *appdbimpl) GetAllPublicUsers() ([]PublicUser, error) {
 	}
 	defer helpers.CloseRows(rows)
 
-	var publicUsers []PublicUser
+	var users []User
 	for rows.Next() {
-		var user PublicUser
+		var user User
 		var nsPhotoId sql.NullString
 		var nsImagePath sql.NullString
 
-		err := rows.Scan(&user.Username, &nsPhotoId, &nsImagePath)
+		err := rows.Scan(&user.UserId, &user.Username, &nsPhotoId, &nsImagePath)
 		if err != nil {
 			return nil, err
 		}
@@ -158,12 +158,12 @@ func (db *appdbimpl) GetAllPublicUsers() ([]PublicUser, error) {
 			user.Photo = &Photo{PhotoId: nsPhotoId.String, Path: nsImagePath.String}
 		}
 
-		publicUsers = append(publicUsers, user)
+		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return publicUsers, nil
+	return users, nil
 }

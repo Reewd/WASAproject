@@ -66,7 +66,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, ctx reqcontext.RequestCont
 		return
 	}
 
-	participants := helpers.ConvertPublicUsers(database_participants)
+	participants := helpers.ConvertUsers(database_participants)
 
 	// Respond with the created conversation
 	w.Header().Set("Content-Type", "application/json")
@@ -98,7 +98,6 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 
 	if conversationId == 0 {
 		conversationId, err = rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, nil)
-		ctx.Logger.WithField("conversationId", conversationId).Info("Created new private conversation")
 		if err != nil {
 			helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
 			return
@@ -111,7 +110,7 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		return
 	}
 
-	participants := helpers.ConvertPublicUsers(database_participants)
+	participants := helpers.ConvertUsers(database_participants)
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(dto.Chat{
@@ -153,7 +152,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		conversations = append(conversations, dto.ConversationPreview{
 			ConversationId: dbConv.ConversationId,
 			Name:           dbConv.Name,
-			Participants:   helpers.ConvertPublicUsers(dbConv.Participants),
+			Participants:   helpers.ConvertUsers(dbConv.Participants),
 			IsGroup:        dbConv.IsGroup,
 			Photo:          helpers.ConvertPhoto(dbConv.Photo),
 			LastMessage:    lastMessage,
@@ -256,7 +255,7 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	messages := helpers.ConvertToSentMessages(database_chat)
-	participants := helpers.ConvertPublicUsers(database_conversation.Participants)
+	participants := helpers.ConvertUsers(database_conversation.Participants)
 	name := database_conversation.Name
 	isGroup := database_conversation.IsGroup
 	photo := helpers.ConvertPhoto(database_conversation.Photo)

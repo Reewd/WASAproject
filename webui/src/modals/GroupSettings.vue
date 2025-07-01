@@ -59,7 +59,7 @@
 					<div class="participants-list">
 						<div
 							v-for="participant in participants"
-							:key="participant.username"
+							:key="participant.userId"
 							class="participant-item"
 						>
 							<img
@@ -71,7 +71,7 @@
 								participant.username
 							}}</span>
 							<span
-								v-if="participant.username === getUsername.value"
+								v-if="participant.userId === getUserId.value"
 								class="current-user-badge"
 								>You</span
 							>
@@ -199,7 +199,7 @@ const hasNameChanged = computed(() => {
 // Methods
 
 const handleSelectedUsersUpdate = (selectedUsers) => {
-  pendingParticipants.value = selectedUsers.map(user => user.username);
+  pendingParticipants.value = selectedUsers;
 };
 
 const initializeForm = () => {
@@ -309,7 +309,7 @@ const addParticipantsToGroup = async () => {
 
   try {
     await axios.post(`/conversations/${props.chat.conversationId}/participants`, {
-      participants: pendingParticipants.value
+      participants: pendingParticipants.value.map(user => user.username) // Extract usernames for backend
     }, {
       headers: {
         'Content-Type': 'application/json',

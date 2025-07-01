@@ -26,8 +26,8 @@ func (db *appdbimpl) RemoveParticipant(conversationId int64, userId int64) error
 	return nil
 }
 
-func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error) {
-	stmt := `SELECT u.username, u.photoId, i.path FROM participants p
+func (db *appdbimpl) GetParticipants(conversationId int64) ([]User, error) {
+	stmt := `SELECT u.id, u.username, u.photoId, i.path FROM participants p
 		 JOIN users u ON p.userId = u.id
 		 LEFT JOIN images i ON u.photoId = i.uuid
 		 WHERE p.conversationId = ?`
@@ -37,12 +37,12 @@ func (db *appdbimpl) GetParticipants(conversationId int64) ([]PublicUser, error)
 	}
 	defer helpers.CloseRows(rows)
 
-	var participants []PublicUser
+	var participants []User
 	for rows.Next() {
-		var participant PublicUser
+		var participant User
 		var nsPhotoId sql.NullString
 		var nsPhotoPath sql.NullString
-		err := rows.Scan(&participant.Username, &nsPhotoId, &nsPhotoPath)
+		err := rows.Scan(&participant.UserId, &participant.Username, &nsPhotoId, &nsPhotoPath)
 		if err != nil {
 			return nil, err
 		}

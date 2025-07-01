@@ -26,9 +26,9 @@
           <div class="users-list">
             <div
               v-for="user in filteredUsers"
-              :key="user.username"
-              @click="toggleUserSelection(user.username)"
-              :class="{ selected: selectedUsers.includes(user.username) }"
+              :key="user.userId"
+              @click="toggleUserSelection(user)"
+              :class="{ selected: isUserSelected(user) }"
               class="user-item"
             >
               <img
@@ -37,7 +37,7 @@
                 class="user-photo"
               />
               <span class="user-name">{{ user.username }}</span>
-              <span v-if="selectedUsers.includes(user.username)" class="selected-badge">✓</span>
+              <span v-if="isUserSelected(user)" class="selected-badge">✓</span>
             </div>
           </div>
         </div>
@@ -47,12 +47,12 @@
           <h4>Selected Users:</h4>
           <div class="selected-list">
             <span 
-              v-for="username in selectedUsers" 
-              :key="username"
+              v-for="user in selectedUsers" 
+              :key="user.userId"
               class="selected-user"
             >
-              {{ username }}
-              <button @click="removeSelectedUser(username)" class="remove-selected">✕</button>
+              {{ user.username }}
+              <button @click="removeSelectedUser(user)" class="remove-selected">✕</button>
             </span>
           </div>
         </div>
@@ -142,7 +142,7 @@ const groupName = ref('');
 const filteredUsers = computed(() =>
   users.value.filter((user) => 
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) && 
-    user.username !== getUsername.value
+    user.userId !== getUserId.value
   )
 );
 
@@ -171,11 +171,16 @@ const getUserPhotoUrl = (user) => {
   return userDefaultIcon;
 };
 
-const toggleUserSelection = (username) => {
-  if (selectedUsers.value.includes(username)) {
-    selectedUsers.value = selectedUsers.value.filter((u) => u !== username);
+const isUserSelected = (user) => {
+  return selectedUsers.value.some(selectedUser => selectedUser.userId === user.userId);
+};
+
+const toggleUserSelection = (user) => {
+  const index = selectedUsers.value.findIndex(selectedUser => selectedUser.userId === user.userId);
+  if (index !== -1) {
+    selectedUsers.value.splice(index, 1);
   } else {
-    selectedUsers.value.push(username);
+    selectedUsers.value.push(user);
   }
   
   // Automatically set isGroup to true if more than 1 user is selected
@@ -184,8 +189,8 @@ const toggleUserSelection = (username) => {
   }
 };
 
-const removeSelectedUser = (username) => {
-  selectedUsers.value = selectedUsers.value.filter((u) => u !== username);
+const removeSelectedUser = (user) => {
+  selectedUsers.value = selectedUsers.value.filter((selectedUser) => selectedUser.userId !== user.userId);
   
   // If only 1 or no users left, set to private conversation
   if (selectedUsers.value.length <= 1) {
@@ -206,7 +211,7 @@ const createConversation = async () => {
   }
 
   const requestBody = {
-    participants: selectedUsers.value,
+    participants: selectedUsers.value.map(user => user.username), // Extract usernames for backend
     isGroup: isGroup.value,
     ...(isGroup.value && { name: groupName.value.trim() })
   };

@@ -77,7 +77,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	resp := helpers.ConvertPublicUsers(participants)
+	resp := helpers.ConvertUsers(participants)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

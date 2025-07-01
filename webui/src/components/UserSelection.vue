@@ -100,10 +100,10 @@ const availableUsers = computed(() => {
 				.toLowerCase()
 				.includes(searchQuery.value.toLowerCase());
 
-		const isNotCurrentUser = user.username !== getUsername.value; // ← add .value
+		const isNotCurrentUser = user.userId !== getUserId.value;
 
 		const isNotExcluded = !props.excludeUsers.some(
-			(excludedUser) => excludedUser.username === user.username
+			(excludedUser) => excludedUser.userId === user.userId
 		);
 
 		return matchesSearch && isNotCurrentUser && isNotExcluded;
@@ -152,14 +152,14 @@ const getUserPhotoUrl = (user) => {
 
 const isUserSelected = (user) => {
 	return selectedUsers.value.some(
-		(selectedUser) => selectedUser.username === user.username
+		(selectedUser) => selectedUser.userId === user.userId
 	);
 };
 const toggleUserSelection = (user) => {
   if (props.allowMultiple) {
     // Original multi-select behavior
     const index = selectedUsers.value.findIndex(
-      (selectedUser) => selectedUser.username === user.username
+      (selectedUser) => selectedUser.userId === user.userId
     );
 
     if (index !== -1) {
@@ -186,7 +186,7 @@ const toggleUserSelection = (user) => {
 
 const removeSelectedUser = (user) => {
 	selectedUsers.value = selectedUsers.value.filter(
-		(selectedUser) => selectedUser.username !== user.username
+		(selectedUser) => selectedUser.userId !== user.userId
 	);
 	emit("update:selectedUsers", selectedUsers.value);
 };

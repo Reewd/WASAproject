@@ -5,26 +5,27 @@ import (
 	"github.com/Reewd/WASAproject/service/database"
 )
 
-func ConvertPublicUser(user database.PublicUser) dto.PublicUser {
-	return dto.PublicUser{
+func ConvertUser(user database.User) dto.User {
+	return dto.User{
+		UserId:   user.UserId,
 		Username: user.Username,
 		Photo:    ConvertPhoto(user.Photo),
 	}
 }
 
-func ConvertPublicUsers(users []database.PublicUser) []dto.PublicUser {
-	publicUsers := make([]dto.PublicUser, 0, len(users))
+func ConvertUsers(users []database.User) []dto.User {
+	dtoUsers := make([]dto.User, 0, len(users))
 	for _, user := range users {
-		publicUsers = append(publicUsers, ConvertPublicUser(user))
+		dtoUsers = append(dtoUsers, ConvertUser(user))
 	}
-	return publicUsers
+	return dtoUsers
 }
 
 func ConvertReactions(reactions []database.ReactionView) []dto.Reaction {
 	convertedReactions := make([]dto.Reaction, 0, len(reactions))
 	for _, reaction := range reactions {
 		convertedReactions = append(convertedReactions, dto.Reaction{
-			SentBy:    ConvertPublicUser(reaction.SentBy),
+			SentBy:    ConvertUser(reaction.SentBy),
 			Content:   reaction.Content,
 			Timestamp: reaction.Timestamp,
 		})
@@ -38,7 +39,7 @@ func ConvertToSentMessages(messages []database.MessageView) []dto.SentMessage {
 		sentMessages = append(sentMessages, dto.SentMessage{
 			MessageId:        msg.MessageId,
 			Text:             msg.Text,
-			SentBy:           ConvertPublicUser(msg.SentBy),
+			SentBy:           ConvertUser(msg.SentBy),
 			Timestamp:        msg.Timestamp,
 			Photo:            ConvertPhoto(msg.Photo),
 			Reactions:        ConvertReactions(msg.Reactions),
@@ -55,7 +56,7 @@ func ConvertToSentMessage(msg database.MessageView) dto.SentMessage {
 	return dto.SentMessage{
 		MessageId:        msg.MessageId,
 		Text:             msg.Text,
-		SentBy:           ConvertPublicUser(msg.SentBy),
+		SentBy:           ConvertUser(msg.SentBy),
 		Timestamp:        msg.Timestamp,
 		Photo:            ConvertPhoto(msg.Photo),
 		Reactions:        ConvertReactions(msg.Reactions),

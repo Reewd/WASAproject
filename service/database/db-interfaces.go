@@ -22,7 +22,7 @@ type ReactionDatabase interface {
 type ParticipantDatabase interface {
 	InsertParticipants(conversationId int64, userId []int64) error
 	RemoveParticipant(conversationId int64, userId int64) error
-	GetParticipants(conversationId int64) ([]PublicUser, error)
+	GetParticipants(conversationId int64) ([]User, error)
 	GetParticipantIds(conversationId int64) ([]int64, error)
 }
 
@@ -55,9 +55,9 @@ type UserDatabase interface {
 	UserExistsById(int64) (bool, error)
 	UpdateUsername(string, int64) error
 	UpdateUserPhoto(string, int64) error
-	GetPublicUsersByName([]string) ([]PublicUser, error)
-	GetPublicUser(int64) (*PublicUser, error)
-	GetAllPublicUsers() ([]PublicUser, error)
+	GetUsersByName([]string) ([]User, error)
+	GetUser(int64) (*User, error)
+	GetAllUsers() ([]User, error)
 }
 
 // All image related operations on the DB are handled by this interface.

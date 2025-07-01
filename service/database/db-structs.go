@@ -1,10 +1,5 @@
 package database
 
-type PublicUser struct {
-	Username string
-	Photo    *Photo
-}
-
 type User struct {
 	UserId   int64
 	Username string
@@ -14,20 +9,20 @@ type User struct {
 type Conversation struct {
 	ConversationId int64
 	Name           string
-	Participants   []PublicUser
+	Participants   []User
 	IsGroup        bool
 	Photo          *Photo
 }
 
 type ReactionView struct {
-	SentBy    PublicUser
+	SentBy    User
 	Content   string
 	Timestamp string
 }
 
 type MessageView struct {
 	MessageId      int64
-	SentBy         PublicUser
+	SentBy         User
 	ConversationId int64
 	Text           *string
 	Timestamp      string

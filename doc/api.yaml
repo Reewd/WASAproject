@@ -166,32 +166,24 @@ components:
       maxLength: 16
       pattern: "^[a-zA-Z0-9_]+$"
 
-    PublicUser:
+    User:
       type: object
-      description: A user object representing a public user profile
+      description: A user object representing a user profile
       required:
         - username
+        - userId
       properties:
         username:
           $ref: "#/components/schemas/Username"
+        userId:
+          type: integer
+          format: int64
+          description: Database‐generated user ID
+          example: 1
+          maximum: 9223372036854775807
+          minimum: 1
         photo:
-          $ref: "#/components/schemas/ImageReference"
-
-    PrivateUser:
-      allOf:
-        - $ref: "#/components/schemas/PublicUser"
-        - type: object
-          description: An internal user object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              description: Database‐generated user ID
-              example: 1
-              maximum: 9223372036854775807
-              minimum: 1
+          $ref: "#/components/schemas/Image"
 
     Participants:
       type: object
@@ -201,7 +193,7 @@ components:
           type: array
           description: List of users
           items:
-            $ref: "#/components/schemas/PublicUser"
+            $ref: "#/components/schemas/User"
           minItems: 1
           maxItems: 1000
 
@@ -339,7 +331,7 @@ components:
           description: Identifier of the conversation this message belongs to
           example: 1
         sentBy:
-          $ref: "#/components/schemas/PublicUser"
+          $ref: "#/components/schemas/User"
 
     MessagePrototype:
       type: object
@@ -370,7 +362,7 @@ components:
         - sentBy
       properties:
         sentBy:
-          $ref: "#/components/schemas/PublicUser"
+          $ref: "#/components/schemas/User"
         emoji:
           type: string
           description: The emoji content of the reaction
@@ -420,11 +412,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PrivateUser"
+                $ref: "#/components/schemas/User"
               examples:
                 success:
                   value:
-                    id: 1
+                    userId: 1
                     username: "Maria"
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -491,7 +483,7 @@ paths:
                     type: array
                     description: List of user profiles
                     items:
-                      $ref: "#/components/schemas/PublicUser"
+                      $ref: "#/components/schemas/User"
                     minItems: 0
                     maxItems: 100000
               examples:
@@ -532,11 +524,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PrivateUser"
+                $ref: "#/components/schemas/User"
               examples:
                 success:
                   value:
-                    id: 1
+                    userId: 1
                     username: "Maria"
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -637,8 +629,10 @@ paths:
                   participants:
                     items:
                       - username: "Maria"
+                        userId: 1
                         uuid: "550e8400-e29b-41d4-a716-446655440000"
                       - username: "John"
+                        userId: 2
                         uuid: "550e8400-e29b-41d4-a716-446655440001"
                   messages: []
                   isGroup: false
@@ -658,8 +652,10 @@ paths:
                       items:
                         - username: "Maria"
                           uuid: "550e8400-e29b-41d4-a716-446655440000"
+                          userId: 1
                         - username: "John"
                           uuid: "550e8400-e29b-41d4-a716-446655440001"
+                          userId: 2
                     messages: []
                     isGroup: false
         "400":
@@ -703,8 +699,10 @@ paths:
                       items:
                         - username: "Maria"
                           uuid: "550e8400-e29b-41d4-a716-446655440000"
+                          userId: 1
                         - username: "John"
                           uuid: "550e8400-e29b-41d4-a716-446655440001"
+                          userId: 2
                     messages: []
                     isGroup: false
         "401":
@@ -752,7 +750,7 @@ paths:
                     text: "Hello, world!"
                     timestamp: "2025-05-03T12:34:56Z"
                     sentBy:
-                      id: 1
+                      userId: 1
                       username: "Maria"
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -821,7 +819,7 @@ paths:
                     reactions:
                       - emoji: "👍"
                         sentBy:
-                          id: 1
+                          userId: 1
                           username: "Maria"
 
         "400":
@@ -1095,7 +1093,7 @@ paths:
                     text: "Hello, world!"
                     timestamp: "2025-05-03T12:34:56Z"
                     sentBy:
-                      id: 1
+                      userId: 1
                       username: "Maria"
         "400":
           $ref: "#/components/responses/BadRequest"
