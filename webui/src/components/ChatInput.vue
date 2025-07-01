@@ -31,6 +31,7 @@
 
       <!-- Text input -->
       <input
+        ref="textInput"
         type="text"
         v-model="message"
         placeholder="Type a message..."
@@ -51,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import axios from '../services/axios.js';
 import { useUser } from '../composables/useUser.js';
 
@@ -73,6 +74,7 @@ const emits = defineEmits(['messageSent', 'cancelReply']);
 const message = ref('');
 const selectedPhoto = ref(null);
 const photoInput = ref(null);
+const textInput = ref(null);
 const isUploading = ref(false);
 
 // Create preview URL for selected photo
@@ -180,6 +182,8 @@ const sendMessage = async () => {
     alert('Failed to send message. Please try again.');
   } finally {
     isUploading.value = false;
+    await nextTick(); // Ensure DOM updates are applied
+    textInput.value?.focus(); // Refocus the input field
   }
 };
 
