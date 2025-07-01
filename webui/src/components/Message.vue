@@ -124,6 +124,7 @@ const closeForwardModal = () => {
 const handleMessageForwarded = (data) => {
   console.log('Message forwarded:', data);
   showForwardModal.value = false;
+  emits('messageForwarded');
 };
 const handleRemoveReaction = async () => {
   
@@ -168,7 +169,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['reply', 'reactionRemoved', 'openEmojiPicker']);
+const emits = defineEmits(['reply', 'reactionRemoved', 'openEmojiPicker', 'messageDeleted', 'messageForwarded']);
 
 // Context menu state
 const showMenu = ref(false);

@@ -3,7 +3,7 @@
     <ChatHeader 
       :chat="chat" 
       :conversationPreview="conversationPreview"
-      @groupUpdated="handleGroupUpdated"
+      @groupUpdated="handleConversationModified"
       @leftGroup="handleLeftGroup"
     />
     
@@ -16,7 +16,9 @@
         :replyToMessage="getReplyToMessage(message.replyTo)"
         :conversationId="conversationPreview.conversationId"
         @reply="setReplyToMessage"
-        @reactionRemoved="handleReactionUpdate"
+        @reactionRemoved="handleMessageModified"
+        @messageDeleted="handleMessageModified"
+        @messageForwarded="handleConversationModified"
         @openEmojiPicker="handleOpenEmojiPicker"
       />
     </div>
@@ -80,7 +82,7 @@ const handleLeftGroup = () => {
   emit('leftGroup');
 };
 
-const handleGroupUpdated = () => {
+const handleConversationModified = () => {
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
     emit('groupUpdated');
@@ -154,7 +156,7 @@ const stopPolling = () => {
 };
 
 // Handle reaction updates
-const handleReactionUpdate = () => {
+const handleMessageModified = () => {
   // Refresh chat data to get updated reactions
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
@@ -205,7 +207,7 @@ const handleEmojiSelect = async (emoji) => {
     );
     
     console.log('Reaction added:', emoji);
-    handleReactionUpdate();
+    handleMessageModified();
     
   } catch (error) {
     console.error('Error adding reaction:', error);
