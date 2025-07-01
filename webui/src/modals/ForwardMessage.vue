@@ -135,39 +135,12 @@
 				</div>
 
 				<!-- Users Tab Content -->
-				<div v-else class="users-section">
-					<h3>Select User ({{ usersWithoutConversations.length }})</h3>
-
-					<div class="users-list" v-if="usersWithoutConversations.length > 0">
-						<div
-							v-for="user in usersWithoutConversations"
-							:key="user.userId"
-							@click="selectUser(user)"
-							:class="{
-								'user-item': true,
-								'selected': selectedUser && selectedUser.userId === user.userId
-							}"
-						>
-							<img
-								:src="getUserPhotoUrl(user)"
-								:alt="user.username"
-								class="user-photo"
-							/>
-							<div class="user-details">
-								<span class="user-name">{{
-									user.username
-								}}</span>
-							</div>
-							<span
-								v-if="selectedUser && selectedUser.userId === user.userId"
-								class="selected-badge"
-								>✓</span
-							>
-						</div>
-					</div>
-					<div v-else class="empty-list-message">
-						No new users to message
-					</div>
+				<div v-if="activeTab === 'users'" class="users-section">
+					<UserSelection
+						:excludeUsers="getUsersWithExistingConversations()"
+						:allowMultiple="false"
+						@update:selectedUsers="handleSelectedUsersUpdate"
+					/>
 				</div>
 
 				<!-- Action Buttons -->
@@ -218,6 +191,8 @@ import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
+import UserSelection from "../components/UserSelection.vue"; // Add this import
+
 
 const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
@@ -257,38 +232,39 @@ const filteredConversations = computed(() => {
 });
 
 const isForwardButtonDisabled = computed(() => {
-	if (activeTab.value === 'conversations') {
-		return !selectedConversation.value || 
-			selectedConversation.value.conversationId === props.currentConversationId;
+	if (activeTab.value === "conversations") {
+		return (
+			!selectedConversation.value ||
+			selectedConversation.value.conversationId ===
+				props.currentConversationId
+		);
 	} else {
 		return !selectedUser.value;
 	}
 });
 
+const getUsersWithExistingConversations = () => {
+    const usersWithConversations = [];
+    
+    // Get all usernames that already have conversations with current user
+    conversations.value.forEach((conversation) => {
+        if (!conversation.isGroup) {
+            const otherParticipant = conversation.participants?.find(
+                (participant) => participant.username !== currentUsername.value
+            );
+            if (otherParticipant) {
+                usersWithConversations.push(otherParticipant);
+            }
+        }
+    });
+    
+    return usersWithConversations;
+};
 
-
-const usersWithoutConversations = computed(() => {
-	// Get all usernames that already have conversations with current user
-	const existingUsernames = new Set();
-
-	conversations.value.forEach((conversation) => {
-		if (!conversation.isGroup) {
-			const otherParticipant = conversation.participants?.find(
-				(participant) => participant.username !== currentUsername.value
-			);
-			if (otherParticipant) {
-				existingUsernames.add(otherParticipant.username);
-			}
-		}
-	});
-
-	// Filter out users who already have conversations and current user
-	return users.value.filter(
-		(user) =>
-			user.username !== currentUsername.value &&
-			!existingUsernames.has(user.username)
-	);
-});
+const handleSelectedUsersUpdate = (selectedUsersList) => {
+  // In single selection mode, just take the first (and only) user or null
+  selectedUser.value = selectedUsersList.length > 0 ? selectedUsersList[0] : null;
+};
 
 // Methods
 const fetchConversations = async () => {
@@ -366,43 +342,24 @@ const fetchUsers = async () => {
 	} catch (error) {
 		console.error("Error fetching users:", error);
 		users.value = [];
-	}	// Always fetch conversations to ensure proper filtering
+	} // Always fetch conversations to ensure proper filtering
 	await fetchConversations();
-};
-
-// Method to get user photo URL
-const getUserPhotoUrl = (user) => {
-	if (user.photo?.path) {
-		return getImageUrl(user.photo.path);
-	}
-	return "/assets/icons/user-default.png";
-};
-
-// Method to select a user
-const selectUser = (user) => {
-	// Reset conversation selection when selecting a user
-	selectedConversation.value = null;
-
-	if (selectedUser.value && selectedUser.value.userId === user.userId) {
-		selectedUser.value = null; // Deselect if clicking the same user
-	} else {
-		selectedUser.value = user;
-	}
 };
 
 // Modified forwardMessage method
 const forwardMessage = async () => {
-    // Check for invalid selection
-    if (
-        (activeTab.value === "conversations" && 
-            (!selectedConversation.value || 
-            selectedConversation.value.conversationId === props.currentConversationId)) ||
-        (activeTab.value === "users" && !selectedUser.value)
-    ) {
-        return;
-    }
+	// Check for invalid selection
+	if (
+		(activeTab.value === "conversations" &&
+			(!selectedConversation.value ||
+				selectedConversation.value.conversationId ===
+					props.currentConversationId)) ||
+		(activeTab.value === "users" && !selectedUser.value)
+	) {
+		return;
+	}
 
-    isForwarding.value = true;
+	isForwarding.value = true;
 
 	try {
 		let targetConversationId;
@@ -478,7 +435,6 @@ const closeModal = () => {
 // Lifecycle
 onMounted(() => {
 	fetchConversations();
-	fetchUsers();
 });
 </script>
 

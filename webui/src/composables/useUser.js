@@ -13,7 +13,6 @@ export const useUser = () => {
   const getUsername = () => {
     try {
       const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-      console.log('Retrieved loggedInUser:', loggedInUser); // Debugging line
       return loggedInUser?.name || null;
 
     } catch (error) {
