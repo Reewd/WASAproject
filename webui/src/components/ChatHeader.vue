@@ -30,6 +30,7 @@
 			:isGroup="isGroup"
 			@close="closeGroupSettings"
 			@updated="handleGroupSettingsUpdated"
+			@left="handleLeftGroup"
 		/>
 	</div>
 </template>
@@ -56,7 +57,13 @@ const props = defineProps({
 	},
 });
 
-const emits = defineEmits(["groupUpdated"]); // Only emit when something actually changes
+const emits = defineEmits(["groupUpdated", "leftGroup"]); // Only emit when something actually changes
+
+
+const handleLeftGroup = () => {
+	// Emit event to parent component when user leaves group
+	emits("leftGroup");
+};
 
 // Modal state
 const showGroupSettings = ref(false);

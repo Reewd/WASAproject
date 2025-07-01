@@ -8,6 +8,7 @@
         <Chat
             :conversationPreview="selectedConversation"
             @groupUpdated="handleGroupUpdated"
+            @leftGroup="handleLeftGroup"
         />
     </div>
 </template>
@@ -26,6 +27,13 @@ const conversationBarRef = ref(null); // Reference to the ConversationBar compon
 const handleGroupUpdated = () => {
   console.log('Group updated, refreshing conversations list');
   // Call the fetchConversations method on the ConversationBar component
+  conversationBarRef.value?.fetchConversations();
+};
+
+const handleLeftGroup = () => {
+  console.log('User left group, deselecting conversation');
+  selectedConversation.value = null; // Deselect the current conversation
+  // Optionally, you can also refresh the conversation list
   conversationBarRef.value?.fetchConversations();
 };
 </script>

@@ -154,7 +154,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(['close', 'updated']);
+const emits = defineEmits(['close', 'updated', 'left']);
 
 // Reactive data
 const newGroupName = ref('');
@@ -327,9 +327,6 @@ const addParticipantsToGroup = async () => {
 };
 
 const leaveGroup = async () => {
-  if (!confirm('Are you sure you want to leave this group?')) {
-    return;
-  }
 
   isUpdating.value = true;
 
@@ -344,7 +341,7 @@ const leaveGroup = async () => {
       }
     });
 
-    emits('updated');
+    emits('left');
     closeModal();
   } catch (error) {
     console.error('Error leaving group:', error);

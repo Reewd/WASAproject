@@ -4,6 +4,7 @@
       :chat="chat" 
       :conversationPreview="conversationPreview"
       @groupUpdated="handleGroupUpdated"
+      @leftGroup="handleLeftGroup"
     />
     
     <div class="chat-messages" ref="messagesContainer">
@@ -58,7 +59,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['groupUpdated']);
+const emit = defineEmits(['groupUpdated', 'leftGroup']);
 
 const chat = ref(null);
 const replyingTo = ref(null);
@@ -73,6 +74,12 @@ const emojiPickerPosition = ref({ x: 0, y: 0 });
 const currentMessageId = ref(null);
 const currentConversationId = ref(null);
 // Handle group updates
+
+const handleLeftGroup = () => {
+  stopPolling();
+  emit('leftGroup');
+};
+
 const handleGroupUpdated = () => {
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
