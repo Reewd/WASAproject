@@ -96,6 +96,18 @@ components:
                 code: 500
                 message: "Internal server error"
 
+    Conflict:
+      description: Conflict - The request could not be completed due to a conflict with the current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            conflict:
+              value:
+                code: 409
+                message: "Resource already exists or is in conflict"
+
   schemas:
     ErrorResponse:
       type: object
@@ -530,6 +542,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
 

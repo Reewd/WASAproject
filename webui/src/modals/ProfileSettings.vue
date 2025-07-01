@@ -224,28 +224,34 @@ const updateProfilePhoto = async (photoData) => {
 };
 
 const saveChanges = async () => {
-	isUpdating.value = true;
+    isUpdating.value = true;
 
-	try {
-		// Upload new photo if selected
-		if (selectedPhoto.value) {
-			const photoData = await uploadPhoto(selectedPhoto.value);
-			await updateProfilePhoto(photoData);
-		}
+    try {
+        // Upload new photo if selected
+        if (selectedPhoto.value) {
+            const photoData = await uploadPhoto(selectedPhoto.value);
+            await updateProfilePhoto(photoData);
+        }
 
-		// Update username if changed
-		await updateUsername();
+        // Update username if changed
+        await updateUsername();
 
-		// Emit update event
-		emits("updated");
+        // Emit update event
+        emits("updated");
 
-		closeModal();
-	} catch (error) {
-		console.error("Error saving changes:", error);
-		alert("Failed to update profile. Please try again.");
-	} finally {
-		isUpdating.value = false;
-	}
+        closeModal();
+    } catch (error) {
+        console.error("Error saving changes:", error);
+        
+        // Check if it's a 409 conflict error for username
+        if (error.response && error.response.status === 409) {
+            alert("Username taken");
+        } else {
+            alert("Failed to update profile. Please try again.");
+        }
+    } finally {
+        isUpdating.value = false;
+    }
 };
 
 const closeModal = () => {

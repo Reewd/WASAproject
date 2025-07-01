@@ -61,12 +61,34 @@ func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Update the username in the database
-	if err := rt.db.UpdateUsername(req.Username, ctx.UserID); err != nil {
+	err := rt.db.UpdateUsername(req.Username, ctx.UserID)
+	if err != nil {
+		if err.Error() == "UNIQUE constraint failed: users.username" {
+			http.Error(w, "Username already taken", http.StatusConflict)
+			return
+		}
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to set username")
 		return
 	}
-	//TODO: Return new privateUser
-	w.WriteHeader(http.StatusNoContent) // No content response for successful update
+	// Get the updated user data
+	dbUser, err := rt.db.GetPublicUser(ctx.UserID)
+	if err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve updated user")
+		return
+	}
+
+	// Return the updated private user
+	var resp dto.User
+	resp.Username = dbUser.Username
+	resp.UserId = ctx.UserID
+	resp.Photo = helpers.ConvertPhoto(dbUser.Photo)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
+
 }
 
 func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
