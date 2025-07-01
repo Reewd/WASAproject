@@ -134,3 +134,34 @@ func (db *appdbimpl) ParticipantExists(conversationId int64, userId int64) (bool
 	}
 	return exists, nil
 }
+
+func (db *appdbimpl) PrivateConversationExists(participants []string) (int64, error) {
+	if len(participants) != 2 {
+		return 0, nil // Not a private conversation
+	}
+
+	// This query checks both possible orders of participants
+	stmt := `SELECT c.id FROM conversations c
+             WHERE c.isGroup = 0
+             AND (
+               SELECT COUNT(*) FROM participants p
+               JOIN users u ON p.userId = u.id
+               WHERE p.conversationId = c.id
+               AND u.username IN (?, ?)
+             ) = 2
+             AND (
+               SELECT COUNT(*) FROM participants
+               WHERE conversationId = c.id
+             ) = 2
+             LIMIT 1`
+
+	var conversationId int64
+	err := db.c.QueryRow(stmt, participants[0], participants[1]).Scan(&conversationId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil // No private conversation found
+		}
+		return 0, err // Other error
+	}
+	return conversationId, nil
+}

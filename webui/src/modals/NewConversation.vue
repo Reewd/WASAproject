@@ -123,7 +123,12 @@ const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
 
 const emits = defineEmits(['close', 'conversationCreated']);
-
+const props = defineProps({
+  existingConversations: {
+    type: Array,
+    default: () => []
+  }
+});
 // Reactive data
 const searchQuery = ref('');
 const users = ref([]);

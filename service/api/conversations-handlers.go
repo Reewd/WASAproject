@@ -89,10 +89,19 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 		return
 	}
 
-	conversationId, err := rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, nil)
+	conversationId, err := rt.db.PrivateConversationExists(req.Participants)
 	if err != nil {
-		helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to check for existing private conversation")
 		return
+	}
+
+	if conversationId == 0 {
+		conversationId, err = rt.db.InsertConversation(req.Name, req.Participants, req.IsGroup, nil)
+		ctx.Logger.WithField("conversationId", conversationId).Info("Created new private conversation")
+		if err != nil {
+			helpers.HandleInternalServerError(ctx, w, err, "Failed to create conversation")
+			return
+		}
 	}
 
 	database_participants, err := rt.db.GetParticipants(conversationId)

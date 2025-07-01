@@ -26,6 +26,7 @@
 			v-if="showModal"
 			@close="showModal = false"
 			@conversationCreated="fetchConversations"
+			:existingConversations="conversations"
 		/>
 	</div>
 </template>
@@ -108,7 +109,7 @@ onUnmounted(() => {
 	document.removeEventListener("mouseup", stopResizing);
 });
 defineExpose({
-  fetchConversations
+	fetchConversations,
 });
 </script>
 

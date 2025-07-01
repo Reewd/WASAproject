@@ -42,6 +42,7 @@ type ConversationDatabase interface {
 	GetConversationsByUserId(userId int64) ([]Conversation, error)
 	GetConversationById(conversationId int64) (*Conversation, error)
 	ParticipantExists(conversationId int64, userId int64) (bool, error)
+	PrivateConversationExists(participants []string) (int64, error)
 }
 
 // All user related operations on the DB are handled by this interface.
