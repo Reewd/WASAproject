@@ -19,7 +19,7 @@
     <div class="input-container">
       <!-- Photo upload button -->
       <button @click="triggerPhotoUpload" class="photo-button" title="Attach photo">
-        📷
+        📎
       </button>
       <input
         ref="photoInput"
@@ -278,9 +278,8 @@ const cancelReply = () => {
 }
 
 .photo-button {
-  background-color: #6c757d;
-  color: white;
-  border: none;
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
   border-radius: 20px;
   width: 36px;
   height: 36px;
