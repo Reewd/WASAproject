@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Reewd/WASAproject/service/api/constraints"
 	"github.com/Reewd/WASAproject/service/api/dto"
 	"github.com/Reewd/WASAproject/service/api/helpers"
 
@@ -19,9 +20,8 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	// Validate username
-	if req.Username == "" {
-		http.Error(w, "Username cannot be empty", http.StatusBadRequest)
+	if len(req.Username) < constraints.MinUsernameLength || len(req.Username) > constraints.MaxUsernameLength {
+		http.Error(w, "Username must be between 3 and 16 characters", http.StatusBadRequest)
 		return
 	}
 
@@ -54,9 +54,8 @@ func (rt *_router) setMyUsername(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	// Validate username
-	if req.Username == "" {
-		http.Error(w, "Username cannot be empty", http.StatusBadRequest)
+	if len(req.Username) < constraints.MinUsernameLength || len(req.Username) > constraints.MaxUsernameLength {
+		http.Error(w, "Username must be between 3 and 16 characters", http.StatusBadRequest)
 		return
 	}
 
