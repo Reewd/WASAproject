@@ -50,7 +50,6 @@ type UserDatabase interface {
 	Login(string) (*User, error)
 	GetUserId(string) (int64, error)
 	GetUsersIds([]string) ([]int64, error)
-	GetUserPhoto(int64) (string, error)
 	GetUsername(int64) (string, error)
 	InsertUser(string) (int64, error)
 	UserExistsById(int64) (bool, error)
