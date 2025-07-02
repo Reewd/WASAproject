@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
     FOREIGN KEY (senderId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id),
     FOREIGN KEY (photoId) REFERENCES images(uuid),
-    FOREIGN KEY (replyTo) REFERENCES messages(id) ON DELETE CASCADE
+    FOREIGN KEY (replyTo) REFERENCES messages(id) ON DELETE SET NULL,
     CHECK (content IS NOT NULL OR photoId IS NOT NULL)
 );
 
