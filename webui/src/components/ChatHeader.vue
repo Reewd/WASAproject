@@ -37,13 +37,13 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { useUser } from "../composables/useUser.js";
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import GroupSettings from "../modals/GroupSettings.vue"; // Import the modal
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getUsername, getUserId } = useUser();
+const { getCurrentUsername, getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -84,7 +84,7 @@ const otherParticipant = computed(() => {
 	if (isGroup.value || !participants.value.length) return null;
 
 	return (
-		participants.value.find((p) => p.userId !== getUserId.value) || null
+		participants.value.find((p) => p.userId !== getCurrentUserId()) || null
 	);
 });
 

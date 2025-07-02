@@ -175,14 +175,14 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
-import { useUser } from "../composables/useUser.js";
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
-import UserSelection from "../components/UserSelection.vue"; // Add this import
+import UserSelection from "../components/UserSelection.vue";
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 
-const { getUserId, getUsername } = useUser();
+const { getCurrentUserId, getCurrentUsername } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -237,7 +237,7 @@ const getUsersWithExistingConversations = () => {
     conversations.value.forEach((conversation) => {
         if (!conversation.isGroup) {
             const otherParticipant = conversation.participants?.find(
-                (participant) => participant.username !== getUsername.value
+                (participant) => participant.username !== getCurrentUsername()
             );
             if (otherParticipant) {
                 usersWithConversations.push(otherParticipant);
@@ -256,7 +256,7 @@ const handleSelectedUsersUpdate = (selectedUsersList) => {
 // Methods
 const fetchConversations = async () => {
 	try {
-		const userId = getUserId.value; // Retrieve the userId using the composable
+		const userId = getCurrentUserId(); // Retrieve the userId using the composable
 
 		if (!userId) {
 			console.error("User ID not found");
@@ -280,7 +280,7 @@ const getConversationName = (conversation) => {
 		return conversation.name;
 	} else {
 		const otherParticipant = conversation.participants?.find(
-			(participant) => participant.username !== getUsername.value
+			(participant) => participant.username !== getCurrentUsername()
 		);
 		return otherParticipant ? otherParticipant.username : conversation.name;
 	}
@@ -294,7 +294,7 @@ const getConversationPhotoUrl = (conversation) => {
 		return groupDefaultIcon;
 	} else {
 		const otherParticipant = conversation.participants?.find(
-			(participant) => participant.username !== getUsername.value
+			(participant) => participant.username !== getCurrentUsername()
 		);
 		if (otherParticipant?.photo?.path) {
 			return getImageUrl(otherParticipant.photo.path);
@@ -363,7 +363,7 @@ const forwardMessage = async () => {
 				{
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: getUserId.value,
+						Authorization: getCurrentUserId(),
 					},
 				}
 			);
@@ -386,7 +386,7 @@ const forwardMessage = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId.value,
+					Authorization: getCurrentUserId(),
 				},
 			}
 		);

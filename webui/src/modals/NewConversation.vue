@@ -118,12 +118,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from '../services/axios.js';
-import { useUser } from '../composables/useUser.js';
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from '../composables/useImageUrl.js';
 import { useValidation } from '../composables/useValidation.js';
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getUserId, getUsername } = useUser();
+const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 const { useGroupNameValidation } = useValidation();
 
@@ -148,7 +148,7 @@ const { groupName, groupNameError, validateGroupName, isGroupNameValid } = useGr
 const filteredUsers = computed(() =>
   users.value.filter((user) => 
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) && 
-    user.userId !== getUserId.value
+    user.userId !== getCurrentUserId()
   )
 );
 
@@ -161,8 +161,11 @@ const canCreateConversation = computed(() => {
 // Methods
 const fetchUsers = async () => {
   try {
-    const response = await axios.get('/users');
-    console.log('API Response:', response.data);
+    const response = await axios.get('/users', {
+      headers: {
+        Authorization: getCurrentUserId(),
+      },
+    });
     users.value = Array.isArray(response.data.users) ? response.data.users : [];
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -217,7 +220,7 @@ const createConversation = async () => {
     }
   }
 
-  const userId = getUserId.value;
+  const userId = getCurrentUserId();
   if (!userId) {
     console.error('User ID not found');
     alert('Authentication error. Please try again.');

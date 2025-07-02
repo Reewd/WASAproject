@@ -84,33 +84,31 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
-import { useUser } from "../composables/useUser.js";
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import { useValidation } from "../composables/useValidation.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
-import { useAuth } from "../composables/useAuth.js";
 
-const { updateUser } = useAuth();
-const { getUserId, updateUserData } = useUser();
-const { getImageUrl } = useImageUrl();
-const { useUsernameValidation } = useValidation();
+const { updateUser, getCurrentUserId, getCurrentUsername, getCurrentUserPhoto } = useAuth();
 
 const emits = defineEmits(["close", "updated"]);
 
-const currentUser = ref(null);
+const currentUser = ref({
+    username: getCurrentUsername(),
+    userId: getCurrentUserId(),
+    photo: getCurrentUserPhoto(),
+});
 const selectedPhoto = ref(null);
 const photoInput = ref(null);
 const isUpdating = ref(false);
 
 // Use the validation composable
-const { username: newUsername, usernameError, validateUsername, isUsernameValid } = useUsernameValidation();
-
+const { useUsernameValidation } = useValidation();
+const { username: newUsername, usernameError, validateUsername, isUsernameValid } = 
+  useUsernameValidation(currentUser.value?.username || '');
 // Computed properties
 const profilePictureUrl = computed(() => {
-	if (currentUser.value?.photo?.path) {
-		return getImageUrl(currentUser.value.photo.path);
-	}
-	return userDefaultIcon;
+    return currentUser.value.photo?.path ? getImageUrl(currentUser.value.photo.path) : userDefaultIcon;
 });
 
 const photoPreviewUrl = computed(() => {
@@ -120,19 +118,10 @@ const photoPreviewUrl = computed(() => {
 });
 
 const hasUsernameChanged = computed(() => {
-	return newUsername.value !== currentUser.value?.username;
+    return newUsername.value !== currentUser.value.username;
 });
 
 // Methods
-const loadCurrentUser = () => {
-	const userData = localStorage.getItem("loggedInUser");
-	if (userData) {
-		currentUser.value = JSON.parse(userData);
-		console.log("Current user loaded:", currentUser.value);
-		newUsername.value = currentUser.value.username;
-	}
-};
-
 const triggerPhotoUpload = () => {
 	photoInput.value?.click();
 };
@@ -165,21 +154,21 @@ const removePhoto = () => {
 };
 
 const uploadPhoto = async (photoFile) => {
-	const formData = new FormData();
-	formData.append("image", photoFile);
+    const formData = new FormData();
+    formData.append("image", photoFile);
 
-	try {
-		const response = await axios.post("/upload", formData, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-				Authorization: getUserId.value,
-			},
-		});
-		return response.data;
-	} catch (error) {
-		console.error("Error uploading photo:", error);
-		throw error;
-	}
+    try {
+        const response = await axios.post("/upload", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: getCurrentUserId(),
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error uploading photo:", error);
+        throw error;
+    }
 };
 
 const updateUsername = async () => {
@@ -200,7 +189,7 @@ const updateUsername = async () => {
             {
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: getUserId.value,
+                    Authorization: getCurrentUserId(),
                 },
             }
         );
@@ -224,14 +213,13 @@ const updateProfilePhoto = async (photoData) => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId.value,
+					Authorization: getCurrentUserId(),
 				},
 			}
 		);
 
 		// Update local storage
-		currentUser.value.photo = photoData;
-		localStorage.setItem("loggedInUser", JSON.stringify(currentUser.value));
+        updateUser({ photo: photoData });
 	} catch (error) {
 		console.error("Error updating profile photo:", error);
 		throw error;
@@ -275,7 +263,7 @@ const closeModal = () => {
 
 // Lifecycle
 onMounted(() => {
-	loadCurrentUser();
+	newUsername.value = currentUser.value.username;
 });
 </script>
 

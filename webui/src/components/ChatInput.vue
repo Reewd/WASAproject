@@ -62,10 +62,10 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue';
 import axios from '../services/axios.js';
-import { useUser } from '../composables/useUser.js';
+import { useAuth } from '../composables/useAuth.js';
 import { useImageUrl } from '../composables/useImageUrl.js';
 
-const { getUserId } = useUser();
+const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -132,7 +132,7 @@ const uploadPhoto = async (photoFile) => {
     const response = await axios.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: getUserId.value,
+        Authorization: getCurrentUserId(),
       },
     });
     console.log('Photo uploaded successfully:', response.data);
@@ -173,7 +173,7 @@ const sendMessage = async () => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: getUserId.value,
+          Authorization: getCurrentUserId(),
         },
       }
     );

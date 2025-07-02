@@ -59,11 +59,11 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
-import { useUser } from "../composables/useUser.js";
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getUserId, getUsername } = useUser();
+const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -100,7 +100,7 @@ const availableUsers = computed(() => {
 				.toLowerCase()
 				.includes(searchQuery.value.toLowerCase());
 
-		const isNotCurrentUser = user.userId !== getUserId.value;
+		const isNotCurrentUser = user.userId !== getCurrentUserId();
 
 		const isNotExcluded = !props.excludeUsers.some(
 			(excludedUser) => excludedUser.userId === user.userId
@@ -110,25 +110,17 @@ const availableUsers = computed(() => {
 	});
 });
 
-const logUserData = () => {
-	console.log("All users:", allUsers.value);
-	console.log("Current username:", getUsername.value);
-	console.log("Excluded users:", props.excludeUsers);
-	console.log("Available users count:", availableUsers.value.length);
-};
-
 // Make sure fetchUsers logs what it finds
 const fetchUsers = async () => {
 	try {
 		const response = await axios.get("/users", {
 			headers: {
-				Authorization: getUserId.value,
+				Authorization: getCurrentUserId(),
 			},
 		});
 
 		if (Array.isArray(response.data.users)) {
 			allUsers.value = response.data.users;
-			logUserData();
 		} else {
 			console.error("Expected users array but got:", response.data);
 			allUsers.value = [];

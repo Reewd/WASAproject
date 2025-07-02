@@ -46,13 +46,13 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import axios from '../services/axios.js';
-import { useUser } from '../composables/useUser.js';
+import { useAuth } from "../composables/useAuth.js";
 import ChatInput from './ChatInput.vue';
 import ChatHeader from './ChatHeader.vue';
 import Message from './Message.vue';
 import EmojiPicker from '../modals/EmojiPicker.vue';
 
-const { getUserId } = useUser();
+const { getCurrentUserId } = useAuth();
 
 const props = defineProps({
   conversationPreview: {
@@ -100,7 +100,7 @@ const fetchChat = async (conversationId) => {
   try {
     const response = await axios.get(`/conversations/${conversationId}`, {
       headers: {
-        Authorization: getUserId.value,
+        Authorization: getCurrentUserId(),
       },
     });
     
@@ -201,7 +201,7 @@ const handleEmojiSelect = async (emoji) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: getUserId.value,
+          Authorization: getCurrentUserId(),
         },
       }
     );

@@ -128,7 +128,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import axios from "../services/axios.js";
-import { useUser } from "../composables/useUser.js";
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import ReactionButton from "./ReactionButton.vue";
 import MessageContextMenu from "./MessageContextMenu.vue";
@@ -137,8 +137,7 @@ import ForwardMessage from "../modals/ForwardMessage.vue"; // Add this import
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getImageUrl } = useImageUrl();
-const { getUsername } = useUser();
-const { getUserId } = useUser();
+const { getCurrentUserId } = useAuth();
 const showForwardModal = ref(false);
 const handleForward = (message) => {
 	console.log("Forward message:", message);
@@ -156,13 +155,11 @@ const handleMessageForwarded = (data) => {
 };
 const handleRemoveReaction = async () => {
 	try {
-		// Since the backend removes reactions based on messageId + userId,
-		// we don't need to send reactionId or emoji in the request
 		await axios.delete(
 			`/conversations/${props.conversationId}/messages/${props.message.messageId}/reactions`,
 			{
 				headers: {
-					Authorization: getUserId.value,
+					Authorization: getCurrentUserId(),
 				},
 			}
 		);
@@ -210,7 +207,7 @@ const menuPosition = ref({ x: 0, y: 0 });
 
 // Check if this message is sent by the current user
 const isOwnMessage = computed(() => {
-	return props.message.sentBy.userId === getUserId.value;
+	return props.message.sentBy.userId === getCurrentUserId();
 });
 
 // Context menu handlers
@@ -238,36 +235,35 @@ const handleCopy = (message) => {
 };
 
 const handleDelete = async (message) => {
-	try {
-		await axios.delete(
-			`/conversations/${props.conversationId}/messages/${props.message.messageId}`,
-			{
-				headers: {
-					Authorization: getUserId.value,
-				},
-			}
-		);
+    try {
+        await axios.delete(
+            `/conversations/${props.conversationId}/messages/${props.message.messageId}`,
+            {
+                headers: {
+                    Authorization: getCurrentUserId(),
+                },
+            }
+        );
 
-		console.log("Message deleted successfully");
-		// Emit event to parent component to handle UI updates
-		emits("messageDeleted", message.messageId);
-	} catch (error) {
-		console.error("Error deleting message:", error);
-		if (error.response) {
-			console.error("Error response:", error.response.data);
-			console.error("Error status:", error.response.status);
+        console.log("Message deleted successfully");
+        emits("messageDeleted", message.messageId);
+    } catch (error) {
+        console.error("Error deleting message:", error);
+        if (error.response) {
+            console.error("Error response:", error.response.data);
+            console.error("Error status:", error.response.status);
 
-			if (error.response.status === 403) {
-				alert("You can only delete your own messages.");
-			} else if (error.response.status === 404) {
-				alert("Message not found.");
-			} else {
-				alert("Failed to delete message. Please try again.");
-			}
-		} else {
-			alert("Failed to delete message. Please check your connection.");
-		}
-	}
+            if (error.response.status === 403) {
+                alert("You can only delete your own messages.");
+            } else if (error.response.status === 404) {
+                alert("Message not found.");
+            } else {
+                alert("Failed to delete message. Please try again.");
+            }
+        } else {
+            alert("Failed to delete message. Please check your connection.");
+        }
+    }
 };
 
 // Handle emoji picker open request

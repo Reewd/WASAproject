@@ -23,6 +23,7 @@ function logout() {
 
 const getCurrentUsername = () => user.value?.username || null
 const getCurrentUserId = () => user.value?.userId || null
+const getCurrentUserPhoto = () => user.value?.photo || null
 
 export function useAuth() {
   return { 
@@ -32,6 +33,7 @@ export function useAuth() {
     logout, 
     updateUser,
     getCurrentUsername,
-    getCurrentUserId
+    getCurrentUserId,
+    getCurrentUserPhoto
   }
 }

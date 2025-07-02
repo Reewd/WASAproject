@@ -20,12 +20,12 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useUser } from '../composables/useUser.js';
+import { useAuth } from '../composables/useAuth.js';
 import { useImageUrl } from '../composables/useImageUrl.js';
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getUsername, getUserId } = useUser();
+const { getCurrentUsername, getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -40,7 +40,7 @@ const otherParticipant = computed(() => {
   if (props.conversation.isGroup) return null;
   
   return props.conversation.participants?.find(
-    participant => participant.userId !== getUserId.value
+    participant => participant.userId !== getCurrentUserId()
   ) || null;
 });
 

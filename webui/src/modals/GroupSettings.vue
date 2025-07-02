@@ -73,7 +73,7 @@
 								participant.username
 							}}</span>
 							<span
-								v-if="participant.userId === getUserId.value"
+								v-if="participant.userId === getCurrentUserId"
 								class="current-user-badge"
 								>You</span
 							>
@@ -84,7 +84,6 @@
 					<div v-if="isGroup" class="add-participants">
 						<h4>Add Participants:</h4>
 
-						<!-- Replace the old input with our new component -->
 						<UserSelection
 							:excludeUsers="participants"
 							@update:selectedUsers="handleSelectedUsersUpdate"
@@ -148,14 +147,14 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
-import { useUser } from "../composables/useUser.js";
+import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import { useValidation } from "../composables/useValidation.js";
 import UserSelection from '../components/UserSelection.vue';
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getUserId, getUsername } = useUser();
+const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 const { useGroupNameValidation } = useValidation();
 
@@ -258,7 +257,7 @@ const uploadPhoto = async (photoFile) => {
 		const response = await axios.post("/upload", formData, {
 			headers: {
 				"Content-Type": "multipart/form-data",
-				Authorization: getUserId.value,
+				Authorization: getCurrentUserId(),
 			},
 		});
 		return response.data;
@@ -286,7 +285,7 @@ const updateGroupName = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId.value,
+					Authorization: getCurrentUserId(),
 				},
 			}
 		);
@@ -306,7 +305,7 @@ const updateGroupPhoto = async (photoData) => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId.value,
+					Authorization: getCurrentUserId(),
 				},
 			}
 		);
@@ -325,7 +324,7 @@ const addParticipantsToGroup = async () => {
     }, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: getUserId.value,
+        Authorization: getCurrentUserId(),
       },
     });
     
@@ -345,7 +344,7 @@ const leaveGroup = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getUserId.value,
+					Authorization: getCurrentUserId(),
 				},
 				data: {
 					conversationId: props.chat.conversationId,
