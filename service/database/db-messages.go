@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"sort"
 
 	"github.com/Reewd/WASAproject/service/database/helpers"
@@ -85,7 +84,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 
 	statusRows, err := db.c.Query(statusStmt, conversationID)
 	if err != nil {
-		return nil, fmt.Errorf("querying message statuses: %w", err)
+		return nil, err
 	}
 	defer helpers.CloseRows(statusRows)
 
@@ -94,20 +93,20 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		var messageID int64
 		var status string
 		if err := statusRows.Scan(&messageID, &status); err != nil {
-			return nil, fmt.Errorf("scanning status row: %w", err)
+			return nil, err
 		}
 		statusMap[messageID] = append(statusMap[messageID], status)
 	}
 
 	// Check for errors in status query
 	if err := statusRows.Err(); err != nil {
-		return nil, fmt.Errorf("iterating status rows: %w", err)
+		return nil, err
 	}
 
 	// Now query and process the messages
 	rows, err := db.c.Query(stmt, conversationID)
 	if err != nil {
-		return nil, fmt.Errorf("querying messages: %w", err)
+		return nil, err
 	}
 	defer helpers.CloseRows(rows)
 
@@ -156,7 +155,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			&nsReactionSenderPhotoID,
 			&nsReactionSenderPhotoPath,
 		); err != nil {
-			return nil, fmt.Errorf("scanning row: %w", err)
+			return nil, err
 		}
 
 		// Build nullable pointers
@@ -330,7 +329,7 @@ func (db *appdbimpl) GetConversationIdFromMessageId(messageId int64) (int64, err
 	var conversationId int64
 	err := db.c.QueryRow(stmt, messageId).Scan(&conversationId)
 	if err != nil {
-		return 0, fmt.Errorf("getting conversation ID from message ID: %w", err)
+		return 0, err
 	}
 	return conversationId, nil
 }
@@ -412,7 +411,7 @@ func (db *appdbimpl) IsConversationEmpty(conversationId int64) (bool, error) {
 	var count int
 	err := db.c.QueryRow(stmt, conversationId).Scan(&count)
 	if err != nil {
-		return false, fmt.Errorf("checking if conversation is empty: %w", err)
+		return false, err
 	}
 	return count == 0, nil
 }
