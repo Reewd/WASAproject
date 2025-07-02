@@ -1,26 +1,39 @@
 <template>
-	<div class="conversation-preview">
-		<img
-			:src="conversationPhotoUrl"
-			alt="Conversation Photo"
-			class="conversation-photo"
-		/>
-		<div class="conversation-details">
-			<h3 class="conversation-name">
-				{{ displayName }}
-			</h3>
-			<p class="last-message" v-if="conversation.lastMessage == null">No messages yet</p>
-			<p class="last-message" v-if="conversation.lastMessage">
-				<strong>{{ conversation.lastMessage.sentBy.username }}:</strong>
-				{{ conversation.lastMessage.text || "📷 Photo" }}
-			</p>
-			<p>
-				<span class="last-message timestamp">{{
-					formatTimestamp(conversation.lastMessage.timestamp)
-				}}</span>
-			</p>
-		</div>
-	</div>
+    <div class="conversation-preview">
+        <img
+            :src="conversationPhotoUrl"
+            alt="Conversation Photo"
+            class="conversation-photo"
+        />
+        <div class="conversation-details">
+            <h3 class="conversation-name">
+                {{ displayName }}
+            </h3>
+            <p class="last-message" v-if="conversation.lastMessage">
+                <strong>{{ conversation.lastMessage.sentBy.username }}:</strong>
+                <span
+                    v-if="
+                        conversation.lastMessage.photo &&
+                        conversation.lastMessage.text
+                    "
+                >
+                    📷 {{ conversation.lastMessage.text }}
+                </span>
+                <span v-else-if="conversation.lastMessage.photo">
+                    📷 Photo
+                </span>
+                <span v-else>
+                    {{ conversation.lastMessage.text }}
+                </span>
+            </p>
+            <p class="last-message" v-else>No messages yet</p>
+            <p v-if="conversation.lastMessage">
+                <span class="last-message timestamp">{{
+                    formatTimestamp(conversation.lastMessage.timestamp)
+                }}</span>
+            </p>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -81,9 +94,12 @@ const conversationPhotoUrl = computed(() => {
 
 const formatTimestamp = (timestamp) => {
 	const date = new Date(timestamp);
-	return `${date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" })} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+	return `${date.toLocaleDateString([], {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+	})} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 };
-
 </script>
 
 <style scoped>
