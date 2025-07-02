@@ -345,15 +345,14 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		return nil, nil
 	}
 
-	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.username, u.photoId, ui.path, ms.status, m.isForwarded
-			FROM messages m
-			LEFT JOIN images i ON m.photoId = i.uuid
-			JOIN users u ON m.senderId = u.id
-			LEFT JOIN images ui ON u.photoId = ui.uuid
-			JOIN message_status ms ON m.id = ms.messageId
-			WHERE m.conversationId = ?
-			ORDER BY m.timestamp DESC
-			LIMIT 1`
+	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.id, u.username, u.photoId, ui.path, m.isForwarded
+            FROM messages m
+            LEFT JOIN images i ON m.photoId = i.uuid
+            JOIN users u ON m.senderId = u.id
+            LEFT JOIN images ui ON u.photoId = ui.uuid
+            WHERE m.conversationId = ?
+            ORDER BY m.timestamp DESC
+            LIMIT 1`
 
 	var msg MessageView
 	var nsText sql.NullString
@@ -371,10 +370,10 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		&nsPhotoPath,
 		&nsReplyTo,
 		&msg.Timestamp,
+		&msg.SentBy.UserId,
 		&msg.SentBy.Username,
 		&nsSenderPhotoId,
 		&nsSenderPhotoPath,
-		&msg.Status,
 		&isForwarded,
 	)
 	if err != nil {
@@ -403,6 +402,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		}
 	}
 	msg.IsForwarded = isForwarded
+	msg.Status = "sent" // Default status for last message preview
 
 	return &msg, nil
 }
