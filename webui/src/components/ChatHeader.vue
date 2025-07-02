@@ -43,7 +43,7 @@ import GroupSettings from "../modals/GroupSettings.vue"; // Import the modal
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getCurrentUsername, getCurrentUserId } = useAuth();
+const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
