@@ -90,6 +90,7 @@ import { useValidation } from "../composables/useValidation.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { updateUser, getCurrentUserId, getCurrentUsername, getCurrentUserPhoto } = useAuth();
+const { getImageUrl } = useImageUrl();
 
 const emits = defineEmits(["close", "updated"]);
 
