@@ -240,7 +240,7 @@ const handleDelete = async (message) => {
             `/conversations/${props.conversationId}/messages/${props.message.messageId}`,
             {
                 headers: {
-                    Authorization: getCurrentUserId(),
+                    Authorization: getCurrentUserId.value,
                 },
             }
         );
@@ -278,7 +278,7 @@ const handleOpenEmojiPicker = (data) => {
 // Format timestamp
 const formatTimestamp = (timestamp) => {
 	const date = new Date(timestamp);
-	return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+	return `${date.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" })} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 };
 
 // Get status icon
