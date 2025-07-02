@@ -82,9 +82,11 @@
             id="groupName"
             type="text"
             v-model="groupName"
+            @input="validateGroupName"
             placeholder="Enter group name"
             class="group-name-input"
           />
+          <div class="text-danger" v-if="groupNameError">{{ groupNameError }}</div>
         </div>
 
         <!-- Action Buttons -->
@@ -118,10 +120,12 @@ import { ref, computed, onMounted } from 'vue';
 import axios from '../services/axios.js';
 import { useUser } from '../composables/useUser.js';
 import { useImageUrl } from '../composables/useImageUrl.js';
+import { useValidation } from '../composables/useValidation.js';
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
+const { useGroupNameValidation } = useValidation();
 
 const emits = defineEmits(['close', 'conversationCreated']);
 const props = defineProps({
@@ -135,7 +139,9 @@ const searchQuery = ref('');
 const users = ref([]);
 const selectedUsers = ref([]);
 const isGroup = ref(false);
-const groupName = ref('');
+
+// Use the validation composable
+const { groupName, groupNameError, validateGroupName, isGroupNameValid } = useGroupNameValidation();
 
 // Computed properties
 
@@ -148,7 +154,7 @@ const filteredUsers = computed(() =>
 
 const canCreateConversation = computed(() => {
   if (selectedUsers.value.length === 0) return false;
-  if (isGroup.value && !groupName.value.trim()) return false;
+  if (isGroup.value && (!groupName.value.trim() || !isGroupNameValid.value)) return false;
   return true;
 });
 
@@ -201,6 +207,14 @@ const removeSelectedUser = (user) => {
 const createConversation = async () => {
   if (!canCreateConversation.value) {
     return;
+  }
+
+  // Validate group name if it's a group
+  if (isGroup.value) {
+    validateGroupName();
+    if (groupNameError.value) {
+      return;
+    }
   }
 
   const userId = getUserId.value;
@@ -559,5 +573,11 @@ onMounted(() => {
   opacity: 0.6;
   cursor: not-allowed;
   background-color: #ccc;
+}
+
+.text-danger {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 5px;
 }
 </style>

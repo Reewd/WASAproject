@@ -13,9 +13,10 @@
           @input="validateUsername"
           required
         />
-        <div class="text-danger" v-if="errorMessage"> {{ errorMessage }}</div>
+        <div class="text-danger" v-if="usernameError"> {{ usernameError }}</div>
+        <div class="text-danger" v-if="loginError"> {{ loginError }}</div>
       </div>
-      <button type="submit" class="btn btn-primary w-100" :disabled="error">Sign In</button>
+      <button type="submit" class="btn btn-primary w-100" :disabled="!isUsernameValid">Sign In</button>
     </form> 
   </div> 
 </template>
@@ -23,28 +24,20 @@
 <script setup>
 import { ref } from 'vue';
 import axios from '../services/axios.js';
+import { useValidation } from '../composables/useValidation.js';
 
-const username = ref('');
-const errorMessage = ref('');
-const error = ref(false);
+const { useUsernameValidation } = useValidation();
 const emit = defineEmits(['loginSuccess']);
 
-const validateUsername = () => {
-  if (username.value.trim() === '') {
-    errorMessage.value = 'Username is required';
-    error.value = true;
-  } else if (username.value.length < 3 || username.value.length > 16) {
-    errorMessage.value = 'Username must be between 3 and 16 characters';
-    error.value = true;
-  } else {
-    errorMessage.value = '';
-    error.value = false;
-  }
-};
+// Use the validation composable
+const { username, usernameError, validateUsername, isUsernameValid } = useUsernameValidation();
+
+// Additional error state for login failures
+const loginError = ref('');
 
 const submit = async () => {
   validateUsername();
-  if (!error.value) {
+  if (isUsernameValid.value) {
     try {
       const response = await axios.post('/session', { username: username.value });
       console.log('Login successful:', response.data);
@@ -52,7 +45,7 @@ const submit = async () => {
       emit('loginSuccess', response.data);
     } catch (err) {
       console.error('Login failed:', err.response?.data || err.message);
-      errorMessage.value = 'Login failed: ' + (err.response?.data || err.message);
+      loginError.value = 'Login failed: ' + (err.response?.data || err.message);
     }
   }
 };

@@ -44,6 +44,7 @@
 						id="username"
 						type="text"
 						v-model="newUsername"
+						@input="validateUsername"
 						:placeholder="
 							currentUser?.name
 								? `${currentUser.name}`
@@ -51,6 +52,7 @@
 						"
 						:disabled="isUpdating"
 					/>
+					<div class="text-danger" v-if="usernameError">{{ usernameError }}</div>
 				</div>
 
 				<!-- Action Buttons -->
@@ -67,7 +69,8 @@
 						class="save-button"
 						:disabled="
 							isUpdating ||
-							(!hasUsernameChanged && !selectedPhoto)
+							(!hasUsernameChanged && !selectedPhoto) ||
+							!isUsernameValid
 						"
 					>
 						{{ isUpdating ? "Saving..." : "Save Changes" }}
@@ -83,20 +86,24 @@ import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
+import { useValidation } from "../composables/useValidation.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 import { useAuth } from "../composables/useAuth.js";
 
 const { updateUser } = useAuth();
 const { getUserId, updateUserData } = useUser();
 const { getImageUrl } = useImageUrl();
+const { useUsernameValidation } = useValidation();
 
 const emits = defineEmits(["close", "updated"]);
 
 const currentUser = ref(null);
-const newUsername = ref("");
 const selectedPhoto = ref(null);
 const photoInput = ref(null);
 const isUpdating = ref(false);
+
+// Use the validation composable
+const { username: newUsername, usernameError, validateUsername, isUsernameValid } = useUsernameValidation();
 
 // Computed properties
 const profilePictureUrl = computed(() => {
@@ -177,6 +184,12 @@ const uploadPhoto = async (photoFile) => {
 
 const updateUsername = async () => {
     if (!hasUsernameChanged.value) return;
+
+    // Validate before sending request
+    validateUsername();
+    if (usernameError.value) {
+        throw new Error(usernameError.value);
+    }
 
     try {
         await axios.put(
@@ -431,6 +444,12 @@ onMounted(() => {
 .username-section input:disabled {
 	background-color: #f5f5f5;
 	cursor: not-allowed;
+}
+
+.text-danger {
+	color: #dc3545;
+	font-size: 14px;
+	margin-top: 5px;
 }
 
 .modal-actions {

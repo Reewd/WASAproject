@@ -46,9 +46,11 @@
 						id="groupName"
 						type="text"
 						v-model="newGroupName"
+						@input="validateGroupName"
 						:placeholder="chat?.name || 'Enter group name'"
 						:disabled="isUpdating"
 					/>
+					<div class="text-danger" v-if="groupNameError">{{ groupNameError }}</div>
 				</div>
 
 				<!-- Participants Section -->
@@ -130,7 +132,8 @@
 								isUpdating ||
 								(!hasNameChanged &&
 									!selectedPhoto &&
-									pendingParticipants.length === 0)
+									pendingParticipants.length === 0) ||
+								(hasNameChanged && !isGroupNameValid)
 							"
 						>
 							{{ isUpdating ? "Saving..." : "Save Changes" }}
@@ -147,12 +150,14 @@ import { ref, computed, onMounted } from "vue";
 import axios from "../services/axios.js";
 import { useUser } from "../composables/useUser.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
+import { useValidation } from "../composables/useValidation.js";
 import UserSelection from '../components/UserSelection.vue';
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getUserId, getUsername } = useUser();
 const { getImageUrl } = useImageUrl();
+const { useGroupNameValidation } = useValidation();
 
 const props = defineProps({
 	chat: {
@@ -168,11 +173,13 @@ const props = defineProps({
 const emits = defineEmits(["close", "updated", "left"]);
 
 // Reactive data
-const newGroupName = ref("");
 const selectedPhoto = ref(null);
 const photoInput = ref(null);
 const isUpdating = ref(false);
 const pendingParticipants = ref([]);
+
+// Use the validation composable
+const { groupName: newGroupName, groupNameError, validateGroupName, isGroupNameValid } = useGroupNameValidation();
 
 // Computed properties
 const participants = computed(() => props.chat?.participants || []);
@@ -197,7 +204,6 @@ const hasNameChanged = computed(() => {
 });
 
 // Methods
-
 const handleSelectedUsersUpdate = (selectedUsers) => {
   pendingParticipants.value = selectedUsers;
 };
@@ -264,6 +270,12 @@ const uploadPhoto = async (photoFile) => {
 
 const updateGroupName = async () => {
 	if (!hasNameChanged.value) return;
+
+	// Validate before sending request
+	validateGroupName();
+	if (groupNameError.value) {
+		throw new Error(groupNameError.value);
+	}
 
 	try {
 		await axios.put(
@@ -759,5 +771,11 @@ onMounted(() => {
   margin-bottom: 10px;
   font-size: 16px;
   color: #333;
+}
+
+.text-danger {
+	color: #dc3545;
+	font-size: 14px;
+	margin-top: 5px;
 }
 </style>
