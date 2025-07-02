@@ -240,7 +240,7 @@ const handleDelete = async (message) => {
             `/conversations/${props.conversationId}/messages/${props.message.messageId}`,
             {
                 headers: {
-                    Authorization: getCurrentUserId.value,
+                    Authorization: getCurrentUserId(),
                 },
             }
         );
