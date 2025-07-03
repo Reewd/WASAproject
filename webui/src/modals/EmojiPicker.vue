@@ -174,7 +174,6 @@ const filteredEmojis = computed(() => {
   let emojis = currentCategory ? currentCategory.emojis : [];
   
   if (searchQuery.value.trim()) {
-    // Simple search - in a real app you might want more sophisticated search
     const query = searchQuery.value.toLowerCase();
     emojis = categories.value
       .flatMap(cat => cat.emojis)

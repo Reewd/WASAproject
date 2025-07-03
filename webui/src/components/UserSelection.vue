@@ -110,7 +110,6 @@ const availableUsers = computed(() => {
 	});
 });
 
-// Make sure fetchUsers logs what it finds
 const fetchUsers = async () => {
 	try {
 		const response = await axios.get("/users", {

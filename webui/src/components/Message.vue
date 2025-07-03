@@ -167,7 +167,6 @@ const handleRemoveReaction = async () => {
 		emits("reactionRemoved");
 	} catch (error) {
 		console.error("Error removing reaction:", error);
-		// Log the full error response to see what's causing the bad request
 		if (error.response) {
 			console.error("Error response:", error.response.data);
 			console.error("Error status:", error.response.status);

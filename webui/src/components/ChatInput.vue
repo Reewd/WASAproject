@@ -136,7 +136,7 @@ const uploadPhoto = async (photoFile) => {
       },
     });
     console.log('Photo uploaded successfully:', response.data);
-    return response.data; // Assuming this returns a Photo object
+    return response.data;
   } catch (error) {
     console.error('Error uploading photo:', error);
     throw error;
