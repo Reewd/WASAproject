@@ -47,11 +47,11 @@ const emits = defineEmits(["selectConversation"]); // Emit selected conversation
 const pollingInterval = ref(null);
 const POLLING_DELAY = 5000; // Poll every 5 seconds
 
-const { getCurrentUserId } = useAuth(); // Use the composable to retrieve the userId
+const { user } = useAuth(); // Use the composable to retrieve the userId
 
 const fetchConversations = async () => {
 	try {
-		const userId = getCurrentUserId(); // Retrieve the userId using the composable
+		const userId = user.value.userId; // Retrieve the userId using the composable
 		console.log("Fetching conversations for user ID:", userId);
 
 		if (!userId) {
