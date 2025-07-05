@@ -417,7 +417,6 @@ onMounted(() => {
 .category-tabs {
   display: flex;
   padding: 6px 8px;
-  border-bottom: 1px solid #e1e1e1;
   background: #f8f9fa;
   overflow-x: auto;
 }
@@ -425,7 +424,7 @@ onMounted(() => {
 .category-tab {
   background: none;
   border: none;
-  padding: 6px 8px;
+  padding: 4px 8px;
   cursor: pointer;
   font-size: 14px;
   border-radius: 4px;
