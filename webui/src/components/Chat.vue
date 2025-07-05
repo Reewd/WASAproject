@@ -59,7 +59,7 @@ import ChatHeader from './ChatHeader.vue';
 import Message from './Message.vue';
 import EmojiPicker from '../modals/EmojiPicker.vue';
 
-const { getCurrentUserId } = useAuth();
+const { user } = useAuth();
 
 const props = defineProps({
   conversationPreview: {
@@ -105,7 +105,7 @@ const fetchChat = async (conversationId) => {
   try {
     const response = await axios.get(`/conversations/${conversationId}`, {
       headers: {
-        Authorization: getCurrentUserId(),
+        Authorization: user.value.userId,
       },
     });
     
@@ -192,7 +192,7 @@ const handleEmojiSelect = async (emoji) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: getCurrentUserId(),
+          Authorization: user.value.userId,
         },
       }
     );

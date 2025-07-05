@@ -47,7 +47,7 @@ const emits = defineEmits(["selectConversation"]); // Emit selected conversation
 const pollingInterval = ref(null);
 const POLLING_DELAY = 5000; // Poll every 5 seconds
 
-const { user } = useAuth(); // Use the composable to retrieve the userId
+const { user } = useAuth();
 
 const fetchConversations = async () => {
 	try {

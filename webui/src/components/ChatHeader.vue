@@ -49,7 +49,7 @@ import GroupSettings from "../modals/GroupSettings.vue";
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getCurrentUserId } = useAuth();
+const { user } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -85,7 +85,7 @@ const otherParticipant = computed(() => {
 	if (isGroup.value || !participants.value.length) return null;
 
 	return (
-		participants.value.find((p) => p.userId !== getCurrentUserId()) || null
+		participants.value.find((p) => p.userId !== user.value.userId) || null
 	);
 });
 

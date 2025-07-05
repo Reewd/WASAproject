@@ -137,7 +137,7 @@ import ForwardMessage from "../modals/ForwardMessage.vue"; // Add this import
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { getImageUrl } = useImageUrl();
-const { getCurrentUserId } = useAuth();
+const { user } = useAuth();
 const showForwardModal = ref(false);
 const handleForward = (message) => {
 	console.log("Forward message:", message);
@@ -159,7 +159,7 @@ const handleRemoveReaction = async () => {
 			`/conversations/${props.conversationId}/messages/${props.message.messageId}/reactions`,
 			{
 				headers: {
-					Authorization: getCurrentUserId(),
+					Authorization: user.value.userId,
 				},
 			}
 		);
@@ -206,7 +206,7 @@ const menuPosition = ref({ x: 0, y: 0 });
 
 // Check if this message is sent by the current user
 const isOwnMessage = computed(() => {
-	return props.message.sentBy.userId === getCurrentUserId();
+	return props.message.sentBy.userId === user.value.userId;
 });
 
 // Context menu handlers
@@ -239,7 +239,7 @@ const handleDelete = async (message) => {
             `/conversations/${props.conversationId}/messages/${props.message.messageId}`,
             {
                 headers: {
-                    Authorization: getCurrentUserId(),
+                    Authorization: user.value.userId,
                 },
             }
         );

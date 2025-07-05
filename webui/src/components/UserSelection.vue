@@ -63,7 +63,7 @@ import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getCurrentUserId } = useAuth();
+const { user } = useAuth();
 const { getImageUrl } = useImageUrl();
 
 const props = defineProps({
@@ -100,7 +100,7 @@ const availableUsers = computed(() => {
 				.toLowerCase()
 				.includes(searchQuery.value.toLowerCase());
 
-		const isNotCurrentUser = user.userId !== getCurrentUserId();
+		const isNotCurrentUser = user.userId !== user.value.userId;
 
 		const isNotExcluded = !props.excludeUsers.some(
 			(excludedUser) => excludedUser.userId === user.userId
@@ -114,7 +114,7 @@ const fetchUsers = async () => {
 	try {
 		const response = await axios.get("/users", {
 			headers: {
-				Authorization: getCurrentUserId(),
+				Authorization: user.value.userId,
 			},
 		});
 

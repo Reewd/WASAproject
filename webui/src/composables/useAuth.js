@@ -20,11 +20,6 @@ function logout() {
   localStorage.removeItem('loggedInUser')
   user.value = null
 }
-
-const getCurrentUsername = () => user.value?.username || null
-const getCurrentUserId = () => user.value?.userId || null
-const getCurrentUserPhoto = () => user.value?.photo || null
-
 export function useAuth() {
   return { 
     user, 
@@ -32,8 +27,5 @@ export function useAuth() {
     login, 
     logout, 
     updateUser,
-    getCurrentUsername,
-    getCurrentUserId,
-    getCurrentUserPhoto
   }
 }

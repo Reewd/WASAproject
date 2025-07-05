@@ -66,7 +66,7 @@ import { useAuth } from '../composables/useAuth.js';
 import { useImageUrl } from '../composables/useImageUrl.js';
 import { usePhotoUpload } from '../composables/usePhotoUpload.js';
 
-const { getCurrentUserId } = useAuth();
+const { user } = useAuth();
 const { getImageUrl } = useImageUrl();
 const { 
     selectedPhoto, 
@@ -128,7 +128,7 @@ const sendMessage = async () => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: getCurrentUserId(),
+          Authorization: user.value.userId,
         },
       }
     );

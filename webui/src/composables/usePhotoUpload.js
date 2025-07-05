@@ -3,7 +3,7 @@ import axios from '../services/axios.js'
 import { useAuth } from './useAuth.js'
 
 export function usePhotoUpload() {
-  const { getCurrentUserId } = useAuth()
+  const { user } = useAuth()
   
   const selectedPhoto = ref(null)
   const isUploading = ref(false)
@@ -68,7 +68,7 @@ export function usePhotoUpload() {
       const response = await axios.post('/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: getCurrentUserId(),
+          Authorization: user.value.userId,
         },
       })
       return response.data

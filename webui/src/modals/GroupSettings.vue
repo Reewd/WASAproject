@@ -73,7 +73,7 @@
 								participant.username
 							}}</span>
 							<span
-								v-if="participant.userId === getCurrentUserId"
+								v-if="participant.userId === user.userId"
 								class="current-user-badge"
 								>You</span
 							>
@@ -155,7 +155,7 @@ import UserSelection from '../components/UserSelection.vue';
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getCurrentUserId } = useAuth();
+const { user } = useAuth();
 const { getImageUrl } = useImageUrl();
 const { useGroupNameValidation } = useValidation();
 const { 
@@ -243,7 +243,7 @@ const updateGroupName = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getCurrentUserId(),
+					Authorization: user.value.userId,
 				},
 			}
 		);
@@ -263,7 +263,7 @@ const updateGroupPhoto = async (photoData) => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getCurrentUserId(),
+					Authorization: user.value.userId,
 				},
 			}
 		);
@@ -282,7 +282,7 @@ const addParticipantsToGroup = async () => {
     }, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: getCurrentUserId(),
+        Authorization: user.value.userId,
       },
     });
     
@@ -302,7 +302,7 @@ const leaveGroup = async () => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getCurrentUserId(),
+					Authorization: user.value.userId,
 				},
 				data: {
 					conversationId: props.chat.conversationId,

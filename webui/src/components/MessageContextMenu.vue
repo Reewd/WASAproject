@@ -104,7 +104,7 @@ const closeMenu = () => {
 @keyframes contextMenuAppear {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(-5px);
+    transform: scale(0.65) translateY(-5px);
   }
   to {
     opacity: 1;
