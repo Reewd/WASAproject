@@ -16,8 +16,6 @@ import (
 )
 
 func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	// Handle image upload logic here
-	// This is a placeholder function; actual implementation will depend on how images are uploaded
 
 	err := r.ParseMultipartForm(1024)
 	if err != nil {
@@ -25,7 +23,7 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	file, handler, err := r.FormFile("image")
+	file, handler, err := r.FormFile("imageFile")
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Failed to get image file from form")
 		http.Error(w, "Failed to get image file", http.StatusBadRequest)

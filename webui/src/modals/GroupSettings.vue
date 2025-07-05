@@ -251,7 +251,7 @@ const removePhoto = () => {
 
 const uploadPhoto = async (photoFile) => {
 	const formData = new FormData();
-	formData.append("image", photoFile);
+	formData.append("imageFile", photoFile);
 
 	try {
 		const response = await axios.post("/upload", formData, {

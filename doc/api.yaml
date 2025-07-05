@@ -25,6 +25,8 @@ tags:
     description: Managing reactions to messages
   - name: group
     description: Group conversation management (metadata, participants)
+  - name: image
+    description: Image upload and management
 components:
   securitySchemes:
     bearerAuth:
@@ -426,7 +428,7 @@ paths:
   /upload:
     post:
       tags:
-        - login
+        - image
       summary: Upload an image
       description: Uploads an image and returns its UUID reference.
       operationId: uploadImage
@@ -446,6 +448,10 @@ paths:
                   maxLength: 10485760 # 10 MB
               required:
                 - imageFile
+            encoding:
+              imageFile:
+                contentType: image/*
+
       responses:
         "201":
           description: Image uploaded successfully

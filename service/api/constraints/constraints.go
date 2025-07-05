@@ -16,4 +16,6 @@ const MinMessageLength = 1
 var AllowedMimeTypes = []string{
 	"image/jpeg",
 	"image/png",
+	"image/gif",
+	"image/webp",
 }
