@@ -45,7 +45,6 @@ type ConversationDatabase interface {
 	PrivateConversationExists(participants []string) (int64, error)
 }
 
-// All user related operations on the DB are handled by this interface.
 type UserDatabase interface {
 	Login(string) (*User, error)
 	GetUserId(string) (int64, error)
@@ -60,7 +59,6 @@ type UserDatabase interface {
 	GetAllUsers() ([]User, error)
 }
 
-// All image related operations on the DB are handled by this interface.
 type ImageDatabase interface {
 	InsertImage(uuid string, path string) error
 	GetImagePath(uuid string) (string, error)
