@@ -110,10 +110,16 @@ const fetchChat = async (conversationId) => {
     });
     
     const isFirstLoad = !chat.value;
-    const hasNewMessages = chat.value && (
-      (chat.value?.messages?.length || 0) !== (response.data?.messages?.length || 0) || 
-      JSON.stringify(chat.value?.messages || []) !== JSON.stringify(response.data?.messages || [])
-    );
+    let hasNewMessages = false;
+    if (chat.value?.messages && response.data?.messages) {
+      const oldMessages = chat.value.messages;
+      const newMessages = response.data.messages;
+      
+      const oldLastId = oldMessages[oldMessages.length - 1]?.messageId;
+      const newLastId = newMessages[newMessages.length - 1]?.messageId;
+      
+      hasNewMessages = oldLastId !== newLastId;
+    }
     
     chat.value = response.data;
     
