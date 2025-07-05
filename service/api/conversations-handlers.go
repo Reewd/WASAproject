@@ -127,14 +127,12 @@ func (rt *_router) createPrivateConversation(w http.ResponseWriter, ctx reqconte
 }
 
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	// Retrieve the user's conversations from the database
 	databaseConversations, err := rt.db.GetConversationsByUserId(ctx.UserID)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversations")
 		return
 	}
 
-	// Pre-allocate conversations slice
 	var conversations = make([]dto.ConversationPreview, 0, len(databaseConversations))
 	for _, dbConv := range databaseConversations {
 		databaseLastMessage, err := rt.db.GetLastMessage(dbConv.ConversationId)
@@ -202,13 +200,12 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64) // Ensure conversationId is a valid integer
+	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to parse conversationIdPath")
 		return
 	}
 
-	// Retrieve the conversation from the database
 	database_conversation, err := rt.db.GetConversationById(conversationId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve conversation")

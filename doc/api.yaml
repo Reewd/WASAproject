@@ -132,12 +132,12 @@ components:
       type: object
       description: Reference to an image file
       required:
-        - uuid
+        - photoId
       properties:
-        uuid:
+        photoId:
           type: string
           format: uuid
-          description: The UUID reference to the image file
+          description: The photoId reference to the image file
           example: "550e8400-e29b-41d4-a716-446655440000"
           minLength: 36
           maxLength: 36
@@ -147,11 +147,11 @@ components:
       type: object
       description: An image file with metadata
       required:
-        - uuid
+        - photoId
         - path
       properties:
-        uuid:
-          $ref: "#/components/schemas/ImageReference/properties/uuid"
+        photoId:
+          $ref: "#/components/schemas/ImageReference/properties/photoId"
         path:
           type: string
           description: The file path where the image is stored
@@ -214,7 +214,6 @@ components:
           format: int64
           description: Database-generated ID
           example: 1
-          readOnly: true # ← only here
         name:
           type: string
           description: The conversation’s name or group name
@@ -236,7 +235,7 @@ components:
           minItems: 0
           maxItems: 1000000
         photoId:
-          $ref: "#/components/schemas/ImageReference/properties/uuid"
+          $ref: "#/components/schemas/ImageReference/properties/photoId"
         lastMessage:
           $ref: "#/components/schemas/Message"
 
@@ -254,7 +253,7 @@ components:
         isGroup:
           $ref: "#/components/schemas/Conversation/properties/isGroup"
         photoId:
-          $ref: "#/components/schemas/ImageReference/properties/uuid"
+          $ref: "#/components/schemas/ImageReference/properties/photoId"
 
     ConversationSummary:
       type: object
@@ -275,7 +274,7 @@ components:
         isGroup:
           $ref: "#/components/schemas/Conversation/properties/isGroup"
         photoId:
-          $ref: "#/components/schemas/ImageReference/properties/uuid"
+          $ref: "#/components/schemas/ImageReference/properties/photoId"
         lastMessage:
           $ref: "#/components/schemas/Conversation/properties/lastMessage"
 
@@ -307,7 +306,7 @@ components:
           minLength: 1
           maxLength: 65536
         photoId:
-          $ref: "#/components/schemas/ImageReference/properties/uuid"
+          $ref: "#/components/schemas/ImageReference/properties/photoId"
         timestamp:
           type: string
           format: date-time
@@ -352,7 +351,7 @@ components:
         - description: photo‐only message
           properties:
             photoId:
-              $ref: "#/components/schemas/ImageReference/properties/uuid"
+              $ref: "#/components/schemas/ImageReference/properties/photoId"
           required:
             - photoId
 
@@ -430,7 +429,7 @@ paths:
       tags:
         - image
       summary: Upload an image
-      description: Uploads an image and returns its UUID reference.
+      description: Uploads an image and returns its photoId reference.
       operationId: uploadImage
       requestBody:
         required: true
@@ -462,7 +461,7 @@ paths:
               examples:
                 success:
                   value:
-                    uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    photoId: "550e8400-e29b-41d4-a716-446655440000"
                     path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -558,7 +557,7 @@ paths:
           application/json:
             schema:
               type: object
-              description: Request body containing the image UUID reference
+              description: Request body containing the image photoId reference
               properties:
                 image:
                   $ref: "#/components/schemas/ImageReference"
@@ -574,7 +573,7 @@ paths:
               examples:
                 success:
                   value:
-                    uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    photoId: "550e8400-e29b-41d4-a716-446655440000"
                     path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -636,10 +635,10 @@ paths:
                     items:
                       - username: "Maria"
                         userId: 1
-                        uuid: "550e8400-e29b-41d4-a716-446655440000"
+                        photoId: "550e8400-e29b-41d4-a716-446655440000"
                       - username: "John"
                         userId: 2
-                        uuid: "550e8400-e29b-41d4-a716-446655440001"
+                        photoId: "550e8400-e29b-41d4-a716-446655440001"
                   messages: []
                   isGroup: false
       responses:
@@ -657,10 +656,10 @@ paths:
                     participants:
                       items:
                         - username: "Maria"
-                          uuid: "550e8400-e29b-41d4-a716-446655440000"
+                          photoId: "550e8400-e29b-41d4-a716-446655440000"
                           userId: 1
                         - username: "John"
-                          uuid: "550e8400-e29b-41d4-a716-446655440001"
+                          photoId: "550e8400-e29b-41d4-a716-446655440001"
                           userId: 2
                     messages: []
                     isGroup: false
@@ -668,8 +667,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -704,10 +701,10 @@ paths:
                     participants:
                       items:
                         - username: "Maria"
-                          uuid: "550e8400-e29b-41d4-a716-446655440000"
+                          photoId: "550e8400-e29b-41d4-a716-446655440000"
                           userId: 1
                         - username: "John"
-                          uuid: "550e8400-e29b-41d4-a716-446655440001"
+                          photoId: "550e8400-e29b-41d4-a716-446655440001"
                           userId: 2
                     messages: []
                     isGroup: false
@@ -967,7 +964,7 @@ paths:
           application/json:
             schema:
               type: object
-              description: Request body containing the image UUID reference
+              description: Request body containing the image photoId reference
               properties:
                 image:
                   $ref: "#/components/schemas/ImageReference"
@@ -979,11 +976,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ImageReference"
+                $ref: "#/components/schemas/Image"
               examples:
                 success:
                   value:
-                    uuid: "550e8400-e29b-41d4-a716-446655440000"
+                    photoId: "550e8400-e29b-41d4-a716-446655440000"
+                    path: "/images/550e8400-e29b-41d4-a716-446655440000.jpg"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1034,9 +1032,9 @@ paths:
                     participants:
                       items:
                         - username: "Maria"
-                          uuid: "550e8400-e29b-41d4-a716-446655440000"
+                          photoId: "550e8400-e29b-41d4-a716-446655440000"
                         - username: "John"
-                          uuid: "550e8400-e29b-41d4-a716-446655440001"
+                          photoId: "550e8400-e29b-41d4-a716-446655440001"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

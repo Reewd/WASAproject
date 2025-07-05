@@ -29,13 +29,11 @@ type LeaveGroupRequest struct {
 }
 
 type SetGroupNameRequest struct {
-	ConversationId int64  `json:"conversationId"`
-	Name           string `json:"name"`
+	Name string `json:"name"`
 }
 
 type SetGroupPhotoRequest struct {
-	ConversationId int64  `json:"conversationId"`
-	Photo          *Photo `json:"photo,omitempty"`
+	Photo *Photo `json:"photo,omitempty"`
 }
 
 type SendMessageRequest struct {

@@ -30,14 +30,13 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	req.ConversationId = conversationId
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		ctx.Logger.WithError(err).Error("Failed to decode request body")
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
+	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Failed to check participant existence")
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
@@ -63,14 +62,14 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	err = rt.db.InsertParticipants(req.ConversationId, participantsIds)
+	err = rt.db.InsertParticipants(conversationId, participantsIds)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Failed to add participants to group")
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to add participants to group")
 		return
 	}
 
-	participants, err := rt.db.GetParticipants(req.ConversationId)
+	participants, err := rt.db.GetParticipants(conversationId)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Failed to retrieve participants")
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to retrieve participants")
@@ -124,21 +123,19 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64) // Ensure conversationId is a valid integer
+	conversationId, err := strconv.ParseInt(conversationIdPath, 10, 64)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Debug: Failed to parse conversationIdPath")
 		http.Error(w, "The ID should be an integer", http.StatusBadRequest)
 		return
 	}
 
-	req.ConversationId = conversationId
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
+	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
@@ -154,13 +151,17 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	err = rt.db.UpdateGroupName(req.ConversationId, req.Name)
+	err = rt.db.UpdateGroupName(conversationId, req.Name)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to update group name")
 		return
 	}
-
-	w.WriteHeader(http.StatusNoContent) // No content response for successful update
+	resp := map[string]string{"name": req.Name}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		helpers.HandleInternalServerError(ctx, w, err, "Failed to encode JSON response")
+		return
+	}
 }
 
 func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
@@ -181,14 +182,12 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	req.ConversationId = conversationId
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	exists, err := rt.db.ParticipantExists(req.ConversationId, ctx.UserID)
+	exists, err := rt.db.ParticipantExists(conversationId, ctx.UserID)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to check participant existence")
 		return
@@ -198,7 +197,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	err = rt.db.UpdateGroupPhoto(req.ConversationId, req.Photo.PhotoId)
+	err = rt.db.UpdateGroupPhoto(conversationId, req.Photo.PhotoId)
 	if err != nil {
 		helpers.HandleInternalServerError(ctx, w, err, "Failed to update group photo")
 		return
