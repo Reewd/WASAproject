@@ -95,33 +95,28 @@ const message = ref('');
 const photoInput = ref(null);
 const textInput = ref(null);
 
-// Create preview URL for selected photo
 const triggerPhotoUpload = () => {
   photoInput.value?.click();
 };
 
 const sendMessage = async () => {
   if (!message.value.trim() && !hasSelectedPhoto.value) {
-    return; // Prevent sending empty messages
+    return;
   }
 
   try {
     let photoData = null;
 
-    // Upload photo if selected
     if (hasSelectedPhoto.value) {
       photoData = await uploadPhoto(selectedPhoto.value);
     }
 
-    // Prepare message request
     const messageRequest = {
       replyTo: props.replyToMessage?.messageId || null,
       text: message.value.trim() || null,
       photo: photoData || null,
     };
-    console.log('Message request:', messageRequest);
 
-    // Send message
     const response = await axios.post(
       `/conversations/${props.conversationId}/messages`,
       messageRequest,
@@ -133,15 +128,11 @@ const sendMessage = async () => {
       }
     );
 
-    // Clear input and photo
     message.value = '';
     removePhoto();
     cancelReply();
 
-    // Emit success event
     emits('messageSent', response.data);
-
-    console.log('Message sent successfully:', response.data);
   } catch (error) {
     console.error('Error sending message:', error);
     alert('Failed to send message. Please try again.');
@@ -164,6 +155,9 @@ const cancelReply = () => {
   padding: 12px;
   background-color: #f8f9fa;
   border-top: 1px solid #dee2e6;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .reply-preview {
@@ -175,25 +169,46 @@ const cancelReply = () => {
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
-
 
 .reply-info {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  width: calc(100% - 30px);
 }
 
 .reply-info strong {
   font-size: 12px;
   color: #1976d2;
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .reply-content {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.reply-content span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .reply-photo {
@@ -211,6 +226,10 @@ const cancelReply = () => {
   font-size: 16px;
   color: #666;
   padding: 4px;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-left: 8px;
 }
 
 .cancel-reply:hover {

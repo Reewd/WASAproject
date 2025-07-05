@@ -341,15 +341,24 @@ const getStatusIcon = (status) => {
 }
 
 .message-bubble {
-	min-width: 100px; /* Add minimum width */
-	max-width: min(400px, 75%); /* Better max-width calculation */
-	width: fit-content; /* Add this */
-	background-color: #e5e5ea;
-	border-radius: 18px;
-	padding: 12px 16px;
-	position: relative;
-	transition: transform 0.1s ease;
-	word-wrap: break-word; /* Ensure text wraps properly */
+    min-width: 100px;
+    max-width: min(400px, 75%);
+    width: fit-content;
+    background-color: #e5e5ea;
+    border-radius: 18px;
+    padding: 12px 16px;
+    position: relative;
+    transition: transform 0.1s ease;
+    
+    /* Enhanced word wrapping properties */
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    
+    /* Ensure no horizontal overflow */
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .message-bubble.own-bubble {
@@ -381,6 +390,8 @@ const getStatusIcon = (status) => {
 	border-left: 3px solid #007aff;
 	width: 100%; /* Ensure reply container takes full bubble width */
 	box-sizing: border-box;
+	word-wrap: break-word;
+	overflow: hidden;
 }
 
 .own-bubble .reply-container {

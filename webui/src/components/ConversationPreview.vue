@@ -104,46 +104,54 @@ const formatTimestamp = (timestamp) => {
 
 <style scoped>
 .conversation-preview {
-	display: flex;
-	align-items: center;
-	padding: 10px;
-	border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    min-width: 0;
 }
 
 .conversation-preview:hover {
-	background-color: #f0f0f0;
+    background-color: #f0f0f0;
 }
 
 .conversation-photo {
-	width: 50px;
-	height: 50px;
-	border-radius: 50%;
-	margin-right: 10px;
-	object-fit: cover;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .conversation-preview.selected {
-	background-color: #333;
-	color: #fff;
+    background-color: #333;
+    color: #fff;
 }
 
 .conversation-details {
-	flex: 1;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .conversation-name {
-	font-size: 16px;
-	font-weight: bold;
-	margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
 }
 
 .last-message {
-	font-size: 14px;
-	color: #666;
-	margin: 0;
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .conversation-preview.selected .last-message {
-	color: #ccc;
+    color: #ccc;
 }
 </style>
