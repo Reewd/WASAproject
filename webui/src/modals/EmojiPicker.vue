@@ -22,7 +22,6 @@
             type="text"
             placeholder="Search emojis..."
             class="emoji-search"
-            @input="filterEmojis"
           />
         </div>
 
@@ -63,6 +62,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { emojiNames, categories } from '../constants/emojiData.js';
 
 const props = defineProps({
   isVisible: {
@@ -80,109 +80,28 @@ const emits = defineEmits(['close', 'selectEmoji']);
 const searchQuery = ref('');
 const selectedCategory = ref('smileys');
 
-// Emoji categories with their emojis
-const categories = ref([
-  {
-    name: 'smileys',
-    label: 'Smileys & Emotion',
-    icon: '😊',
-    emojis: [
-      '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
-      '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
-      '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
-      '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
-      '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
-      '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
-      '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
-      '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐'
-    ]
-  },
-  {
-    name: 'gestures',
-    label: 'People & Body',
-    icon: '👍',
-    emojis: [
-      '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉',
-      '👆', '🖕', '👇', '☝️', '👋', '🤚', '🖐️', '✋', '🖖', '👏',
-      '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾',
-      '🦵', '🦿', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷',
-      '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸'
-    ]
-  },
-  {
-    name: 'animals',
-    label: 'Animals & Nature',
-    icon: '🐶',
-    emojis: [
-      '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯',
-      '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒',
-      '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇',
-      '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜',
-      '🦟', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕',
-      '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳',
-      '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛',
-      '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖'
-    ]
-  },
-  {
-    name: 'food',
-    label: 'Food & Drink',
-    icon: '🍕',
-    emojis: [
-      '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈',
-      '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦',
-      '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔',
-      '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈',
-      '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟',
-      '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘',
-      '🫕', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤',
-      '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨'
-    ]
-  },
-  {
-    name: 'activities',
-    label: 'Activities',
-    icon: '⚽',
-    emojis: [
-      '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱',
-      '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳',
-      '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️',
-      '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺',
-      '🏇', '🧘', '🏄', '🏊', '🤽', '🚣', '🧗', '🚵', '🚴', '🏆',
-      '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪',
-      '🤹', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧', '🎼', '🎵', '🎶'
-    ]
-  },
-  {
-    name: 'objects',
-    label: 'Objects',
-    icon: '🎁',
-    emojis: [
-      '🎁', '🎀', '🎊', '🎉', '🎈', '🎂', '🍰', '🧁', '🍭', '🍬',
-      '🍫', '🍩', '🍪', '🎄', '🎃', '🎆', '🎇', '🧨', '✨', '🎖️',
-      '🏆', '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏',
-      '📱', '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💽', '💾', '💿',
-      '📀', '🧮', '🎥', '🎞️', '📽️', '🎬', '📺', '📻', '🎙️', '🎚️',
-      '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋'
-    ]
-  }
-]);
-
 // Get all emojis for the selected category or search results
 const filteredEmojis = computed(() => {
-  const currentCategory = categories.value.find(cat => cat.name === selectedCategory.value);
-  let emojis = currentCategory ? currentCategory.emojis : [];
-  
+  let emojis = [];
+
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase();
-    emojis = categories.value
-      .flatMap(cat => cat.emojis)
-      .filter(emoji => {
-        const name = getEmojiName(emoji).toLowerCase();
-        return name.includes(query);
-      });
+
+    // Search across all categories
+    categories.forEach(category => {
+      emojis.push(
+        ...category.emojis.filter(emoji => {
+          const name = getEmojiName(emoji).toLowerCase();
+          return name.includes(query);
+        })
+      );
+    });
+  } else {
+    // Show emojis from the selected category if no search query
+    const currentCategory = categories.find(cat => cat.name === selectedCategory.value);
+    emojis = currentCategory ? currentCategory.emojis : [];
   }
-  
+
   return emojis;
 });
 
@@ -204,121 +123,8 @@ const containerStyle = computed(() => {
   };
 });
 
-// Simple emoji name mapping (you could expand this)
-const emojiNames = {
-  '😀': 'grinning face',
-  '😃': 'grinning face with big eyes',
-  '😄': 'grinning face with smiling eyes',
-  '😁': 'beaming face with smiling eyes',
-  '😆': 'grinning squinting face',
-  '😅': 'grinning face with sweat',
-  '😂': 'face with tears of joy',
-  '🤣': 'rolling on the floor laughing',
-  '😊': 'smiling face with smiling eyes',
-  '😇': 'smiling face with halo',
-  '🙂': 'slightly smiling face',
-  '🙃': 'upside down face',
-  '😉': 'winking face',
-  '😌': 'relieved face',
-  '😍': 'smiling face with heart eyes',
-  '🥰': 'smiling face with hearts',
-  '😘': 'face blowing a kiss',
-  '😗': 'kissing face',
-  '😙': 'kissing face with smiling eyes',
-  '😚': 'kissing face with closed eyes',
-  '😋': 'face savoring food',
-  '😛': 'face with tongue',
-  '😝': 'squinting face with tongue',
-  '😜': 'winking face with tongue',
-  '🤪': 'zany face',
-  '🤨': 'face with raised eyebrow',
-  '🧐': 'face with monocle',
-  '🤓': 'nerd face',
-  '😎': 'smiling face with sunglasses',
-  '🤩': 'star struck',
-  '🥳': 'partying face',
-  '😏': 'smirking face',
-  '😒': 'unamused face',
-  '😞': 'disappointed face',
-  '😔': 'pensive face',
-  '😟': 'worried face',
-  '😕': 'confused face',
-  '🙁': 'slightly frowning face',
-  '☹️': 'frowning face',
-  '😣': 'persevering face',
-  '😖': 'confounded face',
-  '😫': 'tired face',
-  '😩': 'weary face',
-  '🥺': 'pleading face',
-  '😢': 'crying face',
-  '😭': 'loudly crying face',
-  '😤': 'face with steam from nose',
-  '😠': 'angry face',
-  '😡': 'pouting face',
-  '🤬': 'face with symbols on mouth',
-  '🤯': 'exploding head',
-  '😳': 'flushed face',
-  '🥵': 'hot face',
-  '🥶': 'cold face',
-  '😱': 'face screaming in fear',
-  '😨': 'fearful face',
-  '😰': 'anxious face with sweat',
-  '😥': 'sad but relieved face',
-  '😓': 'downcast face with sweat',
-  '🤗': 'hugging face',
-  '🤔': 'thinking face',
-  '🤭': 'face with hand over mouth',
-  '🤫': 'shushing face',
-  '🤥': 'lying face',
-  '😶': 'face without mouth',
-  '😐': 'neutral face',
-  '😑': 'expressionless face',
-  '😬': 'grimacing face',
-  '🙄': 'face with rolling eyes',
-  '😯': 'hushed face',
-  '😦': 'frowning face with open mouth',
-  '😧': 'anguished face',
-  '😮': 'face with open mouth',
-  '😲': 'astonished face',
-  '🥱': 'yawning face',
-  '😴': 'sleeping face',
-  '🤤': 'drooling face',
-  '😪': 'sleepy face',
-  '😵': 'dizzy face',
-  '🤐': 'zipper mouth face',
-  '👍': 'thumbs up',
-  '👎': 'thumbs down',
-  '👌': 'ok hand',
-  '✌️': 'victory hand',
-  '🤞': 'crossed fingers',
-  '🤟': 'love you gesture',
-  '🤘': 'sign of the horns',
-  '🤙': 'call me hand',
-  '👈': 'backhand index pointing left',
-  '👉': 'backhand index pointing right',
-  '👆': 'backhand index pointing up',
-  '🖕': 'middle finger',
-  '👇': 'backhand index pointing down',
-  '☝️': 'index pointing up',
-  '👋': 'waving hand',
-  '🤚': 'raised back of hand',
-  '🖐️': 'hand with fingers splayed',
-  '✋': 'raised hand',
-  '🖖': 'vulcan salute',
-  '👏': 'clapping hands',
-  '🙌': 'raising hands',
-  '👐': 'open hands',
-  '🤲': 'palms up together',
-  '🤝': 'handshake',
-  '🙏': 'folded hands'
-};
-
 const getEmojiName = (emoji) => {
   return emojiNames[emoji] || emoji;
-};
-
-const filterEmojis = () => {
-  // This reactive computed will handle the filtering
 };
 
 const selectEmoji = (emoji) => {
