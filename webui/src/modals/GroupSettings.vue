@@ -32,7 +32,7 @@
 				</div>
 
 				<!-- Photo preview (if new photo selected) -->
-				<div v-if="selectedPhoto" class="photo-preview">
+				<div v-if="hasSelectedPhoto" class="photo-preview">
 					<img :src="photoPreviewUrl" alt="New group photo" />
 					<button @click="removePhoto" class="remove-photo">✕</button>
 				</div>
@@ -130,7 +130,7 @@
 							:disabled="
 								isUpdating ||
 								(!hasNameChanged &&
-									!selectedPhoto &&
+									!hasSelectedPhoto &&
 									pendingParticipants.length === 0) ||
 								(hasNameChanged && !isGroupNameValid)
 							"
@@ -150,6 +150,7 @@ import axios from "../services/axios.js";
 import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import { useValidation } from "../composables/useValidation.js";
+import { usePhotoUpload } from "../composables/usePhotoUpload.js";
 import UserSelection from '../components/UserSelection.vue';
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
@@ -157,6 +158,15 @@ import userDefaultIcon from "/assets/icons/user-default.png";
 const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
 const { useGroupNameValidation } = useValidation();
+const { 
+    selectedPhoto, 
+    photoPreviewUrl, 
+    hasSelectedPhoto,
+    handlePhotoSelection, 
+    removePhoto, 
+    uploadSelectedPhoto,
+    isUploading: isUploadingPhoto
+} = usePhotoUpload();
 
 const props = defineProps({
 	chat: {
@@ -172,7 +182,6 @@ const props = defineProps({
 const emits = defineEmits(["close", "updated", "left"]);
 
 // Reactive data
-const selectedPhoto = ref(null);
 const photoInput = ref(null);
 const isUpdating = ref(false);
 const pendingParticipants = ref([]);
@@ -190,12 +199,6 @@ const groupPhotoUrl = computed(() => {
 	return props.isGroup
 		? groupDefaultIcon
 		: userDefaultIcon;
-});
-
-const photoPreviewUrl = computed(() => {
-	return selectedPhoto.value
-		? URL.createObjectURL(selectedPhoto.value)
-		: null;
 });
 
 const hasNameChanged = computed(() => {
@@ -220,51 +223,6 @@ const getParticipantPhotoUrl = (participant) => {
 
 const triggerPhotoUpload = () => {
 	photoInput.value?.click();
-};
-
-const handlePhotoSelection = (event) => {
-	const file = event.target.files[0];
-	if (file) {
-		// Validate file type
-		if (!file.type.startsWith("image/")) {
-			alert("Please select a valid image file");
-			return;
-		}
-
-		// Validate file size (max 10MB)
-		if (file.size > 10 * 1024 * 1024) {
-			alert("File size must be less than 10MB");
-			return;
-		}
-
-		selectedPhoto.value = file;
-	}
-	event.target.value = "";
-};
-
-const removePhoto = () => {
-	selectedPhoto.value = null;
-	if (photoPreviewUrl.value) {
-		URL.revokeObjectURL(photoPreviewUrl.value);
-	}
-};
-
-const uploadPhoto = async (photoFile) => {
-	const formData = new FormData();
-	formData.append("imageFile", photoFile);
-
-	try {
-		const response = await axios.post("/upload", formData, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-				Authorization: getCurrentUserId(),
-			},
-		});
-		return response.data;
-	} catch (error) {
-		console.error("Error uploading photo:", error);
-		throw error;
-	}
 };
 
 const updateGroupName = async () => {
@@ -367,8 +325,8 @@ const saveChanges = async () => {
 
 	try {
 		// Upload new photo if selected
-		if (selectedPhoto.value) {
-			const photoData = await uploadPhoto(selectedPhoto.value);
+		if (hasSelectedPhoto.value) {
+			const photoData = await uploadSelectedPhoto();
 			await updateGroupPhoto(photoData);
 		}
 

@@ -32,7 +32,7 @@
 				</div>
 
 				<!-- Photo preview (if new photo selected) -->
-				<div v-if="selectedPhoto" class="photo-preview">
+				<div v-if="hasSelectedPhoto" class="photo-preview">
 					<img :src="photoPreviewUrl" alt="New profile photo" />
 					<button @click="removePhoto" class="remove-photo">✕</button>
 				</div>
@@ -69,7 +69,7 @@
 						class="save-button"
 						:disabled="
 							isUpdating ||
-							(!hasUsernameChanged && !selectedPhoto) ||
+							(!hasUsernameChanged && !hasSelectedPhoto) ||
 							!isUsernameValid
 						"
 					>
@@ -87,10 +87,20 @@ import axios from "../services/axios.js";
 import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
 import { useValidation } from "../composables/useValidation.js";
+import { usePhotoUpload } from "../composables/usePhotoUpload.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
 const { updateUser, getCurrentUserId, getCurrentUsername, getCurrentUserPhoto } = useAuth();
 const { getImageUrl } = useImageUrl();
+const { 
+    selectedPhoto, 
+    photoPreviewUrl, 
+    hasSelectedPhoto,
+    handlePhotoSelection, 
+    removePhoto, 
+    uploadSelectedPhoto,
+    isUploading: isUploadingPhoto
+} = usePhotoUpload();
 
 const emits = defineEmits(["close", "updated"]);
 
@@ -99,7 +109,6 @@ const currentUser = ref({
     userId: getCurrentUserId(),
     photo: getCurrentUserPhoto(),
 });
-const selectedPhoto = ref(null);
 const photoInput = ref(null);
 const isUpdating = ref(false);
 
@@ -112,12 +121,6 @@ const profilePictureUrl = computed(() => {
     return currentUser.value.photo?.path ? getImageUrl(currentUser.value.photo.path) : userDefaultIcon;
 });
 
-const photoPreviewUrl = computed(() => {
-	return selectedPhoto.value
-		? URL.createObjectURL(selectedPhoto.value)
-		: null;
-});
-
 const hasUsernameChanged = computed(() => {
     return newUsername.value !== currentUser.value.username;
 });
@@ -125,51 +128,6 @@ const hasUsernameChanged = computed(() => {
 // Methods
 const triggerPhotoUpload = () => {
 	photoInput.value?.click();
-};
-
-const handlePhotoSelection = (event) => {
-	const file = event.target.files[0];
-	if (file) {
-		// Validate file type
-		if (!file.type.startsWith("image/")) {
-			alert("Please select a valid image file");
-			return;
-		}
-
-		// Validate file size (max 10MB)
-		if (file.size > 10 * 1024 * 1024) {
-			alert("File size must be less than 10MB");
-			return;
-		}
-
-		selectedPhoto.value = file;
-	}
-	event.target.value = "";
-};
-
-const removePhoto = () => {
-	selectedPhoto.value = null;
-	if (photoPreviewUrl.value) {
-		URL.revokeObjectURL(photoPreviewUrl.value);
-	}
-};
-
-const uploadPhoto = async (photoFile) => {
-    const formData = new FormData();
-    formData.append("imageFile", photoFile);
-
-    try {
-        const response = await axios.post("/upload", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: getCurrentUserId(),
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error("Error uploading photo:", error);
-        throw error;
-    }
 };
 
 const updateUsername = async () => {
@@ -232,8 +190,8 @@ const saveChanges = async () => {
 
     try {
         // Upload new photo if selected
-        if (selectedPhoto.value) {
-            const photoData = await uploadPhoto(selectedPhoto.value);
+        if (hasSelectedPhoto.value) {
+            const photoData = await uploadSelectedPhoto();
             await updateProfilePhoto(photoData);
         }
 

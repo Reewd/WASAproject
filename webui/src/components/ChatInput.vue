@@ -18,7 +18,7 @@
     </div>
 
     <!-- Photo preview -->
-    <div v-if="selectedPhoto" class="photo-preview">
+    <div v-if="hasSelectedPhoto" class="photo-preview">
       <img :src="photoPreviewUrl" alt="Selected photo" />
       <button @click="removePhoto" class="remove-photo">✕</button>
     </div>
@@ -50,7 +50,7 @@
       <!-- Send button -->
       <button 
         @click="sendMessage" 
-        :disabled="isUploading || (!message.trim() && !selectedPhoto)"
+        :disabled="isUploading || (!message.trim() && !hasSelectedPhoto)"
         class="send-button"
       >
         {{ isUploading ? 'Uploading...' : 'Send' }}
@@ -64,9 +64,19 @@ import { ref, computed, nextTick } from 'vue';
 import axios from '../services/axios.js';
 import { useAuth } from '../composables/useAuth.js';
 import { useImageUrl } from '../composables/useImageUrl.js';
+import { usePhotoUpload } from '../composables/usePhotoUpload.js';
 
 const { getCurrentUserId } = useAuth();
 const { getImageUrl } = useImageUrl();
+const { 
+    selectedPhoto, 
+    photoPreviewUrl, 
+    hasSelectedPhoto,
+    handlePhotoSelection, 
+    removePhoto, 
+    uploadPhoto,
+    isUploading
+} = usePhotoUpload();
 
 const props = defineProps({
   conversationId: {
@@ -82,79 +92,24 @@ const props = defineProps({
 const emits = defineEmits(['messageSent', 'cancelReply']);
 
 const message = ref('');
-const selectedPhoto = ref(null);
 const photoInput = ref(null);
 const textInput = ref(null);
-const isUploading = ref(false);
 
 // Create preview URL for selected photo
-const photoPreviewUrl = computed(() => {
-  return selectedPhoto.value ? URL.createObjectURL(selectedPhoto.value) : null;
-});
-
 const triggerPhotoUpload = () => {
   photoInput.value?.click();
 };
 
-const handlePhotoSelection = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file');
-      return;
-    }
-    
-    // Validate file size (e.g., max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
-      return;
-    }
-    
-    selectedPhoto.value = file;
-  }
-  // Reset input value to allow selecting the same file again
-  event.target.value = '';
-};
-
-const removePhoto = () => {
-  selectedPhoto.value = null;
-  if (photoPreviewUrl.value) {
-    URL.revokeObjectURL(photoPreviewUrl.value);
-  }
-};
-
-const uploadPhoto = async (photoFile) => {
-  const formData = new FormData();
-  formData.append('imageFile', photoFile);
-
-  try {
-    const response = await axios.post('/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: getCurrentUserId(),
-      },
-    });
-    console.log('Photo uploaded successfully:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error uploading photo:', error);
-    throw error;
-  }
-};
-
 const sendMessage = async () => {
-  if (!message.value.trim() && !selectedPhoto.value) {
+  if (!message.value.trim() && !hasSelectedPhoto.value) {
     return; // Prevent sending empty messages
   }
-
-  isUploading.value = true;
 
   try {
     let photoData = null;
 
     // Upload photo if selected
-    if (selectedPhoto.value) {
+    if (hasSelectedPhoto.value) {
       photoData = await uploadPhoto(selectedPhoto.value);
     }
 
@@ -191,7 +146,6 @@ const sendMessage = async () => {
     console.error('Error sending message:', error);
     alert('Failed to send message. Please try again.');
   } finally {
-    isUploading.value = false;
     await nextTick(); // Ensure DOM updates are applied
     textInput.value?.focus(); // Refocus the input field
   }
