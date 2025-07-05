@@ -46,8 +46,8 @@
 						v-model="newUsername"
 						@input="validateUsername"
 						:placeholder="
-							currentUser?.name
-								? `${currentUser.name}`
+							user?.name
+								? `${user.name}`
 								: 'Enter a new username'
 						"
 						:disabled="isUpdating"
@@ -90,42 +90,33 @@ import { useValidation } from "../composables/useValidation.js";
 import { usePhotoUpload } from "../composables/usePhotoUpload.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { updateUser, getCurrentUserId, getCurrentUsername, getCurrentUserPhoto } = useAuth();
-const { getImageUrl } = useImageUrl();
-const { 
-    selectedPhoto, 
-    photoPreviewUrl, 
-    hasSelectedPhoto,
-    handlePhotoSelection, 
-    removePhoto, 
-    uploadSelectedPhoto,
-    isUploading: isUploadingPhoto
-} = usePhotoUpload();
-
 const emits = defineEmits(["close", "updated"]);
 
-const currentUser = ref({
-    username: getCurrentUsername(),
-    userId: getCurrentUserId(),
-    photo: getCurrentUserPhoto(),
-});
+const { updateUser, user } = useAuth();
+const { getImageUrl } = useImageUrl();
+const { 
+	photoPreviewUrl, 
+	hasSelectedPhoto, 
+	handlePhotoSelection, 
+	removePhoto, 
+	uploadSelectedPhoto 
+} = usePhotoUpload();
+
 const photoInput = ref(null);
 const isUpdating = ref(false);
 
-// Use the validation composable
 const { useUsernameValidation } = useValidation();
 const { username: newUsername, usernameError, validateUsername, isUsernameValid } = 
-  useUsernameValidation(currentUser.value?.username || '');
-// Computed properties
+  useUsernameValidation(user.value?.username || '');
+
 const profilePictureUrl = computed(() => {
-    return currentUser.value.photo?.path ? getImageUrl(currentUser.value.photo.path) : userDefaultIcon;
+	return user.value.photo?.path ? getImageUrl(user.value.photo.path) : userDefaultIcon;
 });
 
 const hasUsernameChanged = computed(() => {
-    return newUsername.value !== currentUser.value.username;
+	return newUsername.value !== user.value.username;
 });
 
-// Methods
 const triggerPhotoUpload = () => {
 	photoInput.value?.click();
 };
@@ -148,7 +139,7 @@ const updateUsername = async () => {
             {
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: getCurrentUserId(),
+                    Authorization: user.value.userId,
                 },
             }
         );
@@ -172,12 +163,11 @@ const updateProfilePhoto = async (photoData) => {
 			{
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: getCurrentUserId(),
+					Authorization: user.value.userId,
 				},
 			}
 		);
 
-		// Update local storage
         updateUser({ photo: photoData });
 	} catch (error) {
 		console.error("Error updating profile photo:", error);
@@ -222,7 +212,7 @@ const closeModal = () => {
 
 // Lifecycle
 onMounted(() => {
-	newUsername.value = currentUser.value.username;
+	newUsername.value = user.value.username;
 });
 </script>
 
@@ -243,7 +233,7 @@ onMounted(() => {
 .modal-content {
 	background: white;
 	border-radius: 12px;
-	width: 90%;
+	width: 80%;
 	max-width: 500px;
 	max-height: 80vh;
 	overflow-y: auto;
@@ -275,6 +265,7 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition: background-color 0.3s ease;
 }
 
 .close-button:hover {
@@ -320,6 +311,7 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition : background-color 0.3s ease;
 }
 
 .change-photo-button:hover {
