@@ -1,7 +1,7 @@
 <template>
-  <!-- Main container for the chat interface, displayed only if a conversation is selected -->
+  <!-- Chat container, shown if a conversation is selected -->
   <div class="chat-container" v-if="conversationPreview">
-    <!-- Chat header component, displays chat details and handles group-related events -->
+    <!-- Chat header -->
     <ChatHeader 
       :chat="chat" 
       :conversationPreview="conversationPreview"
@@ -9,9 +9,9 @@
       @leftGroup="handleLeftGroup"
     />
     
-    <!-- Container for chat messages, scrollable and bound to a ref for programmatic scrolling -->
+    <!-- Messages container -->
     <div class="chat-messages" ref="messagesContainer">
-      <!-- Message component, rendered for each message in the chat -->
+      <!-- Message component -->
       <Message 
         v-for="message in chat?.messages || []" 
         :key="message.messageId"
@@ -27,7 +27,7 @@
       />
     </div>
     
-    <!-- Chat input component for sending messages and handling reply state -->
+    <!-- Chat input -->
     <ChatInput 
       :conversationId="conversationPreview.conversationId" 
       :replyToMessage="replyingTo"
@@ -35,7 +35,7 @@
       @messageSent="fetchChat(conversationPreview.conversationId)"
     />
     
-    <!-- Emoji picker modal, displayed when the emoji picker is opened -->
+    <!-- Emoji picker -->
     <EmojiPicker
       :isVisible="showEmojiPicker"
       :position="emojiPickerPosition"
@@ -44,7 +44,7 @@
     />
   </div>
   
-  <!-- Placeholder message displayed when no conversation is selected -->
+  <!-- Placeholder when no conversation is selected -->
   <div v-else class="no-conversation">
     <p>Please select a conversation to start chatting.</p>
   </div>
