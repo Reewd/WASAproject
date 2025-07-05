@@ -37,8 +37,6 @@ func (db *appdbimpl) InsertConversation(name string, participants []string, isGr
 	return conversationId, nil
 }
 
-//TODO: Figure out how to handle the case where a participant does not exist in the users table.
-
 func (db *appdbimpl) InsertParticipantsFromUsername(conversationId int64, participants []string) error {
 	stmt := `INSERT INTO participants (conversationId, userId) VALUES (?, ?)`
 	for _, participant := range participants {
@@ -88,7 +86,6 @@ func (db *appdbimpl) GetConversationsByUserId(userId int64) ([]Conversation, err
 		}
 		conversations = append(conversations, conv)
 
-		// Check rows.Err after iteration
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

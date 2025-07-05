@@ -39,48 +39,44 @@ func (db *appdbimpl) RemoveMessage(messageId int64) error {
 	return nil
 }
 
-// GetMessageViews fetches all messages (with their reactions and status) for a given conversation.
-//
-//	TODO: Split this into smaller functions
 func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 	const stmt = `
-    SELECT 
-        m.id                  AS messageId,
-        m.content             AS messageText,
-        m.conversationId,
-        m.photoId             AS messagePhotoId,
-        i.path                AS messagePhotoPath,
-        m.isForwarded         AS isForwarded,
-        m.replyTo,
-        m.timestamp           AS messageTimestamp,
-        u.id                  AS messageSenderId,
-        u.username            AS messageSenderUsername,
-        u.photoId             AS messageSenderPhotoId,
-        ui.path               AS messageSenderPhotoPath,
-        r.content             AS reactionContent,
-        r.timestamp           AS reactionTimestamp,
-        ru.id                 AS reactionSenderId,
-        ru.username           AS reactionSenderUsername,
-        ru.photoId            AS reactionSenderPhotoId,
-        ri.path               AS reactionSenderPhotoPath
-    FROM messages m
-    LEFT JOIN users u  ON m.senderId    = u.id
-    LEFT JOIN reactions r  ON m.id     = r.messageId
-    LEFT JOIN users ru ON r.senderId   = ru.id
-    LEFT JOIN images i ON m.photoId = i.uuid
-    LEFT JOIN images ui on u.photoId = ui.uuid
-    LEFT JOIN images ri on ru.photoId = ri.uuid
-    WHERE m.conversationId = ?
-    `
+	SELECT 
+		m.id                  AS messageId,
+		m.content             AS messageText,
+		m.conversationId,
+		m.photoId             AS messagePhotoId,
+		i.path                AS messagePhotoPath,
+		m.isForwarded         AS isForwarded,
+		m.replyTo,
+		m.timestamp           AS messageTimestamp,
+		u.id                  AS messageSenderId,
+		u.username            AS messageSenderUsername,
+		u.photoId             AS messageSenderPhotoId,
+		ui.path               AS messageSenderPhotoPath,
+		r.content             AS reactionContent,
+		r.timestamp           AS reactionTimestamp,
+		ru.id                 AS reactionSenderId,
+		ru.username           AS reactionSenderUsername,
+		ru.photoId            AS reactionSenderPhotoId,
+		ri.path               AS reactionSenderPhotoPath
+	FROM messages m
+	LEFT JOIN users u  ON m.senderId    = u.id
+	LEFT JOIN reactions r  ON m.id     = r.messageId
+	LEFT JOIN users ru ON r.senderId   = ru.id
+	LEFT JOIN images i ON m.photoId = i.uuid
+	LEFT JOIN images ui on u.photoId = ui.uuid
+	LEFT JOIN images ri on ru.photoId = ri.uuid
+	WHERE m.conversationId = ?
+	`
 
-	// Separate query for message statuses
 	const statusStmt = `
-    SELECT messageId, status 
-    FROM message_status 
-    WHERE messageId IN (
-        SELECT id FROM messages WHERE conversationId = ?
-    )
-    `
+	SELECT messageId, status 
+	FROM message_status 
+	WHERE messageId IN (
+		SELECT id FROM messages WHERE conversationId = ?
+	)
+	`
 
 	statusRows, err := db.c.Query(statusStmt, conversationID)
 	if err != nil {
@@ -98,19 +94,16 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		statusMap[messageID] = append(statusMap[messageID], status)
 	}
 
-	// Check for errors in status query
 	if err := statusRows.Err(); err != nil {
 		return nil, err
 	}
 
-	// Now query and process the messages
 	rows, err := db.c.Query(stmt, conversationID)
 	if err != nil {
 		return nil, err
 	}
 	defer helpers.CloseRows(rows)
 
-	// map for message aggregation
 	msgMap := make(map[int64]*MessageView)
 
 	for rows.Next() {
@@ -158,7 +151,6 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			return nil, err
 		}
 
-		// Build nullable pointers
 		var photoID *string
 		if nsMessagePhotoID.Valid {
 			photoID = &nsMessagePhotoID.String
@@ -177,10 +169,8 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			messageText = &nsmessageText.String
 		}
 
-		// Create the MessageView if first time we see this message
 		msg, ok := msgMap[messageID]
 		if !ok {
-			// build the sender's photo pointer
 			var senderPhoto *Photo
 			if nsSenderPhotoID.Valid && nsSenderPhotoPath.Valid {
 				senderPhoto = &Photo{
@@ -215,9 +205,7 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 			msgMap[messageID] = msg
 		}
 
-		// Append reaction if there is one
 		if nsReactionContent.Valid {
-			// build reaction-sender photo pointer
 			var rSenderPhoto *Photo
 			if nsReactionSenderPhotoID.Valid && nsReactionSenderPhotoPath.Valid {
 				rSenderPhoto = &Photo{
@@ -225,12 +213,10 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 					Path:    nsReactionSenderPhotoPath.String,
 				}
 			}
-			// build reaction timestamp pointer
 			var rTs string
 			if nrReactionTimestamp.Valid {
 				rTs = nrReactionTimestamp.String
 			}
-			// build reaction-sender info
 			var reactionSenderID int64
 			var senderName string
 			if nsReactionSenderID.Valid {
@@ -252,16 +238,14 @@ func (db *appdbimpl) GetChat(conversationID int64) ([]MessageView, error) {
 		}
 	}
 
-	// check for iteration errors
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	// Determine each message's final status
 	for id, statuses := range statusMap {
 		m, exists := msgMap[id]
 		if !exists {
-			continue // Skip if the message doesn't exist
+			continue
 		}
 
 		allRead, allDelivered := true, true
@@ -345,13 +329,13 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 	}
 
 	stmt := `SELECT m.id, m.content, m.photoId, i.path, m.replyTo, m.timestamp, u.id, u.username, u.photoId, ui.path, m.isForwarded
-            FROM messages m
-            LEFT JOIN images i ON m.photoId = i.uuid
-            JOIN users u ON m.senderId = u.id
-            LEFT JOIN images ui ON u.photoId = ui.uuid
-            WHERE m.conversationId = ?
-            ORDER BY m.timestamp DESC
-            LIMIT 1`
+			FROM messages m
+			LEFT JOIN images i ON m.photoId = i.uuid
+			JOIN users u ON m.senderId = u.id
+			LEFT JOIN images ui ON u.photoId = ui.uuid
+			WHERE m.conversationId = ?
+			ORDER BY m.timestamp DESC
+			LIMIT 1`
 
 	var msg MessageView
 	var nsText sql.NullString
@@ -401,7 +385,7 @@ func (db *appdbimpl) GetLastMessage(conversationId int64) (*MessageView, error) 
 		}
 	}
 	msg.IsForwarded = isForwarded
-	msg.Status = "sent" // Default status for last message preview
+	msg.Status = "sent"
 
 	return &msg, nil
 }
