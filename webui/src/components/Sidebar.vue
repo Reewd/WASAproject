@@ -2,8 +2,8 @@
 	<div class="sidebar">
 		<div class="profile-wrapper">
 			<img
-				v-if="loggedInUser?.photo?.path"
-				:src="getImageUrl(loggedInUser.photo.path)"
+				v-if="user?.photo?.path"
+				:src="getImageUrl(user.photo.path)"
 				alt="Profile picture"
 				class="profile-picture"
 			/>
@@ -34,58 +34,35 @@
 		<ProfileSettings
 			v-if="showProfileSettings"
 			@close="closeProfileSettings"
-			@updated="handleProfileUpdated"
 		/>
 	</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { useImageUrl } from "@/composables/useImageUrl.js";
 import ProfileSettings from "@/modals/ProfileSettings.vue";
+import { useAuth } from "@/composables/useAuth.js";
 import userDefaultIcon from "/assets/icons/user-default.png";
 import accountSettingsIcon from "/assets/icons/account-settings.png";
 import logoutIcon from "/assets/icons/logout.png";
 
-const loggedInUser = ref(null);
 const showProfileSettings = ref(false);
 const { getImageUrl } = useImageUrl();
-
-const loadUserData = () => {
-	const userData = localStorage.getItem("loggedInUser");
-	if (userData) {
-		loggedInUser.value = JSON.parse(userData);
-		console.log("Logged in user:", loggedInUser.value);
-	}
-};
+const { user, logout: authLogout } = useAuth();
 
 const openProfileSettings = () => {
-	showProfileSettings.value = true;
+  showProfileSettings.value = true;
 };
 
 const closeProfileSettings = () => {
-	showProfileSettings.value = false;
-};
-
-const handleProfileUpdated = () => {
-	// Reload user data from localStorage after profile update
-	loadUserData();
+  showProfileSettings.value = false;
 };
 
 const logout = () => {
-  // Clear user data from localStorage
-  localStorage.removeItem('loggedInUser');
-  localStorage.removeItem('userId');
-  
-  // Reset user state
-  loggedInUser.value = null;
+  authLogout();
   window.location.reload();
-
 };
-
-onMounted(() => {
-	loadUserData();
-});
 </script>
 <style>
 .sidebar {
@@ -115,10 +92,8 @@ onMounted(() => {
 .settings-button {
 	width: 50px;
 	height: 50px;
-	background: none;
 	border: none;
 	cursor: pointer;
-	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: 50%;
@@ -137,10 +112,8 @@ onMounted(() => {
 .logout-button {
 	width: 50px;
 	height: 50px;
-	background: none;
 	border: none;
 	cursor: pointer;
-	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: 50%;
@@ -154,7 +127,7 @@ onMounted(() => {
 }
 
 .logout-icon {
-	width: 28px;
-	height: 28px;
+	width: 30px;
+	height: 30px;
 }
 </style>
