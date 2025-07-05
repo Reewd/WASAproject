@@ -97,7 +97,6 @@ const handleButtonClick = (event) => {
   transform: scale(0.95);
 }
 
-/* Show button on message hover */
 .message-container:hover .reaction-button {
   opacity: 1;
 }

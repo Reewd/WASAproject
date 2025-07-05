@@ -1,18 +1,24 @@
 <template>
 	<div class="chat-header">
+		<!-- Display the chat photo -->
 		<img :src="headerImageUrl" :alt="headerImageAlt" class="chat-photo" />
+		
+		<!-- Display chat title and additional info -->
 		<div class="chat-info">
 			<h2>{{ headerTitle }}</h2>
+			<!-- Show participant status for private chats -->
 			<span
 				v-if="!isGroup && otherParticipant"
 				class="participant-status"
 			>
 			</span>
+			<!-- Show participant count for group chats -->
 			<span v-else-if="isGroup && participants" class="participant-count">
 				{{ participants.length }} participants
 			</span>
 		</div>
 
+		<!-- Action buttons for group settings -->
 		<div class="chat-actions">
 			<button
 				v-if="isGroup"
@@ -23,7 +29,7 @@
 			</button>
 		</div>
 
-		<!-- Modal managed directly by ChatHeader -->
+		<!-- Group settings modal -->
 		<GroupSettings
 			v-if="showGroupSettings"
 			:chat="props.chat"
@@ -39,7 +45,7 @@
 import { ref, computed } from "vue";
 import { useAuth } from "../composables/useAuth.js";
 import { useImageUrl } from "../composables/useImageUrl.js";
-import GroupSettings from "../modals/GroupSettings.vue"; // Import the modal
+import GroupSettings from "../modals/GroupSettings.vue";
 import groupDefaultIcon from "/assets/icons/group-default.png";
 import userDefaultIcon from "/assets/icons/user-default.png";
 
@@ -59,18 +65,14 @@ const props = defineProps({
 	},
 });
 
-const emits = defineEmits(["groupUpdated", "leftGroup"]); // Only emit when something actually changes
-
+const emits = defineEmits(["groupUpdated", "leftGroup"]);
 
 const handleLeftGroup = () => {
-	// Emit event to parent component when user leaves group
 	emits("leftGroup");
 };
 
-// Modal state
 const showGroupSettings = ref(false);
 
-// Computed properties
 const isGroup = computed(() => {
 	return props.chat?.isGroup || false;
 });
@@ -79,7 +81,6 @@ const participants = computed(() => {
 	return props.chat?.participants || [];
 });
 
-// For private conversations, get the other participant (not the current user)
 const otherParticipant = computed(() => {
 	if (isGroup.value || !participants.value.length) return null;
 
@@ -104,13 +105,11 @@ const headerTitle = computed(() => {
 
 const headerImageUrl = computed(() => {
 	if (isGroup.value) {
-		// Group conversation - use group photo or default group icon
 		if (props.chat?.photo?.path) {
 			return getImageUrl(props.chat.photo.path);
 		}
 		return groupDefaultIcon;
 	} else {
-		// Private conversation - use other participant's photo or default user icon
 		if (otherParticipant.value?.photo?.path) {
 			return getImageUrl(otherParticipant.value.photo.path);
 		}
@@ -138,7 +137,6 @@ const closeGroupSettings = () => {
 
 const handleGroupSettingsUpdated = () => {
 	showGroupSettings.value = false;
-	// Emit to parent that group was updated so it can refresh data
 	emits("groupUpdated");
 };
 </script>
@@ -166,7 +164,7 @@ const handleGroupSettingsUpdated = () => {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	min-width: 0; /* Allow text to truncate */
+	min-width: 0;
 }
 
 .chat-info h2 {

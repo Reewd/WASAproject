@@ -87,7 +87,6 @@ onMounted(() => {
 	loadUserData();
 });
 </script>
-
 <style>
 .sidebar {
 	width: 80px;
@@ -122,39 +121,40 @@ onMounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 50%; /* Apply circular shape by default */
-	transition: background-color 0.3s ease; /* Smooth transition */
+	border-radius: 50%;
+	transition: background-color 0.3s ease;
 }
 
 .settings-button:hover {
-	background-color: #bfbfbf; /* Dark background on hover */
+	background-color: #bfbfbf;
 }
 
 .settings-icon {
 	width: 30px;
 	height: 30px;
 }
+
 .logout-button {
-  width: 50px;
-  height: 50px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.3s ease;
-  margin-top: auto; /* Push to bottom */
-  margin-bottom: 20px;
+	width: 50px;
+	height: 50px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: background-color 0.3s ease;
+	margin-top: auto;
+	margin-bottom: 20px;
 }
 
 .logout-button:hover {
-  background-color: #ffcccc; /* Light red background on hover */
+	background-color: #ffcccc;
 }
 
 .logout-icon {
-  width: 28px;
-  height: 28px;
+	width: 28px;
+	height: 28px;
 }
 </style>

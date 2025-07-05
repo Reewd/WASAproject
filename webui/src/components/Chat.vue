@@ -1,5 +1,7 @@
 <template>
+  <!-- Main container for the chat interface, displayed only if a conversation is selected -->
   <div class="chat-container" v-if="conversationPreview">
+    <!-- Chat header component, displays chat details and handles group-related events -->
     <ChatHeader 
       :chat="chat" 
       :conversationPreview="conversationPreview"
@@ -7,7 +9,9 @@
       @leftGroup="handleLeftGroup"
     />
     
+    <!-- Container for chat messages, scrollable and bound to a ref for programmatic scrolling -->
     <div class="chat-messages" ref="messagesContainer">
+      <!-- Message component, rendered for each message in the chat -->
       <Message 
         v-for="message in chat?.messages || []" 
         :key="message.messageId"
@@ -23,6 +27,7 @@
       />
     </div>
     
+    <!-- Chat input component for sending messages and handling reply state -->
     <ChatInput 
       :conversationId="conversationPreview.conversationId" 
       :replyToMessage="replyingTo"
@@ -30,7 +35,7 @@
       @messageSent="fetchChat(conversationPreview.conversationId)"
     />
     
-    <!-- Emoji Picker Modal -->
+    <!-- Emoji picker modal, displayed when the emoji picker is opened -->
     <EmojiPicker
       :isVisible="showEmojiPicker"
       :position="emojiPickerPosition"
@@ -38,6 +43,8 @@
       @selectEmoji="handleEmojiSelect"
     />
   </div>
+  
+  <!-- Placeholder message displayed when no conversation is selected -->
   <div v-else class="no-conversation">
     <p>Please select a conversation to start chatting.</p>
   </div>
@@ -70,12 +77,10 @@ const isLoading = ref(false);
 const pollingInterval = ref(null);
 const POLLING_DELAY = 2000;
 
-// Emoji picker state
 const showEmojiPicker = ref(false);
 const emojiPickerPosition = ref({ x: 0, y: 0 });
 const currentMessageId = ref(null);
 const currentConversationId = ref(null);
-// Handle group updates
 
 const handleLeftGroup = () => {
   stopPolling();
@@ -88,7 +93,7 @@ const handleConversationModified = () => {
     emit('groupUpdated');
   }
 };
-// Fetch chat data when conversation is selected
+
 const fetchChat = async (conversationId) => {
   if (!conversationId) {
     chat.value = null;
@@ -104,23 +109,18 @@ const fetchChat = async (conversationId) => {
       },
     });
     
-    // Only update and scroll if we have new messages or first load
     const isFirstLoad = !chat.value;
     const hasNewMessages = chat.value && (
-      // Safely check if messages exists and compare lengths
       (chat.value?.messages?.length || 0) !== (response.data?.messages?.length || 0) || 
-      // Safely stringify messages with fallbacks to empty arrays
       JSON.stringify(chat.value?.messages || []) !== JSON.stringify(response.data?.messages || [])
     );
     
     chat.value = response.data;
     
-    // Ensure chat.value.messages exists (initialize as empty array if undefined)
     if (!chat.value.messages) {
       chat.value.messages = [];
     }
     
-    // Scroll to bottom after messages are rendered if there are new messages or first load
     if (isFirstLoad || hasNewMessages) {
       await nextTick();
       scrollToBottom();
@@ -128,18 +128,14 @@ const fetchChat = async (conversationId) => {
     
   } catch (error) {
     console.error('Error fetching chat:', error);
-    // Don't reset chat on error to maintain existing messages
   } finally {
     isLoading.value = false;
   }
 };
 
-// Start polling for new messages
 const startPolling = () => {
-  // Clear any existing interval first
   stopPolling();
   
-  // Start new polling interval
   if (props.conversationPreview?.conversationId) {
     pollingInterval.value = setInterval(() => {
       fetchChat(props.conversationPreview.conversationId);
@@ -147,7 +143,6 @@ const startPolling = () => {
   }
 };
 
-// Stop polling
 const stopPolling = () => {
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value);
@@ -155,15 +150,12 @@ const stopPolling = () => {
   }
 };
 
-// Handle reaction updates
 const handleMessageModified = () => {
-  // Refresh chat data to get updated reactions
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
   }
 };
 
-// Helper functions
 const getReplyToMessage = (replyToId) => {
   if (!replyToId || !chat.value?.messages) return null;
   return chat.value.messages.find(msg => msg.messageId === replyToId) || null;
@@ -177,7 +169,6 @@ const clearReplyState = () => {
   replyingTo.value = null;
 };
 
-// Emoji picker handlers
 const handleOpenEmojiPicker = (data) => {
   currentMessageId.value = data.messageId;
   currentConversationId.value = data.conversationId;
@@ -223,23 +214,18 @@ const scrollToBottom = () => {
   }
 };
 
-// Watch for conversation changes
 watch(() => props.conversationPreview?.conversationId, (newId, oldId) => {
-  // Stop previous polling
   stopPolling();
   
   if (newId) {
     fetchChat(newId);
-    // Start polling for the new conversation
     startPolling();
   } else {
     chat.value = null;
   }
-  // Clear reply state when switching conversations
   replyingTo.value = null;
 });
 
-// Fetch chat on component mount if conversation is already selected
 onMounted(() => {
   if (props.conversationPreview?.conversationId) {
     fetchChat(props.conversationPreview.conversationId);
@@ -247,7 +233,6 @@ onMounted(() => {
   }
 });
 
-// Clean up polling when component is unmounted
 onUnmounted(() => {
   stopPolling();
 });
@@ -302,7 +287,6 @@ onUnmounted(() => {
   background-color: #f8f9fa;
 }
 
-/* Loading state */
 .chat-messages:empty::before {
   content: 'Messages will appear here';
   display: flex;

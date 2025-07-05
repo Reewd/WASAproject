@@ -1,19 +1,11 @@
-# Create a first temporary image named "builder"
- FROM golang:1.23.9 AS builder
- # Copy Go code (in "builder")
- WORKDIR /src/
- COPY . .
- # Build executables (in "builder")
- RUN go build -o /app/webapi ./cmd/webapi
+FROM golang:1.23.9 AS builder
+WORKDIR /src/
+COPY . .
+RUN go build -o /app/webapi ./cmd/webapi
 
-
- # Create final container
- FROM debian:bookworm
- EXPOSE 3000
- # Copy the executable from the "builder" image
- WORKDIR /app/
- COPY --from=builder /app/webapi ./
- # Also copy the schema file from the builder container
- COPY --from=builder /src/service/database/initdb.sql ./service/database/initdb.sql
- # Set the default program to our Go backend
- CMD ["/app/webapi"]
+FROM debian:bookworm
+EXPOSE 3000
+WORKDIR /app/
+COPY --from=builder /app/webapi ./
+COPY --from=builder /src/service/database/initdb.sql ./service/database/initdb.sql
+CMD ["/app/webapi"]

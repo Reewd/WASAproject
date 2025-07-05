@@ -33,7 +33,7 @@ const handleGroupUpdated = () => {
 const handleLeftGroup = () => {
   console.log('User left group, deselecting conversation');
   selectedConversation.value = null; // Deselect the current conversation
-  // Optionally, you can also refresh the conversation list
+  // Call the fetchConversations method to refresh the list
   conversationBarRef.value?.fetchConversations();
 };
 </script>
