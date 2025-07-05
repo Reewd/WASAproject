@@ -70,9 +70,6 @@
               Create Group Conversation
             </label>
           </div>
-          <p class="checkbox-hint">
-            {{ isGroup ? 'Group conversations allow multiple participants' : 'Private conversation with selected user(s)' }}
-          </p>
         </div>
 
         <!-- Group Name Section (only for groups) -->
@@ -123,7 +120,7 @@ import { useImageUrl } from '../composables/useImageUrl.js';
 import { useValidation } from '../composables/useValidation.js';
 import userDefaultIcon from "/assets/icons/user-default.png";
 
-const { getCurrentUserId } = useAuth();
+const { user : currentUser} = useAuth();
 const { getImageUrl } = useImageUrl();
 const { useGroupNameValidation } = useValidation();
 
@@ -148,7 +145,7 @@ const { groupName, groupNameError, validateGroupName, isGroupNameValid } = useGr
 const filteredUsers = computed(() =>
   users.value.filter((user) => 
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) && 
-    user.userId !== getCurrentUserId()
+    user.userId !== currentUser.value.userId
   )
 );
 
@@ -163,7 +160,7 @@ const fetchUsers = async () => {
   try {
     const response = await axios.get('/users', {
       headers: {
-        Authorization: getCurrentUserId(),
+        Authorization: currentUser.value.userId,
       },
     });
     users.value = Array.isArray(response.data.users) ? response.data.users : [];
@@ -220,7 +217,7 @@ const createConversation = async () => {
     }
   }
 
-  const userId = getCurrentUserId();
+  const userId = currentUser.value.userId;
   if (!userId) {
     console.error('User ID not found');
     alert('Authentication error. Please try again.');
@@ -473,13 +470,13 @@ onMounted(() => {
 .checkbox-container {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .group-checkbox {
   margin-right: 10px;
   width: 18px;
   height: 18px;
+  cursor: pointer;
 }
 
 .checkbox-label {
@@ -487,13 +484,6 @@ onMounted(() => {
   font-weight: 500;
   color: #333;
   cursor: pointer;
-}
-
-.checkbox-hint {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-  font-style: italic;
 }
 
 .group-name-section {
