@@ -357,7 +357,7 @@ const getStatusIcon = (status) => {
     hyphens: auto;
     
     /* Ensure no horizontal overflow */
-    overflow-x: hidden;
+    overflow-x: visible;
     box-sizing: border-box;
 }
 
