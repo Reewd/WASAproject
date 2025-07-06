@@ -82,28 +82,26 @@ const selectedCategory = ref('smileys');
 
 // Get all emojis for the selected category or search results
 const filteredEmojis = computed(() => {
-  let emojis = [];
-
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase();
-
-    // Search across all categories
-    categories.forEach(category => {
-      emojis.push(
-        ...category.emojis.filter(emoji => {
-          const name = getEmojiName(emoji).toLowerCase();
-          return name.includes(query);
-        })
-      );
-    });
-  } else {
-    // Show emojis from the selected category if no search query
-    const currentCategory = categories.find(cat => cat.name === selectedCategory.value);
-    emojis = currentCategory ? currentCategory.emojis : [];
+  const raw = searchQuery.value.trim().toLowerCase();
+  if (!raw) {
+    const cat = categories.find(c => c.name === selectedCategory.value);
+    return cat?.emojis ?? [];
   }
-
-  return emojis;
+  return categories.flatMap(cat =>
+    cat.emojis.filter(e =>
+      getEmojiName(e).toLowerCase().includes(raw)
+    )
+  );
 });
+
+const getEmojiName = (emoji) => {
+  return emojiNames[emoji] || emoji;
+};
+
+const selectEmoji = (emoji) => {
+  emits('selectEmoji', emoji);
+  emits('close');
+};
 
 // Container positioning styles
 const containerStyle = computed(() => {
@@ -122,16 +120,6 @@ const containerStyle = computed(() => {
     zIndex: 10000
   };
 });
-
-const getEmojiName = (emoji) => {
-  return emojiNames[emoji] || emoji;
-};
-
-const selectEmoji = (emoji) => {
-  emits('selectEmoji', emoji);
-  emits('close');
-};
-
 onMounted(() => {
   // Set initial category
   selectedCategory.value = 'smileys';
@@ -252,7 +240,7 @@ onMounted(() => {
   padding: 8px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 2px;
   overflow-y: auto;
   flex: 1;
   max-height: 180px;
