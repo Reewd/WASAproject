@@ -227,11 +227,6 @@ const handleReply = (message) => {
 	emits("reply", message);
 };
 
-const handleCopy = (message) => {
-	console.log("Copy message:", message);
-	// Copy logic would go here
-};
-
 const handleDelete = async (message) => {
     try {
         await axios.delete(
