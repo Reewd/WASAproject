@@ -108,7 +108,6 @@
 			:message="message"
 			@close="hideContextMenu"
 			@reply="handleReply"
-			@copy="handleCopy"
 			@forward="handleForward"
 			@delete="handleDelete"
 		/>
