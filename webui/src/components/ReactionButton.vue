@@ -20,10 +20,6 @@
 import { ref } from 'vue';
 
 const props = defineProps({
-  message: {
-    type: Object,
-    required: true,
-  },
   isOwnMessage: {
     type: Boolean,
     default: false,
@@ -46,10 +42,7 @@ const handleButtonClick = (event) => {
     y: rect.top
   };
   
-  emits('openEmojiPicker', {
-    messageId: props.message.messageId,
-    position: position
-  });
+  emits('openEmojiPicker', position);
 };
 </script>
 

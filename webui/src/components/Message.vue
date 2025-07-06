@@ -20,7 +20,6 @@
 			<div :class="['message-bubble', { 'own-bubble': isOwnMessage }]">
 				<!-- Reaction Button (shows on hover) -->
 				<ReactionButton
-					:message="message"
 					:isOwnMessage="isOwnMessage"
 					:conversationId="conversationId"
 					@openEmojiPicker="handleOpenEmojiPicker"
@@ -266,10 +265,10 @@ const handleDelete = async (message) => {
 };
 
 // Handle emoji picker open request
-const handleOpenEmojiPicker = (data) => {
+const handleOpenEmojiPicker = (position) => {
 	emits("openEmojiPicker", {
-		messageId: data.messageId,
-		position: data.position,
+		messageId: props.message.messageId,
+		position: position,
 		conversationId: props.conversationId,
 	});
 };
