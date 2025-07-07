@@ -7,54 +7,15 @@
       </div>
 
       <div class="modal-body">
-        <!-- Search Section -->
-        <div class="search-section">
-          <label for="userSearch">Search Users:</label>
-          <input
-            id="userSearch"
-            type="text"
-            v-model="searchQuery"
-            placeholder="Search users..."
-            class="search-input"
-          />
-        </div>
-
         <!-- Users List Section -->
         <div class="users-section">
           <h3>Select Users ({{ selectedUsers.length }} selected)</h3>
           
-          <div class="users-list">
-            <div
-              v-for="user in filteredUsers"
-              :key="user.userId"
-              @click="toggleUserSelection(user)"
-              :class="{ selected: isUserSelected(user) }"
-              class="user-item"
-            >
-              <img
-                :src="getUserPhotoUrl(user)"
-                :alt="`${user.username}'s photo`"
-                class="user-photo"
-              />
-              <span class="user-name">{{ user.username }}</span>
-              <span v-if="isUserSelected(user)" class="selected-badge">✓</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Selected Users Preview -->
-        <div v-if="selectedUsers.length > 0" class="selected-users">
-          <h4>Selected Users:</h4>
-          <div class="selected-list">
-            <span 
-              v-for="user in selectedUsers" 
-              :key="user.userId"
-              class="selected-user"
-            >
-              {{ user.username }}
-              <button @click="removeSelectedUser(user)" class="remove-selected">✕</button>
-            </span>
-          </div>
+          <UserSelection
+            :initialSelectedUsers="selectedUsers"
+            :allowMultiple="true"
+            @update:selectedUsers="handleSelectedUsersUpdate"
+          />
         </div>
 
         <!-- Conversation Type Section -->
@@ -116,12 +77,10 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from '../services/axios.js';
 import { useAuth } from "../composables/useAuth.js";
-import { useImageUrl } from '../composables/useImageUrl.js';
 import { useValidation } from '../composables/useValidation.js';
-import userDefaultIcon from "/assets/icons/user-default.png";
+import UserSelection from '../components/UserSelection.vue';
 
 const { user : currentUser} = useAuth();
-const { getImageUrl } = useImageUrl();
 const { useGroupNameValidation } = useValidation();
 
 const emits = defineEmits(['close', 'conversationCreated']);
@@ -132,8 +91,6 @@ const props = defineProps({
   }
 });
 // Reactive data
-const searchQuery = ref('');
-const users = ref([]);
 const selectedUsers = ref([]);
 const isGroup = ref(false);
 
@@ -141,14 +98,6 @@ const isGroup = ref(false);
 const { groupName, groupNameError, validateGroupName, isGroupNameValid } = useGroupNameValidation();
 
 // Computed properties
-
-const filteredUsers = computed(() =>
-  users.value.filter((user) => 
-    user.username.toLowerCase().includes(searchQuery.value.toLowerCase()) && 
-    user.userId !== currentUser.value.userId
-  )
-);
-
 const canCreateConversation = computed(() => {
   if (selectedUsers.value.length === 0) return false;
   if (isGroup.value && (!groupName.value.trim() || !isGroupNameValid.value)) return false;
@@ -156,50 +105,15 @@ const canCreateConversation = computed(() => {
 });
 
 // Methods
-const fetchUsers = async () => {
-  try {
-    const response = await axios.get('/users', {
-      headers: {
-        Authorization: currentUser.value.userId,
-      },
-    });
-    users.value = Array.isArray(response.data.users) ? response.data.users : [];
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    users.value = [];
-  }
-};
-
-const getUserPhotoUrl = (user) => {
-  if (user.photo?.path) {
-    return getImageUrl(user.photo.path);
-  }
-  return userDefaultIcon;
-};
-
-const isUserSelected = (user) => {
-  return selectedUsers.value.some(selectedUser => selectedUser.userId === user.userId);
-};
-
-const toggleUserSelection = (user) => {
-  const index = selectedUsers.value.findIndex(selectedUser => selectedUser.userId === user.userId);
-  if (index !== -1) {
-    selectedUsers.value.splice(index, 1);
-  } else {
-    selectedUsers.value.push(user);
-  }
+const handleSelectedUsersUpdate = (selectedUsersList) => {
+  selectedUsers.value = selectedUsersList;
   
   // Automatically set isGroup to true if more than 1 user is selected
   if (selectedUsers.value.length > 1 && !isGroup.value) {
     isGroup.value = true;
   }
-};
-
-const removeSelectedUser = (user) => {
-  selectedUsers.value = selectedUsers.value.filter((selectedUser) => selectedUser.userId !== user.userId);
-  
   // If only 1 or no users left, set to private conversation
-  if (selectedUsers.value.length <= 1) {
+  else if (selectedUsers.value.length <= 1) {
     isGroup.value = false;
   }
 };
@@ -252,7 +166,7 @@ const closeModal = () => {
 
 // Lifecycle
 onMounted(() => {
-  fetchUsers();
+  // No need to fetch users anymore - UserSelection handles this
 });
 </script>
 
@@ -315,32 +229,6 @@ onMounted(() => {
   padding: 20px;
 }
 
-.search-section {
-  margin-bottom: 20px;
-}
-
-.search-section label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #333;
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #007aff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
 .users-section {
   margin-bottom: 20px;
 }
@@ -349,115 +237,6 @@ onMounted(() => {
   margin: 0 0 15px 0;
   font-size: 18px;
   color: #333;
-}
-
-.users-list {
-  max-height: 250px;
-  overflow-y: auto;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.user-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.user-item:last-child {
-  border-bottom: none;
-}
-
-.user-item:hover {
-  background-color: #f8f9fa;
-}
-
-.user-item.selected {
-  background-color: #e3f2fd;
-  border-color: #007aff;
-}
-
-.user-photo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 12px;
-  object-fit: cover;
-  border: 2px solid #ddd;
-}
-
-.user-item.selected .user-photo {
-  border-color: #007aff;
-}
-
-.user-name {
-  flex: 1;
-  font-size: 16px;
-  color: #333;
-  font-weight: 500;
-}
-
-.selected-badge {
-  background-color: #007aff;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: bold;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.selected-users {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.selected-users h4 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-  color: #333;
-}
-
-.selected-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.selected-user {
-  display: inline-flex;
-  align-items: center;
-  background-color: #e3f2fd;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #1976d2;
-  font-weight: 500;
-}
-
-.remove-selected {
-  background: none;
-  border: none;
-  color: #1976d2;
-  cursor: pointer;
-  margin-left: 6px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.remove-selected:hover {
-  color: #d32f2f;
 }
 
 .conversation-type-section {

@@ -93,17 +93,17 @@ const selectedUsers = ref([...props.initialSelectedUsers]);
 // Current username to exclude from the list
 
 const availableUsers = computed(() => {
-	return allUsers.value.filter((user) => {
+	return allUsers.value.filter((userItem) => {
 		const matchesSearch =
 			searchQuery.value.trim() === "" ||
-			user.username
+			userItem.username
 				.toLowerCase()
 				.includes(searchQuery.value.toLowerCase());
 
-		const isNotCurrentUser = user.userId !== user.value.userId;
+		const isNotCurrentUser = userItem.userId !== user.value.userId;
 
 		const isNotExcluded = !props.excludeUsers.some(
-			(excludedUser) => excludedUser.userId === user.userId
+			(excludedUser) => excludedUser.userId === userItem.userId
 		);
 
 		return matchesSearch && isNotCurrentUser && isNotExcluded;
