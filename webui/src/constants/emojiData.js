@@ -346,7 +346,7 @@ export const emojiNames = {
   '🥓': 'bacon',
   '🥩': 'cut of meat',
   '🍗': 'poultry leg',
-  // (🦴 bone appears in “gestures”)
+  '🍖': 'meat on bone',
   '🌭': 'hot dog',
   '🍔': 'hamburger',
   '🍟': 'french fries',
