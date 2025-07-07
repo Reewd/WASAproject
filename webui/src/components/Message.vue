@@ -326,7 +326,7 @@ const getStatusIcon = (status) => {
 	flex-direction: column;
 	align-items: flex-start;
 	position: relative;
-	width: 100%; /* Add this */
+	width: 100%;
 }
 
 .message-container.own-message .message-wrapper {
@@ -334,24 +334,20 @@ const getStatusIcon = (status) => {
 }
 
 .message-bubble {
-    min-width: 100px;
-    max-width: min(400px, 75%);
-    width: fit-content;
-    background-color: #e5e5ea;
-    border-radius: 18px;
-    padding: 12px 16px;
-    position: relative;
-    transition: transform 0.1s ease;
-    
-    /* Enhanced word wrapping properties */
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    hyphens: auto;
-    
-    /* Ensure no horizontal overflow */
-    overflow-x: visible;
-    box-sizing: border-box;
+	min-width: 100px;
+	max-width: min(400px, 75%);
+	width: fit-content;
+	background-color: #e5e5ea;
+	border-radius: 18px;
+	padding: 12px 16px;
+	position: relative;
+	transition: transform 0.1s ease;
+	word-wrap: break-word;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+	hyphens: auto;
+	overflow-x: visible;
+	box-sizing: border-box;
 }
 
 .message-bubble.own-bubble {
@@ -381,7 +377,7 @@ const getStatusIcon = (status) => {
 	padding: 8px;
 	margin-bottom: 8px;
 	border-left: 3px solid #007aff;
-	width: 100%; /* Ensure reply container takes full bubble width */
+	width: 100%;
 	box-sizing: border-box;
 	word-wrap: break-word;
 	overflow: hidden;
@@ -418,19 +414,19 @@ const getStatusIcon = (status) => {
 
 .reply-text-content {
 	flex: 1;
-	min-width: 0; /* Allows text to shrink and wrap if needed */
+	min-width: 0;
 }
 
 .message-content {
 	display: flex;
 	flex-direction: column;
-	width: 100%; /* Ensure content takes full bubble width */
+	width: 100%;
 }
 
 .message-photo {
-	max-width: 300px; /* Increase photo max width */
+	max-width: 300px;
 	max-height: 300px;
-	min-width: 150px; /* Add minimum width for photos */
+	min-width: 150px;
 	border-radius: 12px;
 	margin-bottom: 8px;
 	object-fit: cover;
@@ -439,9 +435,9 @@ const getStatusIcon = (status) => {
 .message-text {
 	margin: 0;
 	font-size: 16px;
-	line-height: 1.4; /* Slightly increase line height */
+	line-height: 1.4;
 	word-wrap: break-word;
-	white-space: pre-wrap; /* Preserve whitespace and line breaks */
+	white-space: pre-wrap;
 }
 
 .message-metadata {
@@ -451,7 +447,7 @@ const getStatusIcon = (status) => {
 	margin-top: 4px;
 	font-size: 11px;
 	opacity: 0.7;
-	width: 100%; /* Ensure metadata spans full width */
+	width: 100%;
 }
 
 .timestamp {

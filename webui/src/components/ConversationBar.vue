@@ -161,48 +161,48 @@ defineExpose({
 }
 
 .resize-handle {
-	width: 5px; /* Set a visible width */
+	width: 5px;
 	height: 100%;
 	position: absolute;
 	top: 0;
 	right: 0;
-	background-color: transparent; /* Make it invisible but still clickable */
-	cursor: ew-resize; /* Show resize cursor */
+	background-color: transparent;
+	cursor: ew-resize;
 }
 
 .resize-handle:hover {
-	background-color: #ccc; /* Highlight the handle on hover */
+	background-color: #ccc;
 }
 
 .new-conversation-button {
 	position: absolute;
 	top: 10px;
 	right: 10px;
-	background: none; /* Removes background color */
-	border: none; /* Removes border */
+	background: none;
+	border: none;
 	cursor: pointer;
-	padding: 0; /* Removes padding */
-	width: 40px; /* Set width for circular shape */
-	height: 40px; /* Set height for circular shape */
-	border-radius: 50%; /* Makes the button circular */
-	display: flex; /* Centers the image */
-	align-items: center; /* Centers the image */
-	justify-content: center; /* Centers the image */
-	transition: box-shadow 0.3s ease; /* Smooth shadow transition */
+	padding: 0;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: box-shadow 0.3s ease;
 }
 
 .new-conversation-button:hover {
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Adds circular shadow on hover */
-	opacity: 0.8; /* Slightly darkens the button on hover */
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+	opacity: 0.8;
 }
 
 .new-conversation-button img {
-	width: 24px; /* Adjust image size */
-	height: 24px; /* Adjust image size */
+	width: 24px;
+	height: 24px;
 }
 
 .selected {
-	background-color: #333; /* Dark gray background */
-	color: #fff; /* White text for better contrast */
+	background-color: #333;
+	color: #fff;
 }
 </style>

@@ -20,20 +20,17 @@ import Chat from "@/components/Chat.vue";
 
 import { ref } from "vue";
 
-const selectedConversation = ref(null); // State to store the selected conversation
-const conversationBarRef = ref(null); // Reference to the ConversationBar component
+const selectedConversation = ref(null);
+const conversationBarRef = ref(null);
 
-// Handler for groupUpdated event from Chat
 const handleGroupUpdated = () => {
   console.log('Group updated, refreshing conversations list');
-  // Call the fetchConversations method on the ConversationBar component
   conversationBarRef.value?.fetchConversations();
 };
 
 const handleLeftGroup = () => {
   console.log('User left group, deselecting conversation');
-  selectedConversation.value = null; // Deselect the current conversation
-  // Call the fetchConversations method to refresh the list
+  selectedConversation.value = null;
   conversationBarRef.value?.fetchConversations();
 };
 </script>

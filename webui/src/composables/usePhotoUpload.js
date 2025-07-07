@@ -8,25 +8,19 @@ export function usePhotoUpload() {
   const selectedPhoto = ref(null)
   const isUploading = ref(false)
   
-  // Create preview URL for selected photo
   const photoPreviewUrl = computed(() => {
     return selectedPhoto.value ? URL.createObjectURL(selectedPhoto.value) : null
   })
   
-  // Check if a photo is selected
   const hasSelectedPhoto = computed(() => selectedPhoto.value !== null)
   
   const validateFile = (file) => {
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       throw new Error('Please select a valid image file')
     }
-    
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       throw new Error('File size must be less than 10MB')
     }
-    
     return true
   }
   
@@ -41,7 +35,6 @@ export function usePhotoUpload() {
         return
       }
     }
-    // Reset input value to allow selecting the same file again
     event.target.value = ''
   }
   
@@ -87,7 +80,7 @@ export function usePhotoUpload() {
     
     try {
       const photoData = await uploadPhoto(selectedPhoto.value)
-      removePhoto() // Clear selected photo after successful upload
+      removePhoto()
       return photoData
     } catch (error) {
       console.error('Error uploading selected photo:', error)

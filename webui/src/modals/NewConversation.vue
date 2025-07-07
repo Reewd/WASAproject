@@ -163,10 +163,6 @@ const closeModal = () => {
   emits('close');
 };
 
-// Lifecycle
-onMounted(() => {
-  // No need to fetch users anymore - UserSelection handles this
-});
 </script>
 
 <style scoped>

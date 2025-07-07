@@ -29,10 +29,8 @@ import { useValidation } from '../composables/useValidation.js';
 const { useUsernameValidation } = useValidation();
 const emit = defineEmits(['loginSuccess']);
 
-// Use the validation composable
 const { username, usernameError, validateUsername, isUsernameValid } = useUsernameValidation();
 
-// Additional error state for login failures
 const loginError = ref('');
 
 const submit = async () => {
