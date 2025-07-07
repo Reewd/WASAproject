@@ -35,6 +35,12 @@ func (rt *_router) uploadImage(w http.ResponseWriter, r *http.Request, ps httpro
 		}
 	}()
 
+	if handler.Size > constraints.MaxFileSize {
+		ctx.Logger.Error("File too large")
+		http.Error(w, "File is too large. Maximum allowed size is 10MB.", http.StatusBadRequest)
+		return
+	}
+
 	// Validate MIME type
 	buffer := make([]byte, 512)
 	if _, err := file.Read(buffer); err != nil {

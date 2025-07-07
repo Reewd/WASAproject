@@ -13,6 +13,8 @@ const MinUsernameLength = 3
 const MaxMessageLength = 65536
 const MinMessageLength = 1
 
+const MaxFileSize = 10 * 1024 * 1024
+
 var AllowedMimeTypes = []string{
 	"image/jpeg",
 	"image/png",
