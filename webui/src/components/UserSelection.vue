@@ -112,13 +112,7 @@ const fetchUsers = async () => {
 				Authorization: user.value.userId,
 			},
 		});
-
-		if (Array.isArray(response.data.users)) {
-			allUsers.value = response.data.users;
-		} else {
-			console.error("Expected users array but got:", response.data);
-			allUsers.value = [];
-		}
+		allUsers.value = response.data.users
 	} catch (error) {
 		console.error("Error fetching users:", error);
 		allUsers.value = [];
