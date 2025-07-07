@@ -12,7 +12,6 @@
           <h3>Select Users ({{ selectedUsers.length }} selected)</h3>
           
           <UserSelection
-            :initialSelectedUsers="selectedUsers"
             :allowMultiple="true"
             @update:selectedUsers="handleSelectedUsersUpdate"
           />

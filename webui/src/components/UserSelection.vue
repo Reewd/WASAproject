@@ -36,10 +36,10 @@
 		</div>
 
 		<!-- Selected Users Preview -->
-		<div v-if="selectedUsersList.length > 0" class="selected-users">
+		<div v-if="selectedUsers.length > 0" class="selected-users">
 			<div class="selected-list">
 				<span
-					v-for="user in selectedUsersList"
+					v-for="user in selectedUsers"
 					:key="user.userId || user.username"
 					class="selected-user"
 				>
@@ -72,11 +72,6 @@ const props = defineProps({
 		type: Array,
 		default: () => [],
 	},
-	// Pre-selected users
-	initialSelectedUsers: {
-		type: Array,
-		default: () => [],
-	},
 	allowMultiple: {
 		type: Boolean,
 		default: true,
@@ -88,7 +83,7 @@ const emit = defineEmits(["update:selectedUsers"]);
 // State
 const searchQuery = ref("");
 const allUsers = ref([]);
-const selectedUsers = ref([...props.initialSelectedUsers]);
+const selectedUsers = ref([]);
 
 // Current username to exclude from the list
 
@@ -129,10 +124,6 @@ const fetchUsers = async () => {
 		allUsers.value = [];
 	}
 };
-
-const selectedUsersList = computed(() => {
-	return selectedUsers.value;
-});
 
 const getUserPhotoUrl = (user) => {
 	if (user.photo?.path) {
