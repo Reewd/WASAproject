@@ -53,7 +53,6 @@ const props = defineProps({
 	},
 });
 
-// Find the other participant in private conversations
 const otherParticipant = computed(() => {
 	if (props.conversation.isGroup) return null;
 
@@ -64,7 +63,6 @@ const otherParticipant = computed(() => {
 	);
 });
 
-// Compute the display name based on whether it's a group or private conversation
 const displayName = computed(() => {
 	if (props.conversation.isGroup) {
 		return props.conversation.name;
@@ -75,16 +73,13 @@ const displayName = computed(() => {
 	}
 });
 
-// Compute the photo URL based on conversation type
 const conversationPhotoUrl = computed(() => {
 	if (props.conversation.isGroup) {
-		// Group conversation - use group photo or default group icon
 		if (props.conversation.photo?.path) {
 			return getImageUrl(props.conversation.photo.path);
 		}
 		return groupDefaultIcon;
 	} else {
-		// Private conversation - use other participant's photo or default user icon
 		if (otherParticipant.value?.photo?.path) {
 			return getImageUrl(otherParticipant.value.photo.path);
 		}
