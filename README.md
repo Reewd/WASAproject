@@ -12,8 +12,8 @@ A modern, real-time messaging application built as part of the **Web and Softwar
 ### Core Messaging
 - **Real-time messaging** with automatic polling for instant updates
 - **Private conversations** between two users
-- **Group chats** with unlimited participants
-- **Message replies** and threading support
+- **Group chats**
+- **Message replies**
 - **Message forwarding** across conversations
 - **Message reactions** with emoji support
 - **Media sharing** (image upload and display)
@@ -22,9 +22,8 @@ A modern, real-time messaging application built as part of the **Web and Softwar
 - **Intuitive chat interface** with modern design
 - **Conversation management** with preview and search
 - **Group administration** (add/remove participants, change names)
-- **User profiles** with customizable photos
-- **Responsive design** for desktop and mobile
-- **Real-time status indicators** (sent, delivered, read)
+- **User profiles** with customizable profile pictures
+- **Real-time status indicators** (delivered, read)
 
 ### Technical Features
 - **RESTful API** with comprehensive OpenAPI documentation
@@ -98,6 +97,10 @@ yarn run dev
 ```bash
 # Build for production
 ./open-node.sh
+# Inside the container:
+yarn run build-prod
+
+# Build Go binary with embedded frontend
 # Inside the container:
 yarn run build-prod
 
@@ -193,7 +196,7 @@ The Vue.js frontend uses a component-based architecture:
 SQLite database with optimized schema for:
 - Users and authentication
 - Conversations (private and group)
-- Messages with threading support
+- Messages
 - Reactions and media attachments
 - Read receipts and delivery status
 
@@ -210,10 +213,19 @@ SQLite database with optimized schema for:
 # Backend development
 go run ./cmd/webapi/
 go test ./...
+go test ./...
 
+# Frontend development
 # Frontend development
 ./open-node.sh
 yarn run dev
+
+# Database migrations
+# Automatic schema updates on startup
+
+# Dependency management
+go mod tidy && go mod vendor
+yarn install --immutable
 
 # Database migrations
 # Automatic schema updates on startup
@@ -231,12 +243,6 @@ yarn install --immutable
 - **Authentication and authorization** flows
 - **Real-time updates** and polling mechanisms
 - **Media upload and serving** functionality
-
-### Performance Optimizations
-- **Database indexing** for conversation and message queries
-- **Efficient polling** with smart update detection
-- **Image optimization** and caching
-- **Minimal bundle size** with tree-shaking
 
 ## 🎯 Key Learning Outcomes
 
@@ -298,6 +304,7 @@ The original template is licensed under the MIT License. All modifications and e
 ## 🙏 Acknowledgments
 
 - **Enrico Bassetti** - Original "Fantastic Coffee (Decaffeinated)" template
+- **Emanuale Panizzi** - Course instructor
 - **Sapienza University of Rome** - Web and Software Architecture course
 - **Course instructors** for providing the project framework and guidance
 - **Go community** for excellent tooling and libraries
